@@ -1,0 +1,53 @@
+LAA Legal Adviser API
+=====================
+
+Service to search for LAA Legal Advisers by lat/lon.
+
+Dependencies
+------------
+
+ * [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+ * [boot2docker](http://boot2docker.io/)
+ * [Fig](http://www.fig.sh/)
+
+Installation
+------------
+
+Enter the following commands into your shell (you can cut and paste this):
+
+```sh
+# Create boot2docker VM
+boot2docker init
+
+# Start VM
+boot2docker start
+
+# Set up environment variables
+$(boot2docker shellinit)
+
+# Build the Docker images with Fig
+fig build
+```
+
+Start
+-----
+
+Add the following line to `/etc/hosts`:
+
+```text
+192.168.59.103 boot2docker
+```
+
+Add the following line to `~/.bashrc`:
+
+```sh
+export DOCKER_HOST=tcp://boot2docker:2376
+```
+
+Start the servers by entering the following command:
+
+```sh
+fig up
+```
+
+The API should now be accessible at http://boot2docker:8000/
