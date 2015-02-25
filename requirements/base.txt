@@ -1,0 +1,4 @@
+django==1.7.4
+psycopg2==2.6
+djangorestframework==3.0.5
+raven==5.2.0

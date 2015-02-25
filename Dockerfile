@@ -10,7 +10,8 @@ RUN add-apt-repository -y ppa:nginx/stable
 RUN apt-get update && \
     apt-get install -y \
         build-essential git python python-dev python-setuptools python-pip \
-        supervisor curl nginx libpq-dev ntp libproj-dev binutils gdal-bin
+        supervisor curl nginx libpq-dev ntp libproj-dev binutils gdal-bin \
+        postgis postgresql-9.3-postgis-scripts
 
 RUN service nginx stop && rm /etc/init.d/nginx
 
@@ -26,6 +27,7 @@ ADD ./conf/nginx/sites-enabled /etc/nginx/sites-enabled
 ADD ./conf/supervisor /etc/supervisor
 
 ADD ./requirements.txt /app/requirements.txt
+ADD ./requirements /app/requirements
 RUN pip install -r requirements.txt
 
 ADD . /app
