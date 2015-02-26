@@ -44,6 +44,14 @@ Add the following line to `~/.bashrc`:
 export DOCKER_HOST=tcp://boot2docker:2376
 ```
 
+On the **first run only**, enter the following commands to prepare the database:
+
+```sh
+fig run django python manage.py migrate
+fig run django python manage.py createsuperuser --username=admin
+fig run django python manage.py loaddata legal_advisers.json
+```
+
 Start the servers by entering the following command:
 
 ```sh
