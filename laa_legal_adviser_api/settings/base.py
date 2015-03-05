@@ -39,7 +39,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
 
-    'api'
+    'rest_framework',
+
+    'advisers'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -89,3 +91,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+
+REST_FRAMEWORK = {
+    'PAGINATE_BY': 10
+}
