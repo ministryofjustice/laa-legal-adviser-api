@@ -28,7 +28,7 @@ class Location(models.Model):
 
 class Office(models.Model):
     telephone = models.CharField(max_length=48)
-    account_number = models.CharField(max_length=10)
+    account_number = models.CharField(max_length=10, unique=True)
     organisation = models.ForeignKey('Organisation')
     location = models.ForeignKey('Location')
 
