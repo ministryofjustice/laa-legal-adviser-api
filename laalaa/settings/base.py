@@ -1,5 +1,5 @@
 """
-Django settings for laa_legal_adviser_api project.
+Django settings for laalaa project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
@@ -13,7 +13,7 @@ import os
 import sys
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_DIR = os.path.join(BASE_DIR, '../')
-sys.path.insert(0, os.path.join(PROJECT_DIR, 'laa_legal_adviser_api/apps'))
+sys.path.insert(0, os.path.join(PROJECT_DIR, 'laalaa/apps'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -54,9 +54,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'laa_legal_adviser_api.urls'
+ROOT_URLCONF = 'laalaa.urls'
 
-WSGI_APPLICATION = 'laa_legal_adviser_api.wsgi.application'
+WSGI_APPLICATION = 'laalaa.wsgi.application'
 
 
 # Database
@@ -65,7 +65,7 @@ WSGI_APPLICATION = 'laa_legal_adviser_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'laa_legal_adviser_api',
+        'NAME': 'laalaa',
         'USER': os.environ.get('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
         'HOST': os.environ.get('POSTGRES_HOST', ''),

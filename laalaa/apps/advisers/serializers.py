@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from .models import office
+from .models import Office
 
 
 class OfficeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Office
-        fields = ('address', 'city', 'postcode', 'phone', 'lat', 'lon')
+        fields = ('organisation', 'account_number', 'telephone', 'location')

@@ -44,18 +44,18 @@ Add the following line to `~/.bashrc`:
 export DOCKER_HOST=tcp://boot2docker:2376
 ```
 
+Start the servers by entering the following command:
+
+```sh
+fig up
+```
+
 On the **first run only**, enter the following commands to prepare the database:
 
 ```sh
 fig run django python manage.py migrate
 fig run django python manage.py createsuperuser --username=admin
 fig run django python manage.py loaddata legal_advisers.json
-```
-
-Start the servers by entering the following command:
-
-```sh
-fig up
 ```
 
 The API should now be accessible at http://boot2docker:8000/
