@@ -20,10 +20,28 @@ class Location(models.Model):
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=48)
     postcode = models.CharField(max_length=16)
-    phone = models.CharField(max_length=32)
     point = models.PointField()
 
     objects = models.GeoManager()
+
+    def __str__(self):
+        return ', '.join([
+            self.address.replace('\n', ', '),
+            self.city,
+            self.postcode])
+
+    def organisation(self):
+        if self.office_set.count():
+            return self.office_set.all()[0].organisation.name
+        if self.outreachservice_set.count():
+            return self.outreachservice_set.all()[0].office.organisation.name
+
+    def location_type(self):
+        if self.office_set.count():
+            return 'Office'
+        elif self.outreachservice_set.count():
+            return self.outreachservice_set.all()[0].type.name
+        return ''
 
 
 class Office(models.Model):
