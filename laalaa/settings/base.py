@@ -95,3 +95,15 @@ STATIC_URL = '/static/'
 REST_FRAMEWORK = {
     'PAGINATE_BY': 10
 }
+
+ADDRESSFINDER_API_HOST = os.environ.get(
+    'ADDRESSFINDER_API_HOST',
+    'http://127.0.0.1:8003')
+ADDRESSFINDER_API_TOKEN = os.environ.get('ADDRESSFINDER_API_TOKEN', '')
+
+# .local.py overrides all the common settings.
+try:
+    from .local import *
+except ImportError:
+    pass
+

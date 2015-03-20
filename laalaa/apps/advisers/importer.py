@@ -5,6 +5,7 @@ from django.contrib.gis.geos import Point
 import xlrd
 
 from . import models
+from . import geocoder
 
 
 cache = {}
@@ -22,7 +23,7 @@ def location(addr1, addr2, addr3, city, pcode):
     location.address = '\n'.join(filter(None, [addr1, addr2, addr3]))
     location.city = city
     location.postcode = pcode
-    location.point = Point(0, 0)
+    location.point = geocoder.geocode(pcode)
     location.save()
     sys.stdout.write('o')
     sys.stdout.flush()
