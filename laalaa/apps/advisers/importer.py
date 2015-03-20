@@ -23,7 +23,9 @@ def location(addr1, addr2, addr3, city, pcode):
     location.address = '\n'.join(filter(None, [addr1, addr2, addr3]))
     location.city = city
     location.postcode = pcode
-    location.point = geocoder.geocode(pcode)
+    postcode = pcode.replace(' ', '').lower()
+    print postcode
+    location.point = geocoder.geocode(postcode)
     location.save()
     sys.stdout.write('o')
     sys.stdout.flush()
