@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Create laa_legal_adviser_api database"
+echo "Create laalaa database"
 gosu postgres postgres --single <<- EOSQL
-    CREATE DATABASE laa_legal_adviser_api TEMPLATE template_postgis;
+    CREATE DATABASE laalaa TEMPLATE template_postgis;
 EOSQL
