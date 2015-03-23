@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from advisers.importer import AdviserImport
+from advisers.importer import ImportShellRun
 
 
 class Command(BaseCommand):
@@ -13,8 +13,7 @@ class Command(BaseCommand):
             raise CommandError('Excel spreadsheet filename required')
 
         try:
-            importer = AdviserImport(args[0])
+            importer = ImportShellRun()
+            importer(args[0])
         except Exception as e:
             raise CommandError('Failed opening Excel spreadsheet: %s' % e)
-
-        importer.import_all()
