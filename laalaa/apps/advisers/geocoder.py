@@ -3,6 +3,16 @@ from django.contrib.gis.geos import Point
 import requests
 
 
+class GeocoderError(Exception):
+    pass
+
+
+class PostcodeNotFound(GeocoderError):
+    def __init__(self, postcode, *args, **kwargs):
+        super(PostcodeNotFound, self).__init__(*args, **kwargs)
+        self.postcode = postcode
+
+
 def geocode(postcode):
     try:
         response = requests.get(
@@ -17,8 +27,7 @@ def geocode(postcode):
             data = response.json()
             return Point(*data['coordinates'])
         except ValueError:
-            print 'WARNING: failed to geocode postcode %s' % postcode
-            return Point(0.0, 0.0)
+            raise PostcodeNotFound(postcode)
     except (requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout):
-        return Point(0.0, 0.0)
+            requests.exceptions.Timeout) as e:
+        raise GeocoderError(e)

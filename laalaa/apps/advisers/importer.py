@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import sys
 
 from django.contrib.gis.geos import Point
@@ -6,6 +7,9 @@ import xlrd
 
 from . import models
 from . import geocoder
+
+
+logging.basicConfig(filename='adviser_import.log', level=logging.WARNING)
 
 
 cache = {}
@@ -18,14 +22,31 @@ def cached(fn):
     return wrapped
 
 
-def location(addr1, addr2, addr3, city, pcode):
+@cached
+def geocode(postcode):
+    point = Point(0.0, 0.0)
+    try:
+        point = geocoder.geocode(postcode)
+    except geocoder.PostcodeNotFound:
+        logging.warn('Failed geocoding postcode: %s' % postcode)
+    except geocoder.GeocoderError as e:
+        logging.warn('Error connecting to geocoder: %s' % e)
+    return point
+
+
+def join(*args):
+    return '|'.join(args)
+
+@cached
+def location(address):
+    addr1, addr2, addr3, city, pcode = address.split('|')
     location = models.Location()
     location.address = '\n'.join(filter(None, [addr1, addr2, addr3]))
     location.city = city
     location.postcode = pcode
-    postcode = pcode.replace(' ', '').lower()
-    print postcode
-    location.point = geocoder.geocode(postcode)
+    postcode = pcode.encode('utf-8').replace(
+        u' ', u'').replace(u'\xa0', u'').lower()
+    location.point = geocode(postcode)
     location.save()
     sys.stdout.write('o')
     sys.stdout.flush()
@@ -97,12 +118,12 @@ class AdviserImport(object):
             office.telephone = data['Telephone Number']
             office.account_number = data['Account Number'].upper()
             office.organisation_id = data['Firm Number']
-            office.location = location(
+            office.location = location(join(
                 data['Address Line 1'],
                 data['Address Line 2'],
                 data['Address Line 3'],
                 data['City'],
-                data['Postcode'])
+                data['Postcode']))
             return office
 
         offices = map(office, self.sheet_to_dict(self.office_sheet))
@@ -122,12 +143,12 @@ class AdviserImport(object):
         def outreach(data):
             outreach = models.OutreachService()
             outreach.type = outreachtype(data['PT or Outreach Indicator'])
-            outreach.location = location(
+            outreach.location = location(join(
                 data['PT or Outreach Loc Address Line1'],
                 data['PT or Outreach Loc Address Line2'],
                 data['PT or Outreach Loc Address Line3'],
                 data['City (outreach)'],
-                data['PT or Outreach Loc Postcode'])
+                data['PT or Outreach Loc Postcode']))
             try:
                 outreach.office = models.Office.objects.get(
                     account_number=data['Account Number'].upper())
