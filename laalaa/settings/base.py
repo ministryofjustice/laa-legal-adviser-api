@@ -10,10 +10,14 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from os.path import join, abspath, dirname
 import sys
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-PROJECT_DIR = os.path.join(BASE_DIR, '../')
-sys.path.insert(0, os.path.join(PROJECT_DIR, 'laalaa/apps'))
+
+here = lambda *x: join(abspath(dirname(__file__)), *x)
+PROJECT_ROOT = here("..")
+root = lambda *x: join(abspath(PROJECT_ROOT), *x)
+
+sys.path.insert(0, root('apps'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -58,6 +62,9 @@ ROOT_URLCONF = 'laalaa.urls'
 
 WSGI_APPLICATION = 'laalaa.wsgi.application'
 
+TEMPLATE_DIRS = (
+    root('templates'),
+)
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
@@ -86,6 +93,12 @@ USE_L10N = True
 
 USE_TZ = True
 
+MEDIA_ROOT = root('uploads',)
+MEDIA_URL = '/uploads/'
+# 10MB
+MAX_UPLOAD_SIZE = 10485760
+# Force uploaded files to be written to disk
+FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/

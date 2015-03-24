@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
-import sys
+from threading import Thread
+from time import sleep
 
 from django.contrib.gis.geos import Point
 import xlrd
@@ -37,6 +38,7 @@ def geocode(postcode):
 def join(*args):
     return '|'.join(args)
 
+
 @cached
 def location(address):
     addr1, addr2, addr3, city, pcode = address.split('|')
@@ -44,26 +46,23 @@ def location(address):
     location.address = '\n'.join(filter(None, [addr1, addr2, addr3]))
     location.city = city
     location.postcode = pcode
-    postcode = pcode.encode('utf-8').replace(
-        u' ', u'').replace(u'\xa0', u'').lower()
+    postcode = pcode.replace(u' ', u'').lower()
     location.point = geocode(postcode)
     location.save()
-    sys.stdout.write('o')
-    sys.stdout.flush()
     return location
 
 
-def save(obj):
-    obj.save()
-    sys.stdout.write('.')
-    sys.stdout.flush()
-
-
-class AdviserImport(object):
+class ImportProcess(Thread):
     """
     Loads/Updates data from xsl spreadsheet
     """
+
     def __init__(self, path):
+        self.progress = {
+            'task': 'initializing',
+            'count': 0,
+            'total': 0}
+        super(ImportProcess, self).__init__()
         workbook = xlrd.open_workbook(path)
         self.organisation_sheet = workbook.sheet_by_name('LOCAL ADVICE ORG')
         self.office_sheet = workbook.sheet_by_name('OFFICE LOCATION')
@@ -79,9 +78,9 @@ class AdviserImport(object):
         headings = [cell.value for cell in worksheet.row(0)]
 
         def value(cell):
-            if isinstance(cell.value, float):
+            if cell.ctype == xlrd.XL_CELL_NUMBER:
                 return int(cell.value)
-            return cell.value
+            return cell.value.decode('utf8')
 
         def row(index):
             return dict(zip(headings, map(value, worksheet.row(index))))
@@ -90,6 +89,12 @@ class AdviserImport(object):
 
     def import_organisations(self):
         orgtypes = {}
+
+        rows = self.sheet_to_dict(self.organisation_sheet)
+        self.progress = {
+            'task': 'Importing organisations',
+            'total': len(rows),
+            'count': 0}
 
         @cached
         def orgtype(name):
@@ -105,13 +110,18 @@ class AdviserImport(object):
             org.website = data['Website']
             org.contracted = data['LA Contracted Status']
             org.type = orgtype(data['Type of Organisation'])
-            return org
+            org.save()
+            self.progress['count'] += 1
 
-        orgs = map(org, self.sheet_to_dict(self.organisation_sheet))
-        map(save, orgs)
-        print '\nSaved %d organisations' % len(orgs)
+        map(org, rows)
 
     def import_offices(self):
+
+        rows = self.sheet_to_dict(self.office_sheet)
+        self.progress = {
+            'task': 'Importing offices',
+            'total': len(rows),
+            'count': 0}
 
         def office(data):
             office = models.Office()
@@ -124,14 +134,19 @@ class AdviserImport(object):
                 data['Address Line 3'],
                 data['City'],
                 data['Postcode']))
-            return office
+            office.save()
+            self.progress['count'] += 1
 
-        offices = map(office, self.sheet_to_dict(self.office_sheet))
-        map(save, offices)
-        print '\nSaved %d offices' % len(offices)
+        map(office, rows)
 
     def import_outreach(self):
         outreachtypes = {}
+
+        rows = self.sheet_to_dict(self.outreach_sheet)
+        self.progress = {
+            'task': 'Importing outreach locations',
+            'total': len(rows),
+            'count': 0}
 
         @cached
         def outreachtype(name):
@@ -155,13 +170,28 @@ class AdviserImport(object):
             except models.Office.DoesNotExist:
                 print data['Account Number']
                 raise
-            return outreach
+            outreach.save()
+            self.progress['count'] += 1
 
-        outreach_locs = map(outreach, self.sheet_to_dict(self.outreach_sheet))
-        map(save, outreach_locs)
-        print '\nSaved %d outreach locations' % len(outreach_locs)
+        map(outreach, rows)
 
-    def import_all(self):
+    def run(self):
         self.import_organisations()
         self.import_offices()
         self.import_outreach()
+        self.progress = {'task': 'done'}
+
+
+class ImportShellRun(object):
+
+    def __call__(self, path):
+        importer = ImportProcess(path)
+        importer.start()
+
+        while importer.is_alive() and importer.progress['task'] is not None:
+            sleep(1)
+            print '{task}'.format(**importer.progress),
+            if importer.progress['total']:
+                print '\b: {count} / {total}'.format(**importer.progress)
+            else:
+                print ''
