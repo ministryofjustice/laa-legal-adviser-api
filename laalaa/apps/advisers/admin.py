@@ -1,7 +1,10 @@
+from django.conf.urls import patterns, url
 from django.contrib import admin
 from django.db.models import Q
+from django.views.generic import TemplateView
 
 from .models import Location, Office
+from . import views
 
 
 class LocationTypeFilter(admin.SimpleListFilter):
@@ -53,4 +56,23 @@ class LocationAdmin(admin.ModelAdmin):
         return queryset, use_distinct
 
 
-admin.site.register(Location, LocationAdmin)
+class MyAdminSite(admin.AdminSite):
+
+    def get_urls(self):
+        urls = super(MyAdminSite, self).get_urls()
+        my_urls = patterns('',
+            (r'^upload/$', views.upload_spreadsheet),
+            url(
+                r'^import-in-progress/$',
+                TemplateView.as_view(
+                    template_name='import_progress.html',
+                    get_context_data=lambda: {"title": "Import in progress"}),
+                name='import_in_progress'),
+            (r'^import-progress/$', views.import_progress)
+        )
+        return my_urls + urls
+
+
+admin_site = MyAdminSite()
+admin_site.index_template = 'admin_index.html'
+admin_site.register(Location, LocationAdmin)

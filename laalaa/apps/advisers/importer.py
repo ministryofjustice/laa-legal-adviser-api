@@ -92,7 +92,7 @@ class ImportProcess(Thread):
 
         rows = self.sheet_to_dict(self.organisation_sheet)
         self.progress = {
-            'task': 'import_organisations',
+            'task': 'Importing organisations',
             'total': len(rows),
             'count': 0}
 
@@ -119,7 +119,7 @@ class ImportProcess(Thread):
 
         rows = self.sheet_to_dict(self.office_sheet)
         self.progress = {
-            'task': 'import_offices',
+            'task': 'Importing offices',
             'total': len(rows),
             'count': 0}
 
@@ -144,7 +144,7 @@ class ImportProcess(Thread):
 
         rows = self.sheet_to_dict(self.outreach_sheet)
         self.progress = {
-            'task': 'import_outreach',
+            'task': 'Importing outreach locations',
             'total': len(rows),
             'count': 0}
 

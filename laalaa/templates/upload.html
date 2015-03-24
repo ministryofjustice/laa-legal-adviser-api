@@ -1,0 +1,17 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h2>Import Legal Advisers Spreadsheet</h2>
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+  <div>
+    {{ form.xlfile.label_tag }}
+    {{ form.xlfile }}
+    {% if form.xlfile.errors %}
+      {{ form.xlfile.errors }}
+    {% endif %}
+  </div>
+  <div>
+    <input type="submit" value="Import">
+  </div>
+</form>
+{% endblock %}

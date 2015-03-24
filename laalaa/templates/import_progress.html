@@ -1,0 +1,82 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<style>
+#progressbar {
+  width: 400px;
+  height: 22px;
+  border: 1px solid #666;
+  border-radius: 3px;
+  background-color: #ddd;
+  overflow: hidden;
+}
+
+#progressbar div {
+  height: 100%;
+  color: #fff;
+  text-shadow: 1px 1px 1px #444;
+  text-align: right;
+  line-height: 22px;
+  width: 0;
+  background-image:
+    -webkit-linear-gradient(
+      -45deg,
+      transparent 33%,
+      rgba(0, 0, 0, .1) 33%,
+      rgba(0, 0, 0, .1) 66%,
+      transparent 66%),
+    -webkit-linear-gradient(
+      top,
+      rgba(255, 255, 255, .25),
+      rgba(0, 0, 0, .25));
+  background-size: 48px 24px, 100% 100%;
+  background-color: #7ca0c7;
+  overflow: hidden;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="progress">
+  <p>Initializing</p>
+  <div id="progressbar"><div></div></div>
+</div>
+<script type="text/javascript">
+$(function () {
+
+  var task = null;
+  var label = $('#progress p');
+  var progressBar = $('#progressbar');
+
+  function progress(percent, $el, delay) {
+    if (delay == undefined) {
+      delay = 300;
+    }
+    var width = percent * $el.width() / 100;
+    $el.find('div').animate({width: width}, delay).html(percent + "%&nbsp;");
+  }
+
+  function updateProgress(data) {
+    if (data.task) {
+      if (data.task != task) {
+        task = data.task;
+        progress(0, progressBar, 0);
+        label.text(data.task);
+      }
+      var percent = Math.ceil(data.count / data.total * 100);
+      progress(percent, progressBar);
+      window.setTimeout(checkProgress, 1000);
+    } else {
+      label.text('No import running');
+    }
+  }
+
+  function checkProgress() {
+    $.getJSON('/admin/import-progress/', updateProgress);
+  }
+
+  var to = window.setTimeout(checkProgress, 1000);
+});
+</script>
+{% endblock %}
