@@ -58,3 +58,9 @@ fig run django python manage.py createsuperuser --username=admin
 ```
 
 The API should now be accessible at http://boot2docker:8000/
+
+There is a Django admin site which allows importing and editing the database
+of legal advisers.
+
+Go to http://boot2docker:8000/admin/ and sign in with the admin password you
+just set.
