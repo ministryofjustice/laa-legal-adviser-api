@@ -6,8 +6,9 @@ from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
-from rest_framework import viewsets
+from rest_framework import exceptions, viewsets
 
+from . import geocoder
 from .importer import ImportProcess
 from .models import Location
 from .serializers import LocationSerializer
@@ -17,14 +18,24 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LocationSerializer
 
     def get_queryset(self):
-        lon = self.request.query_params.get('lon')
-        lat = self.request.query_params.get('lat')
         pnt = Point(-0.12776, 51.50735)
 
-        try:
-            pnt = Point(float(lon), float(lat))
-        except (ValueError, TypeError):
-            pass
+        postcode = self.request.query_params.get('postcode')
+        if postcode:
+            try:
+                pnt = geocoder.geocode(postcode)
+            except geocode.GeocoderError:
+                pass
+
+        point = self.request.query_params.get('point')
+        if point:
+            try:
+                coords = point.split(',')
+                coords = map(float, coords)
+                pnt = Point(*coords)
+            except ValueError:
+                raise exceptions.ParseError(
+                    'point parameter must be a lon,lat coordinate')
 
         return Location.objects.all().distance(pnt).order_by('distance')
 
