@@ -27,7 +27,8 @@ def cached(fn):
 def geocode(postcode):
     point = Point(0.0, 0.0)
     try:
-        point = geocoder.geocode(postcode)
+        result = geocoder.geocode(postcode)
+        point = Point(*result['point']['coordinates'])
     except geocoder.PostcodeNotFound:
         logging.warn('Failed geocoding postcode: %s' % postcode)
     except geocoder.GeocoderError as e:
