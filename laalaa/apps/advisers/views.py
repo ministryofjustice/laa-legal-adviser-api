@@ -23,7 +23,8 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
         postcode = self.request.query_params.get('postcode')
         if postcode:
             try:
-                pnt = geocoder.geocode(postcode)
+                self.origin = geocoder.geocode(postcode)
+                pnt = Point(*self.origin['point']['coordinates'])
             except geocode.GeocoderError:
                 pass
 
@@ -38,6 +39,12 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
                     'point parameter must be a lon,lat coordinate')
 
         return Location.objects.all().distance(pnt).order_by('distance')
+
+    def list(self, request, *args, **kwargs):
+        response = super(AdviserViewSet, self).list(request, *args, **kwargs)
+        if hasattr(self, 'origin'):
+            response.data['origin'] = self.origin
+        return response
 
 
 importer = None

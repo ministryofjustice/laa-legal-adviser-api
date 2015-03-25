@@ -15,8 +15,9 @@ class PostcodeNotFound(GeocoderError):
 
 def geocode(postcode):
     try:
-        response = requests.get(
-            '{host}/postcodes/{postcode}'.format(
+        response = requests.get((
+            '{host}/addresses/?postcode={postcode}&'
+            'fields=postcode,point').format(
                 host=settings.ADDRESSFINDER_API_HOST,
                 postcode=postcode),
             headers={
@@ -24,8 +25,7 @@ def geocode(postcode):
                     settings.ADDRESSFINDER_API_TOKEN)},
             timeout=5)
         try:
-            data = response.json()
-            return Point(*data['coordinates'])
+            return response.json()[0]
         except ValueError:
             raise PostcodeNotFound(postcode)
     except (requests.exceptions.ConnectionError,
