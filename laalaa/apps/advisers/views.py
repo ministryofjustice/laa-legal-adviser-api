@@ -7,15 +7,16 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
 from rest_framework import exceptions, viewsets
+from django.contrib.gis.measure import D
 
 from . import geocoder
 from .importer import ImportProcess
-from .models import Location
-from .serializers import LocationSerializer
+from .models import Office
+from .serializers import OfficeSerializer
 
 
 class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = LocationSerializer
+    serializer_class = OfficeSerializer
 
     def get_queryset(self):
         pnt = Point(-0.12776, 51.50735)
@@ -38,7 +39,7 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
                 raise exceptions.ParseError(
                     'point parameter must be a lon,lat coordinate')
 
-        return Location.objects.all().distance(pnt).order_by('distance')
+        return Office.objects.all().distance(pnt, field_name='location__point').order_by('distance')
 
     def list(self, request, *args, **kwargs):
         response = super(AdviserViewSet, self).list(request, *args, **kwargs)

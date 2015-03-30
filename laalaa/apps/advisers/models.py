@@ -32,11 +32,11 @@ class Location(models.Model):
 
     def organisation(self):
         if self.office_set.count():
-            return self.office_set.all()[0].organisation.name
+            return self.office_set.all()[0].organisation
         if self.outreachservice_set.count():
-            return self.outreachservice_set.all()[0].office.organisation.name
+            return self.outreachservice_set.all()[0].office.organisation
 
-    def location_type(self):
+    def type(self):
         if self.office_set.count():
             return 'Office'
         elif self.outreachservice_set.count():
@@ -49,6 +49,8 @@ class Office(models.Model):
     account_number = models.CharField(max_length=10, unique=True)
     organisation = models.ForeignKey('Organisation')
     location = models.ForeignKey('Location')
+
+    objects = models.GeoManager()
 
 
 class OutreachType(models.Model):

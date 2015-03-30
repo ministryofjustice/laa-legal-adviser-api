@@ -10,7 +10,7 @@ from . import views
 class LocationTypeFilter(admin.SimpleListFilter):
     title = 'location type'
 
-    parameter_name = 'location_type'
+    parameter_name = 'type'
 
     def lookups(self, request, model_admin):
         return (
@@ -42,7 +42,7 @@ class OfficeInline(admin.StackedInline):
 class LocationAdmin(admin.ModelAdmin):
     exclude = ('point',)
     inlines = [OfficeInline]
-    list_display = ('organisation', '__str__', 'location_type')
+    list_display = ('organisation', '__str__', 'type')
     list_display_links = ('__str__',)
     list_filter = (LocationTypeFilter,)
     search_fields = ('address', 'city', 'postcode')
