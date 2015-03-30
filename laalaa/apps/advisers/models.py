@@ -10,6 +10,7 @@ class OrganisationType(models.Model):
 
 
 class Organisation(models.Model):
+    firm = models.IntegerField(null=True)
     name = models.CharField(max_length=255)
     website = models.URLField(null=True, blank=True)
     contracted = models.BooleanField(default=True)
@@ -20,7 +21,7 @@ class Location(models.Model):
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=48)
     postcode = models.CharField(max_length=16)
-    point = models.PointField()
+    point = models.PointField(null=True)
 
     objects = models.GeoManager()
 
