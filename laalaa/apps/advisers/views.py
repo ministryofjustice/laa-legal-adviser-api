@@ -7,26 +7,42 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
 from rest_framework import exceptions, viewsets
+from rest_framework.views import exception_handler
+from django.contrib.gis.measure import D
 
 from . import geocoder
 from .importer import ImportProcess
-from .models import Location
-from .serializers import LocationSerializer
+from .models import Office
+from .serializers import OfficeSerializer
+
+
+def custom_exception_handler(exc):
+    # Call REST framework's default exception handler first,
+    # to get the standard error response.
+    response = exception_handler(exc)
+
+    # Now add the HTTP status code to the response.
+    if response is not None:
+        response.data['error'] = response.data['detail']
+        del response.data['detail']
+
+    return response
 
 
 class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = LocationSerializer
+    serializer_class = OfficeSerializer
 
     def get_queryset(self):
-        pnt = Point(-0.12776, 51.50735)
+        pnt = None
 
         postcode = self.request.query_params.get('postcode')
         if postcode:
             try:
                 self.origin = geocoder.geocode(postcode)
-                pnt = Point(*self.origin['point']['coordinates'])
-            except geocode.GeocoderError:
-                pass
+                if self.origin['point']:
+                    pnt = Point(*self.origin['point']['coordinates'])
+            except geocoder.GeocoderError:
+                raise exceptions.ParseError('Postcode not found')
 
         point = self.request.query_params.get('point')
         if point:
@@ -38,7 +54,12 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
                 raise exceptions.ParseError(
                     'point parameter must be a lon,lat coordinate')
 
-        return Location.objects.all().distance(pnt).order_by('distance')
+        queryset = Office.objects.all()
+
+        if pnt:
+            return queryset.distance(pnt, field_name='location__point').order_by('distance')
+
+        return queryset
 
     def list(self, request, *args, **kwargs):
         response = super(AdviserViewSet, self).list(request, *args, **kwargs)

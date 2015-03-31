@@ -10,6 +10,7 @@ class OrganisationType(models.Model):
 
 
 class Organisation(models.Model):
+    firm = models.IntegerField(null=True)
     name = models.CharField(max_length=255)
     website = models.URLField(null=True, blank=True)
     contracted = models.BooleanField(default=True)
@@ -20,7 +21,7 @@ class Location(models.Model):
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=48)
     postcode = models.CharField(max_length=16)
-    point = models.PointField()
+    point = models.PointField(null=True)
 
     objects = models.GeoManager()
 
@@ -32,11 +33,11 @@ class Location(models.Model):
 
     def organisation(self):
         if self.office_set.count():
-            return self.office_set.all()[0].organisation.name
+            return self.office_set.all()[0].organisation
         if self.outreachservice_set.count():
-            return self.outreachservice_set.all()[0].office.organisation.name
+            return self.outreachservice_set.all()[0].office.organisation
 
-    def location_type(self):
+    def type(self):
         if self.office_set.count():
             return 'Office'
         elif self.outreachservice_set.count():
@@ -49,6 +50,8 @@ class Office(models.Model):
     account_number = models.CharField(max_length=10, unique=True)
     organisation = models.ForeignKey('Organisation')
     location = models.ForeignKey('Location')
+
+    objects = models.GeoManager()
 
 
 class OutreachType(models.Model):

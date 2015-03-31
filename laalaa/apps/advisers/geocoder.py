@@ -1,6 +1,6 @@
+import requests
 from django.conf import settings
 from django.contrib.gis.geos import Point
-import requests
 
 
 class GeocoderError(Exception):
@@ -26,7 +26,7 @@ def geocode(postcode):
             timeout=5)
         try:
             return response.json()[0]
-        except ValueError:
+        except IndexError:
             raise PostcodeNotFound(postcode)
     except (requests.exceptions.ConnectionError,
             requests.exceptions.Timeout) as e:

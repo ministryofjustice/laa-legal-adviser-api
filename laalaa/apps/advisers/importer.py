@@ -4,6 +4,7 @@ from threading import Thread
 from time import sleep
 
 from django.contrib.gis.geos import Point
+from django.db import IntegrityError
 import xlrd
 
 from . import models
@@ -14,8 +15,11 @@ logging.basicConfig(filename='adviser_import.log', level=logging.WARNING)
 
 
 cache = {}
+
+
 def cached(fn):
     cache[fn.__name__] = {}
+
     def wrapped(name):
         if name not in cache[fn.__name__]:
             cache[fn.__name__][name] = fn(name)
@@ -25,10 +29,15 @@ def cached(fn):
 
 @cached
 def geocode(postcode):
-    point = Point(0.0, 0.0)
+    point = None
     try:
-        result = geocoder.geocode(postcode)
-        point = Point(*result['point']['coordinates'])
+        loc = models.Location.objects.filter(postcode=postcode)
+        if len(loc) and loc[0].point:
+            point = loc[0].point
+        else:
+            result = geocoder.geocode(postcode)
+            if result['point']:
+                point = Point(*result['point']['coordinates'])
     except geocoder.PostcodeNotFound:
         logging.warn('Failed geocoding postcode: %s' % postcode)
     except geocoder.GeocoderError as e:
@@ -40,16 +49,20 @@ def join(*args):
     return '|'.join(args)
 
 
-@cached
 def location(address):
     addr1, addr2, addr3, city, pcode = address.split('|')
-    location = models.Location()
-    location.address = '\n'.join(filter(None, [addr1, addr2, addr3]))
-    location.city = city
-    location.postcode = pcode
-    postcode = pcode.replace(u' ', u'').lower()
-    location.point = geocode(postcode)
-    location.save()
+    address = '\n'.join(filter(None, [addr1, addr2, addr3]))
+    loc = models.Location.objects.filter(
+        address=address,
+        city=city,
+        postcode=pcode)
+    if len(loc):
+        return loc[0]
+    location, created = models.Location.objects.get_or_create(
+        address=address,
+        city=city,
+        postcode=pcode,
+        point=geocode(pcode))
     return location
 
 
@@ -67,7 +80,8 @@ class ImportProcess(Thread):
         workbook = xlrd.open_workbook(path)
         self.organisation_sheet = workbook.sheet_by_name('LOCAL ADVICE ORG')
         self.office_sheet = workbook.sheet_by_name('OFFICE LOCATION')
-        self.category_criminal_sheet = workbook.sheet_by_name('CAT OF LAW CRIME')
+        self.category_criminal_sheet = workbook.sheet_by_name(
+            'CAT OF LAW CRIME')
         self.category_civil_sheet = workbook.sheet_by_name('CAT OF LAW CIVIL')
         self.outreach_sheet = workbook.sheet_by_name('OUTREACH SERVICE')
 
@@ -81,7 +95,7 @@ class ImportProcess(Thread):
         def value(cell):
             if cell.ctype == xlrd.XL_CELL_NUMBER:
                 return int(cell.value)
-            return cell.value.decode('utf8')
+            return cell.value.encode('utf-8', errors='ignore')
 
         def row(index):
             return dict(zip(headings, map(value, worksheet.row(index))))
@@ -97,21 +111,23 @@ class ImportProcess(Thread):
             'total': len(rows),
             'count': 0}
 
-        @cached
         def orgtype(name):
-            orgtype = models.OrganisationType()
-            orgtype.name = name
-            orgtype.save()
+            orgtype, created = models.OrganisationType.objects.get_or_create(
+                name=name)
             return orgtype
 
         def org(data):
-            org = models.Organisation()
-            org.id = data['Firm Number']
-            org.name = data['Firm Name']
-            org.website = data['Website']
-            org.contracted = data['LA Contracted Status']
-            org.type = orgtype(data['Type of Organisation'])
-            org.save()
+            _orgtype = orgtype(data['Type of Organisation'])
+            try:
+                org, created = models.Organisation.objects.get_or_create(
+                    firm=data['Firm Number'],
+                    name=data['Firm Name'],
+                    website=data['Website'],
+                    contracted=data['LA Contracted Status'],
+                    type_id=_orgtype.id)
+            except IntegrityError:
+                print data, _orgtype.id
+                raise
             self.progress['count'] += 1
 
         map(org, rows)
@@ -125,17 +141,18 @@ class ImportProcess(Thread):
             'count': 0}
 
         def office(data):
-            office = models.Office()
-            office.telephone = data['Telephone Number']
-            office.account_number = data['Account Number'].upper()
-            office.organisation_id = data['Firm Number']
-            office.location = location(join(
+            loc = location(join(
                 data['Address Line 1'],
                 data['Address Line 2'],
                 data['Address Line 3'],
                 data['City'],
                 data['Postcode']))
-            office.save()
+            org = models.Organisation.objects.filter(firm=data['Firm Number'])
+            office, created = models.Office.objects.get_or_create(
+                telephone=data['Telephone Number'],
+                account_number=data['Account Number'].upper(),
+                organisation_id=org[0].id,
+                location=loc)
             self.progress['count'] += 1
 
         map(office, rows)
@@ -151,27 +168,27 @@ class ImportProcess(Thread):
 
         @cached
         def outreachtype(name):
-            outreachtype = models.OutreachType()
-            outreachtype.name = name
-            outreachtype.save()
+            outreachtype, created = models.OutreachType.objects.get_or_create(
+                name=name)
             return outreachtype
 
         def outreach(data):
-            outreach = models.OutreachService()
-            outreach.type = outreachtype(data['PT or Outreach Indicator'])
-            outreach.location = location(join(
+            loc = location(join(
                 data['PT or Outreach Loc Address Line1'],
                 data['PT or Outreach Loc Address Line2'],
                 data['PT or Outreach Loc Address Line3'],
                 data['City (outreach)'],
                 data['PT or Outreach Loc Postcode']))
-            try:
-                outreach.office = models.Office.objects.get(
-                    account_number=data['Account Number'].upper())
-            except models.Office.DoesNotExist:
-                print data['Account Number']
-                raise
-            outreach.save()
+            offices = models.Office.objects.filter(
+                account_number=data['Account Number'].upper())
+            office = None
+            if len(offices):
+                office = offices[0]
+            _outreachtype = outreachtype(data['PT or Outreach Indicator'])
+            outreach, created = models.OutreachService.objects.get_or_create(
+                type_id=_outreachtype.id,
+                location_id=loc.id,
+                office_id=office.id)
             self.progress['count'] += 1
 
         map(outreach, rows)
