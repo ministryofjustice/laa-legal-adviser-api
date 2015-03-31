@@ -120,3 +120,72 @@ try:
 except ImportError:
     pass
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+        'logstash': {
+            '()': 'logstash_formatter.LogstashFormatter'
+        }
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue'
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        }
+    }
+}
+
+#APP LOGGING CONFIG
+LOGGING['handlers']['production_file'] = {
+    'level' : 'INFO',
+    'class' : 'logging.handlers.RotatingFileHandler',
+    'filename' : '/var/log/uwsgi/app.log',
+    'maxBytes': 1024*1024*5, # 5 MB
+    'backupCount' : 7,
+    'formatter': 'logstash',
+    'filters': ['require_debug_false'],
+}
+
+LOGGING['handlers']['debug_file'] = {
+    'level' : 'DEBUG',
+    'class' : 'logging.handlers.RotatingFileHandler',
+    'filename' : '/var/log/uwsgi/debug.log',
+    'maxBytes': 1024*1024*5, # 5 MB
+    'backupCount' : 7,
+    'formatter': 'logstash',
+    'filters': ['require_debug_true'],
+}
+
+LOGGING['handlers']['console'] = {
+   'level': 'DEBUG',
+   'class': 'logging.StreamHandler',
+   'stream': sys.stdout
+}
+
+LOGGING['loggers'][''] = {
+    'handlers': ['console'],
+    'level': "DEBUG",
+}

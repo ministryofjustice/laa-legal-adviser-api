@@ -38,6 +38,7 @@ tests/reports/nightwatch/*
 .mr.developer.cfg
 .project
 .pydevproject
+*.ropeproject
 
 # Complexity
 output/*.html
