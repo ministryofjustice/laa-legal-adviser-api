@@ -12,6 +12,14 @@
   overflow: hidden;
 }
 
+#progress p {
+  margin: 10px 0;
+}
+
+#status {
+  font-weight: bold;
+}
+
 #progressbar div {
   height: 100%;
   color: #fff;
@@ -39,15 +47,18 @@
 
 {% block content %}
 <div id="progress">
-  <p>Initializing</p>
+  <p id="status">Initializing</p>
   <div id="progressbar"><div></div></div>
+  <p class="counts"></p>
 </div>
 <script type="text/javascript">
 $(function () {
 
   var task = null;
-  var label = $('#progress p');
+  var label = $('#status');
   var progressBar = $('#progressbar');
+  var counts = $('.counts');
+  var polling = window.setInterval(checkProgress, 1000);
 
   function progress(percent, $el, delay) {
     if (delay == undefined) {
@@ -66,17 +77,20 @@ $(function () {
       }
       var percent = Math.ceil(data.count / data.total * 100);
       progress(percent, progressBar);
-      window.setTimeout(checkProgress, 1000);
+      counts.html('<span>' + data.count + ' of ' + data.total + '</span>');
     } else {
       label.text('No import running');
+    }
+    if (data.task === 'done' || data.status === 'not running') {
+      window.clearInterval(polling);
+      progressBar.remove();
+      counts.remove();
     }
   }
 
   function checkProgress() {
     $.getJSON('/admin/import-progress/', updateProgress);
   }
-
-  var to = window.setTimeout(checkProgress, 1000);
 });
 </script>
 {% endblock %}

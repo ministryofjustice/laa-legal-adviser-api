@@ -66,7 +66,7 @@ class MyAdminSite(admin.AdminSite):
                 r'^import-in-progress/$',
                 TemplateView.as_view(
                     template_name='import_progress.html',
-                    get_context_data=lambda: {"title": "Import in progress"}),
+                    get_context_data=lambda: {"title": "Importing data"}),
                 name='import_in_progress'),
             (r'^import-progress/$', views.import_progress)
         )
