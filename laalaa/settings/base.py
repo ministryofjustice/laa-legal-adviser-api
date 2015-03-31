@@ -106,7 +106,8 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 10
+    'PAGINATE_BY': 10,
+    'EXCEPTION_HANDLER': 'advisers.views.custom_exception_handler'
 }
 
 ADDRESSFINDER_API_HOST = os.environ.get(

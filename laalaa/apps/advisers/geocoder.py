@@ -25,15 +25,8 @@ def geocode(postcode):
                     settings.ADDRESSFINDER_API_TOKEN)},
             timeout=5)
         try:
-            result = response.json()
-            if result:
-                return result[0]
-            else:
-                return {
-                    'postcode': postcode,
-                    'point': None
-                }
-        except ValueError:
+            return response.json()[0]
+        except IndexError:
             raise PostcodeNotFound(postcode)
     except (requests.exceptions.ConnectionError,
             requests.exceptions.Timeout) as e:
