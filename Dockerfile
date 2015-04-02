@@ -34,5 +34,5 @@ RUN pip install -r requirements.txt
 ADD . /app
 
 EXPOSE 80
-EXPOSE 443
+EXPOSE 8000
 CMD ["supervisord", "-n"]
