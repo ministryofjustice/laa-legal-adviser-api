@@ -2,7 +2,8 @@ from django.contrib.gis.db import models
 
 
 class Category(models.Model):
-    code = models.CharField(max_length=48)
+    code = models.CharField(max_length=8)
+    civil = models.BooleanField(default=True)
 
 
 class OrganisationType(models.Model):
@@ -50,6 +51,7 @@ class Office(models.Model):
     account_number = models.CharField(max_length=10, unique=True)
     organisation = models.ForeignKey('Organisation')
     location = models.ForeignKey('Location')
+    categories = models.ManyToManyField(Category)
 
     objects = models.GeoManager()
 
@@ -62,3 +64,4 @@ class OutreachService(models.Model):
     office = models.ForeignKey('Office')
     location = models.ForeignKey('Location')
     type = models.ForeignKey('OutreachType')
+    categories = models.ManyToManyField(Category)
