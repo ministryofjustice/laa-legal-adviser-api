@@ -65,7 +65,7 @@ of legal advisers.
 Go to http://boot2docker:8000/admin/ and sign in with the admin password you
 just set.
 
-# CI Build Jobs
-The development build and deploy jenkins jobs are here http://jenkins.dsd.io/view/laalaa/
+# Jenkins CI Build Jobs
+The development build job and the development & prod deploy jenkins jobs are here http://jenkins.dsd.io/view/laalaa/
 
-The docker image is built on a jenkins slave (cla-slave) and pushed to the docker registry - https://registry.service.dsd.io. If successful, a deploy job is triggered on an EC2 instance. More information on the deployment is available here https://github.com/ministryofjustice/laalaa-deploy/blob/master/README.rst
+The docker image is built on a jenkins slave (cla-slave) and pushed to the docker registry - https://registry.service.dsd.io. If successful, a development deploy job is triggered on an EC2 instance. The prod deploy job is triggered manually. More information on the deployment is available here https://github.com/ministryofjustice/laalaa-deploy/blob/master/README.rst
