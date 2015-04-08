@@ -193,10 +193,62 @@ class ImportProcess(Thread):
 
         map(outreach, rows)
 
+    def import_categories(self):
+        rows = self.sheet_to_dict(self.category_civil_sheet)
+        self.progress = {
+            'task': 'Importing civil categories',
+            'total': len(rows),
+            'count': 0}
+
+        @cached
+        def category(code_civil):
+            code, civil = code_civil
+            cat, created = models.Category.objects.get_or_create(
+                code=code,
+                civil=civil)
+            return cat
+
+        @cached
+        def office(firm_acct):
+            firm_id, acct_no = firm_acct
+            return models.Office.objects.get(
+                organisation__firm=firm_id,
+                account_number=acct_no)
+
+        def assoc_cat(data, civil=True):
+            key = 'Civil Category Code'
+            if not civil:
+                key = 'Crime Category Code'
+            cat = category((data[key], civil))
+            try:
+                off = office((
+                    data['Firm Number'],
+                    data['Account Number']))
+                off.categories.add(cat)
+            except models.Office.DoesNotExist:
+                logging.warn(
+                    'office for firm %s with acct no %s not found' %
+                    (data['Firm Number'], data['Account Number']))
+            self.progress['count'] += 1
+
+        map(assoc_cat, rows)
+
+        def assoc_criminal_cat(data):
+            assoc_cat(data, civil=False)
+
+        rows = self.sheet_to_dict(self.category_criminal_sheet)
+        self.progress = {
+            'task': 'Importing criminal categories',
+            'total': len(rows),
+            'count': 0}
+
+        map(assoc_criminal_cat, rows)
+
     def run(self):
         self.import_organisations()
         self.import_offices()
         self.import_outreach()
+        self.import_categories()
         self.progress = {'task': 'done'}
 
 
