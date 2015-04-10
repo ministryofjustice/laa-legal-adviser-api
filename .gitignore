@@ -68,3 +68,4 @@ node_modules/
 .sass-cache/
 
 laalaa/settings/local.py
+laalaa/static/

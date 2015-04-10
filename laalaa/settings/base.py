@@ -104,6 +104,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = root('static')
 
 REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
@@ -190,3 +191,16 @@ LOGGING['loggers'][''] = {
     'handlers': ['console'],
     'level': "DEBUG",
 }
+
+
+def override_setting(arg):
+    prefix = '--override-setting='
+    if arg and arg.startswith(prefix):
+        exec(arg[len(prefix):])
+        return arg
+
+
+if not hasattr(sys, 'cli_args_overrides'):
+    remove_arg = lambda arg: sys.argv.remove(arg)
+    map(remove_arg, filter(None, map(override_setting, sys.argv)))
+    setattr(sys, 'cli_args_overrides', True)
