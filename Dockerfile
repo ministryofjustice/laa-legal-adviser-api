@@ -28,6 +28,8 @@ RUN pip install -r requirements.txt
 
 ADD . /app
 
+RUN python manage.py collectstatic --noinput --override-setting="DATABASES['default']['ENGINE']='django.db.backends.sqlite3'"
+
 EXPOSE 80
 EXPOSE 8000
 CMD ["supervisord", "-n"]
