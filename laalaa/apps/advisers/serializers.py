@@ -27,8 +27,11 @@ class OfficeSerializer(gis_serializers.GeoModelSerializer):
     location = LocationSerializer()
     organisation = OrganisationSerializer()
     distance = DistanceField()
+    categories = serializers.SlugRelatedField(
+        slug_field='code', many=True, read_only=True)
 
     class Meta:
         model = Office
         fields = (
-            'telephone', 'location', 'organisation', 'distance')
+            'telephone', 'location', 'organisation', 'distance',
+            'categories')

@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
-from rest_framework import exceptions, viewsets
+from rest_framework import exceptions, viewsets, filters
 from rest_framework.views import exception_handler
 from django.contrib.gis.measure import D
 
@@ -29,8 +29,21 @@ def custom_exception_handler(exc):
     return response
 
 
+class CategoryFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        queryset = queryset.exclude(location__point__isnull=True)
+
+        category_code = request.query_params.get('category')
+        if category_code:
+            category_code = category_code.upper()
+            return queryset.filter(categories__code=category_code)
+
+        return queryset
+
+
 class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OfficeSerializer
+    filter_backends = (CategoryFilter,)
 
     def get_queryset(self):
         pnt = None
