@@ -1,35 +1,44 @@
-FROM ubuntu:trusty
+#
+# LAALAA Dockerfile all environments
+#
+FROM phusion/baseimage:0.9.16
 
-RUN echo "Europe/London" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
+MAINTAINER Stuart Munro <stuart.munro@digital.justice.gov.uk>
 
-RUN apt-get update && \
-    apt-get install -y software-properties-common python-software-properties
+# Runtime User
+RUN useradd -m -d /home/app app
 
-RUN apt-get update && \
-    apt-get install -y \
-        build-essential git python python-dev python-setuptools python-pip \
-        supervisor curl libpq-dev ntp libproj-dev binutils gdal-bin \
-        postgis postgresql-9.3-postgis-scripts vim
+# Set timezone
+RUN echo "Europe/London" > /etc/timezone  &&  dpkg-reconfigure -f noninteractive tzdata
 
-RUN mkdir /var/log/uwsgi && chown -R www-data:www-data /var/log/uwsgi
+# Dependencies
+RUN DEBIAN_FRONTEND='noninteractive' \
+  apt-get update && \
+  apt-get -y --force-yes install bash apt-utils build-essential git software-properties-common libpq-dev g++ make \
+  libpcre3 libpcre3-dev libxslt-dev libxml2-dev wget libffi-dev postgis postgresql-9.3-postgis-scripts \
+  ntp libproj-dev binutils gdal-bin
 
-# fix for broken pip package in ubuntu 14
-RUN easy_install -U pip
+RUN apt-get clean
 
-WORKDIR /app
+# Install latest python
+ADD ./docker/install_python.sh /install_python.sh
+RUN chmod 755 /install_python.sh
+RUN /install_python.sh
 
-ADD ./conf/uwsgi /etc/uwsgi
+# Add requirements to docker
+ADD ./requirements/base.txt /requirements.txt
+RUN pip install -r /requirements.txt
 
-ADD ./conf/supervisor /etc/supervisor
+# Add project directory to docker
+ADD . /home/app
+RUN rm -rf /home/app/.git
+RUN  chown -R app: /home/app
 
-ADD ./requirements.txt /app/requirements.txt
-ADD ./requirements /app/requirements
-RUN pip install -r requirements.txt
 
-ADD . /app
-
-RUN python manage.py collectstatic --noinput --override-setting="DATABASES['default']['ENGINE']='django.db.backends.sqlite3'"
-
-EXPOSE 80
+# Set correct environment variables.
+ENV HOME /home/app
+WORKDIR /home/app
+ENV APP_HOME /home/app
+USER app
 EXPOSE 8000
-CMD ["supervisord", "-n"]
+ENTRYPOINT ["/home/app/docker/run.sh"]
