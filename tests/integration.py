@@ -35,6 +35,6 @@ except requests.exceptions.ConnectionError:
     print '[ERROR] Failed to connect to: {0}'.format(url)
     sys.exit(1)
 except IndexError:
-    print '[ERROR] No URL argument set, example: interpration.py https://my.domain.com'
+    print '[ERROR] No URL argument set, example: integration.py https://my.domain.com'
     sys.exit(1)
 
