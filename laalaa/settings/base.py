@@ -23,7 +23,7 @@ sys.path.insert(0, root('apps'))
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'l3y65g^k4e&xj-!brqa%u41!vv1eqtr6m3bpk(1-!6a#w5u88_'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'DEV_KEY')
 
 DEBUG = True
 
@@ -72,11 +72,11 @@ TEMPLATE_DIRS = (
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'laalaa',
-        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-        'HOST': os.environ.get('POSTGRES_HOST', ''),
-        'PORT': os.environ.get('POSTGRES_PORT', ''),
+        'NAME': os.environ.get('DB_USERNAME', 'laalaa'),
+        'USER': os.environ.get('DB_USERNAME', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -164,7 +164,7 @@ LOGGING = {
 LOGGING['handlers']['production_file'] = {
     'level' : 'INFO',
     'class' : 'logging.handlers.RotatingFileHandler',
-    'filename' : '/var/log/uwsgi/app.log',
+    'filename' : 'app.log',
     'maxBytes': 1024*1024*5, # 5 MB
     'backupCount' : 7,
     'formatter': 'logstash',
@@ -174,7 +174,7 @@ LOGGING['handlers']['production_file'] = {
 LOGGING['handlers']['debug_file'] = {
     'level' : 'DEBUG',
     'class' : 'logging.handlers.RotatingFileHandler',
-    'filename' : '/var/log/uwsgi/debug.log',
+    'filename' : 'debug.log',
     'maxBytes': 1024*1024*5, # 5 MB
     'backupCount' : 7,
     'formatter': 'logstash',
@@ -191,6 +191,20 @@ LOGGING['loggers'][''] = {
     'handlers': ['console'],
     'level': "DEBUG",
 }
+
+# RAVEN SENTRY CONFIG
+if 'SENTRY_DSN' in os.environ:
+    RAVEN_CONFIG = {
+        'dsn': os.environ.get('SENTRY_DSN')
+    }
+
+    INSTALLED_APPS += (
+        'raven.contrib.django.raven_compat',
+    )
+
+    MIDDLEWARE_CLASSES = (
+        'raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',
+    ) + MIDDLEWARE_CLASSES
 
 
 def override_setting(arg):
