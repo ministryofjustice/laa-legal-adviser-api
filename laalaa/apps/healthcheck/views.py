@@ -1,7 +1,6 @@
 import requests
 from django.http import JsonResponse
 from django.conf import settings
-from django.db import connections
 
 
 def ping(request):
@@ -43,9 +42,6 @@ def healthcheck(request):
         'addressfinder': {
             'status': 'DOWN',
             'endpoint': settings.ADDRESSFINDER_API_HOST
-        },
-        'database': {
-            'status': 'DOWN'
         }
     }
 
@@ -58,15 +54,7 @@ def healthcheck(request):
     except:
         pass
 
-    # Test database connection
-    try:
-        conn = connections['default']
-        conn.cursor()
-        health['database']['status'] = 'UP'
-    except OperationalError:
-        pass
-
-    if health['database']['status'] == 'UP' and health['addressfinder']['status'] == 'UP':
+    if health['addressfinder']['status'] == 'UP':
         return JsonResponse(health, status=200)
     else:
         return JsonResponse(health, status=503)
