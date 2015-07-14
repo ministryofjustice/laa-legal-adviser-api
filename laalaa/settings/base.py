@@ -45,7 +45,8 @@ INSTALLED_APPS = (
 
     'rest_framework',
 
-    'advisers'
+    'advisers',
+    'smoketests'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -115,12 +116,6 @@ ADDRESSFINDER_API_HOST = os.environ.get(
     'ADDRESSFINDER_API_HOST',
     'http://127.0.0.1:8003')
 ADDRESSFINDER_API_TOKEN = os.environ.get('ADDRESSFINDER_API_TOKEN', '')
-
-# .local.py overrides all the common settings.
-try:
-    from .local import *
-except ImportError:
-    pass
 
 LOGGING = {
     'version': 1,
@@ -205,6 +200,13 @@ if 'SENTRY_DSN' in os.environ:
     MIDDLEWARE_CLASSES = (
         'raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',
     ) + MIDDLEWARE_CLASSES
+
+
+# .local.py overrides all the common settings.
+try:
+    from laalaa.settings.local import *
+except ImportError:
+    pass
 
 
 def override_setting(arg):

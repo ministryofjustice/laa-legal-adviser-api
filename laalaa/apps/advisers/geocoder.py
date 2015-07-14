@@ -1,6 +1,6 @@
-import requests
 from django.conf import settings
 from django.contrib.gis.geos import Point
+import postcodeinfo
 
 
 class GeocoderError(Exception):
@@ -15,19 +15,8 @@ class PostcodeNotFound(GeocoderError):
 
 def geocode(postcode):
     try:
-        response = requests.get((
-            '{host}/addresses/?postcode={postcode}&'
-            'fields=postcode,point').format(
-                host=settings.ADDRESSFINDER_API_HOST,
-                postcode=postcode),
-            headers={
-                'Authorization': 'Token {0}'.format(
-                    settings.ADDRESSFINDER_API_TOKEN)},
-            timeout=5)
-        try:
-            return response.json()[0]
-        except IndexError:
-            raise PostcodeNotFound(postcode)
-    except (requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout) as e:
+        return postcodeinfo.Client().lookup_postcode(postcode)
+    except postcodeinfo.NoResults:
+        raise PostcodeNotFound(postcode)
+    except postcodeinfo.PostcodeInfoException as e:
         raise GeocoderError(e)
