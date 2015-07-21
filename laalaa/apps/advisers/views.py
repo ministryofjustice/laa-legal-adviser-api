@@ -45,32 +45,43 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OfficeSerializer
     filter_backends = (CategoryFilter,)
 
-    def get_queryset(self):
-        pnt = None
-
+    def get_origin_postcode(self):
         postcode = self.request.query_params.get('postcode')
-        if postcode:
-            try:
-                self.origin = geocoder.geocode(postcode)
-                if self.origin['point']:
-                    pnt = Point(*self.origin['point']['coordinates'])
-            except geocoder.GeocoderError:
-                raise exceptions.ParseError('Postcode not found')
+        if not postcode:
+            return None
 
-        point = self.request.query_params.get('point')
-        if point:
-            try:
-                coords = point.split(',')
-                coords = map(float, coords)
-                pnt = Point(*coords)
-            except ValueError:
-                raise exceptions.ParseError(
-                    'point parameter must be a lon,lat coordinate')
+        try:
+            result = geocoder.geocode(postcode)
+            return Point(result.longitude, result.latitude), result.postcode
+        except geocoder.GeocoderError:
+            raise exceptions.ParseError('Postcode not found')
+
+    def get_origin_point(self):
+        try:
+            point = self.request.query_params.get('point')
+            if point:
+                return Point(*(float, point.split(',')))
+        except ValueError:
+            raise exceptions.ParseError(
+                'point parameter must be a lon,lat coordinate')
+
+    def get_queryset(self):
+
+        origin, postcode = self.get_origin_postcode()
+        if origin:
+            self.origin = {
+                'postcode': postcode,
+                'point': {
+                    'type': 'Point',
+                    'coordinates': [origin.x, origin.y]}}
+
+        origin = self.get_origin_point()
 
         queryset = Office.objects.all()
 
-        if pnt:
-            return queryset.distance(pnt, field_name='location__point').order_by('distance')
+        if origin:
+            return queryset.distance(
+                origin, field_name='location__point').order_by('distance')
 
         return queryset
 

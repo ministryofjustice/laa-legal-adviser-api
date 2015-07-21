@@ -36,8 +36,7 @@ def geocode(postcode):
             point = loc[0].point
         else:
             result = geocoder.geocode(postcode)
-            if result['point']:
-                point = Point(*result['point']['coordinates'])
+            point = Point(result.longitude, result.latitude)
     except geocoder.PostcodeNotFound:
         logging.warn('Failed geocoding postcode: %s' % postcode)
     except geocoder.GeocoderError as e:
