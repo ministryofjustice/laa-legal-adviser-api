@@ -23,13 +23,13 @@ class GeocoderTest(unittest.TestCase):
             client.lookup_postcode.assert_called_with(postcode)
 
     def test_geocode_no_results(self):
-        with mock.patch('postcodeinfo.Client') as Client:
-            client = Client.return_value
+        import postcodeinfo
 
-            def no_results(postcode):
+        with mock.patch.object(postcodeinfo.Client, '_query_api') as _query_api:
+            def no_results(*args, **kwargs):
                 raise postcodeinfo.NoResults
 
-            client.lookup_postcode.side_effect = no_results
+            _query_api.side_effect = no_results
 
             postcode = 'sw1a1aa'
             with self.assertRaises(geocoder.PostcodeNotFound) as context:

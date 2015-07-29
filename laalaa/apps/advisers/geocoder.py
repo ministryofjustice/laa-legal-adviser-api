@@ -15,8 +15,9 @@ class PostcodeNotFound(GeocoderError):
 
 def geocode(postcode):
     try:
-        return postcodeinfo.Client().lookup_postcode(postcode)
-    except postcodeinfo.NoResults:
-        raise PostcodeNotFound(postcode)
+        result = postcodeinfo.Client().lookup_postcode(postcode)
+        if not result.valid:
+            raise PostcodeNotFound(postcode)
+        return result
     except postcodeinfo.PostcodeInfoException as e:
         raise GeocoderError(e)
