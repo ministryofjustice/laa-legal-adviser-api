@@ -23,12 +23,12 @@ def cached(fn):
         return cache[name]
 
     wrapped.cache = cache
+    wrapped.clear_cache = cache.clear
     return wrapped
 
 
 @cached
 def geocode(postcode):
-    print "geocode <%s>" % postcode
     point = None
     try:
         loc = models.Location.objects.filter(postcode=postcode)
@@ -255,6 +255,8 @@ class ImportProcess(Thread):
         self.import_outreach()
         self.import_categories()
         self.progress = {'task': 'done'}
+
+        geocode.clear_cache()  # this helps geodjango in garbage collection
 
 
 class ImportShellRun(object):
