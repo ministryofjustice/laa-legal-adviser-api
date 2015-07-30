@@ -14,21 +14,21 @@ from . import geocoder
 logging.basicConfig(filename='adviser_import.log', level=logging.WARNING)
 
 
-cache = {}
-
-
 def cached(fn):
-    cache[fn.__name__] = {}
+    cache = {}
 
     def wrapped(name):
-        if name not in cache[fn.__name__]:
-            cache[fn.__name__][name] = fn(name)
-        return cache[fn.__name__][name]
+        if name not in cache:
+            cache[name] = fn(name)
+        return cache[name]
+
+    wrapped.cache = cache
     return wrapped
 
 
 @cached
 def geocode(postcode):
+    print "geocode <%s>" % postcode
     point = None
     try:
         loc = models.Location.objects.filter(postcode=postcode)
@@ -49,7 +49,7 @@ def join(*args):
 
 
 def location(address):
-    addr1, addr2, addr3, city, pcode = address.split('|')
+    addr1, addr2, addr3, city, pcode = map(str.strip, address.split('|'))
     address = '\n'.join(filter(None, [addr1, addr2, addr3]))
     loc = models.Location.objects.filter(
         address=address,
@@ -70,12 +70,13 @@ class ImportProcess(Thread):
     Loads/Updates data from xsl spreadsheet
     """
 
-    def __init__(self, path):
+    def __init__(self, path, should_prime_geocoder=True):
         self.progress = {
             'task': 'initializing',
             'count': 0,
             'total': 0}
         super(ImportProcess, self).__init__()
+        self.should_prime_geocoder = should_prime_geocoder
         workbook = xlrd.open_workbook(path)
         self.organisation_sheet = workbook.sheet_by_name('LOCAL ADVICE ORG')
         self.office_sheet = workbook.sheet_by_name('OFFICE LOCATION')
@@ -102,7 +103,6 @@ class ImportProcess(Thread):
         return map(row, range(1, worksheet.nrows))
 
     def import_organisations(self):
-        orgtypes = {}
 
         rows = self.sheet_to_dict(self.organisation_sheet)
         self.progress = {
@@ -157,7 +157,6 @@ class ImportProcess(Thread):
         map(office, rows)
 
     def import_outreach(self):
-        outreachtypes = {}
 
         rows = self.sheet_to_dict(self.outreach_sheet)
         self.progress = {
@@ -243,7 +242,14 @@ class ImportProcess(Thread):
 
         map(assoc_criminal_cat, rows)
 
+    def prime_geocoder_cache(self):
+        for location_model in models.Location.objects.exclude(point__isnull=True):
+            geocode.cache[location_model.postcode] = location_model.point
+
     def run(self):
+        if self.should_prime_geocoder:
+            print "Caching known postcode locations"
+            self.prime_geocoder_cache()
         self.import_organisations()
         self.import_offices()
         self.import_outreach()
@@ -253,8 +259,8 @@ class ImportProcess(Thread):
 
 class ImportShellRun(object):
 
-    def __call__(self, path):
-        importer = ImportProcess(path)
+    def __call__(self, path, should_prime_geocoder=True):
+        importer = ImportProcess(path, should_prime_geocoder=should_prime_geocoder)
         importer.start()
 
         while importer.is_alive() and importer.progress['task'] is not None:
