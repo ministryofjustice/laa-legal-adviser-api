@@ -55,8 +55,13 @@ def location(address):
         address=address,
         city=city,
         postcode=pcode)
-    if len(loc):
-        return loc[0]
+    if loc.exists():
+        if loc.first().point is None:
+            point = geocode(pcode)
+            if point is not None:
+                # previously unknown postcode found
+                loc.update(point=point)
+        return loc.first()
     location, created = models.Location.objects.get_or_create(
         address=address,
         city=city,
