@@ -50,12 +50,8 @@ def prime_geocoder_cache():
         geocode.cache[location_model.postcode] = location_model.point
 
 
-def join(*args):
-    return '|'.join(args)
-
-
 def location(address):
-    addr1, addr2, addr3, city, pcode = address.split('|')
+    addr1, addr2, addr3, city, pcode = address
     address = '\n'.join(filter(None, [addr1, addr2, addr3]))
     loc = models.Location.objects.filter(
         address=address,
@@ -163,7 +159,7 @@ class ImportProcess(Thread):
 
         def office(data):
             self.check_interrupt()
-            loc = location(join(
+            loc = location((
                 data['Address Line 1'],
                 data['Address Line 2'],
                 data['Address Line 3'],
@@ -195,7 +191,7 @@ class ImportProcess(Thread):
 
         def outreach(data):
             self.check_interrupt()
-            loc = location(join(
+            loc = location((
                 data['PT or Outreach Loc Address Line1'],
                 data['PT or Outreach Loc Address Line2'],
                 data['PT or Outreach Loc Address Line3'],
