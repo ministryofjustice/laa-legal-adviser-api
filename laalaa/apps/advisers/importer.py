@@ -55,7 +55,7 @@ def join(*args):
 
 
 def location(address):
-    addr1, addr2, addr3, city, pcode = map(str.strip, address.split('|'))
+    addr1, addr2, addr3, city, pcode = address.split('|')
     address = '\n'.join(filter(None, [addr1, addr2, addr3]))
     loc = models.Location.objects.filter(
         address=address,
@@ -106,6 +106,10 @@ class ImportProcess(Thread):
         """
         Parse worksheet into list of dicts
         """
+        class StrippedDict(dict):
+            def __init__(self, iterable=None, **kwargs):
+                iterable = ((k, v.strip() if isinstance(v, basestring) else v) for k, v in iterable)
+                super(StrippedDict, self).__init__(iterable, **kwargs)
 
         headings = [_cell.value for _cell in worksheet.row(0)]
 
@@ -115,7 +119,7 @@ class ImportProcess(Thread):
             return cell.value.encode('utf-8', errors='ignore')
 
         def row(index):
-            return dict(zip(headings, map(value, worksheet.row(index))))
+            return StrippedDict(zip(headings, map(value, worksheet.row(index))))
 
         return map(row, range(1, worksheet.nrows))
 
@@ -170,7 +174,7 @@ class ImportProcess(Thread):
                 telephone=data['Telephone Number'],
                 account_number=data['Account Number'].upper(),
                 organisation_id=org.id,
-                location=loc)
+                location_id=loc.id)
             self.progress['count'] += 1
 
         map(office, rows)
