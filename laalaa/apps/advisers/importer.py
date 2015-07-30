@@ -44,6 +44,12 @@ def geocode(postcode):
     return point
 
 
+def prime_geocoder_cache():
+    print "Caching known postcode locations"
+    for location_model in models.Location.objects.exclude(point__isnull=True):
+        geocode.cache[location_model.postcode] = location_model.point
+
+
 def join(*args):
     return '|'.join(args)
 
@@ -62,12 +68,12 @@ def location(address):
                 # previously unknown postcode found
                 loc.update(point=point)
         return loc.first()
-    location, created = models.Location.objects.get_or_create(
+    _location, _ = models.Location.objects.get_or_create(
         address=address,
         city=city,
         postcode=pcode,
         point=geocode(pcode))
-    return location
+    return _location
 
 
 class ImportProcess(Thread):
@@ -95,12 +101,13 @@ class ImportProcess(Thread):
         if self._interrupt.is_set():
             raise KeyboardInterrupt
 
-    def sheet_to_dict(self, worksheet):
+    @classmethod
+    def sheet_to_dict(cls, worksheet):
         """
         Parse worksheet into list of dicts
         """
 
-        headings = [cell.value for cell in worksheet.row(0)]
+        headings = [_cell.value for _cell in worksheet.row(0)]
 
         def value(cell):
             if cell.ctype == xlrd.XL_CELL_NUMBER:
@@ -121,15 +128,15 @@ class ImportProcess(Thread):
             'count': 0}
 
         def orgtype(name):
-            orgtype, created = models.OrganisationType.objects.get_or_create(
+            _orgtype, _ = models.OrganisationType.objects.get_or_create(
                 name=name)
-            return orgtype
+            return _orgtype
 
         def org(data):
             self.check_interrupt()
             _orgtype = orgtype(data['Type of Organisation'])
             try:
-                org, created = models.Organisation.objects.get_or_create(
+                models.Organisation.objects.get_or_create(
                     firm=data['Firm Number'],
                     name=data['Firm Name'],
                     website=data['Website'],
@@ -158,11 +165,11 @@ class ImportProcess(Thread):
                 data['Address Line 3'],
                 data['City'],
                 data['Postcode']))
-            org = models.Organisation.objects.filter(firm=data['Firm Number'])
-            office, created = models.Office.objects.get_or_create(
+            org = models.Organisation.objects.filter(firm=data['Firm Number']).first()
+            models.Office.objects.get_or_create(
                 telephone=data['Telephone Number'],
                 account_number=data['Account Number'].upper(),
-                organisation_id=org[0].id,
+                organisation_id=org.id,
                 location=loc)
             self.progress['count'] += 1
 
@@ -178,9 +185,9 @@ class ImportProcess(Thread):
 
         @cached
         def outreachtype(name):
-            outreachtype, created = models.OutreachType.objects.get_or_create(
+            _outreachtype, _ = models.OutreachType.objects.get_or_create(
                 name=name)
-            return outreachtype
+            return _outreachtype
 
         def outreach(data):
             self.check_interrupt()
@@ -196,7 +203,7 @@ class ImportProcess(Thread):
             if len(offices):
                 office = offices[0]
             _outreachtype = outreachtype(data['PT or Outreach Indicator'])
-            outreach, created = models.OutreachService.objects.get_or_create(
+            models.OutreachService.objects.get_or_create(
                 type_id=_outreachtype.id,
                 location_id=loc.id,
                 office_id=office.id)
@@ -214,7 +221,7 @@ class ImportProcess(Thread):
         @cached
         def category(code_civil):
             code, civil = code_civil
-            cat, created = models.Category.objects.get_or_create(
+            cat, _ = models.Category.objects.get_or_create(
                 code=code,
                 civil=civil)
             return cat
@@ -257,17 +264,12 @@ class ImportProcess(Thread):
 
         map(assoc_criminal_cat, rows)
 
-    def prime_geocoder_cache(self):
-        print "Caching known postcode locations"
-        for location_model in models.Location.objects.exclude(point__isnull=True):
-            geocode.cache[location_model.postcode] = location_model.point
-
     def run(self):
         try:
             actions = [self.import_organisations, self.import_offices,
                        self.import_outreach, self.import_categories]
             if self.should_prime_geocoder:
-                actions.insert(0, self.prime_geocoder_cache)
+                actions.insert(0, prime_geocoder_cache)
             for action in actions:
                 self.check_interrupt()
                 action()
