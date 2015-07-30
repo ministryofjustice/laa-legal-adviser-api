@@ -14,8 +14,10 @@ class Command(BaseCommand):
             cursor.execute(
                 'ALTER SEQUENCE advisers_%s_id_seq RESTART WITH 1' % table)
 
+        clear('outreachservice_categories')
         clear('outreachservice')
         clear('outreachtype')
+        clear('office_categories')
         clear('office')
         clear('organisation')
         clear('organisationtype')
