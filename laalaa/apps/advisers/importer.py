@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from threading import Thread
+from threading import Thread, Event
 from time import sleep
 
 from django.contrib.gis.geos import Point
@@ -72,15 +72,13 @@ def location(address):
 
 class ImportProcess(Thread):
     """
-    Loads/Updates data from xsl spreadsheet
+    Loads/Updates data from xls spreadsheet
     """
 
     def __init__(self, path, should_prime_geocoder=True):
-        self.progress = {
-            'task': 'initializing',
-            'count': 0,
-            'total': 0}
         super(ImportProcess, self).__init__()
+        self.progress = {'task': 'initialising'}
+        self._interrupt = Event()
         self.should_prime_geocoder = should_prime_geocoder
         workbook = xlrd.open_workbook(path)
         self.organisation_sheet = workbook.sheet_by_name('LOCAL ADVICE ORG')
@@ -89,6 +87,13 @@ class ImportProcess(Thread):
             'CAT OF LAW CRIME')
         self.category_civil_sheet = workbook.sheet_by_name('CAT OF LAW CIVIL')
         self.outreach_sheet = workbook.sheet_by_name('OUTREACH SERVICE')
+
+    def interrupt(self):
+        self._interrupt.set()
+
+    def check_interrupt(self):
+        if self._interrupt.is_set():
+            raise KeyboardInterrupt
 
     def sheet_to_dict(self, worksheet):
         """
@@ -121,6 +126,7 @@ class ImportProcess(Thread):
             return orgtype
 
         def org(data):
+            self.check_interrupt()
             _orgtype = orgtype(data['Type of Organisation'])
             try:
                 org, created = models.Organisation.objects.get_or_create(
@@ -145,6 +151,7 @@ class ImportProcess(Thread):
             'count': 0}
 
         def office(data):
+            self.check_interrupt()
             loc = location(join(
                 data['Address Line 1'],
                 data['Address Line 2'],
@@ -176,6 +183,7 @@ class ImportProcess(Thread):
             return outreachtype
 
         def outreach(data):
+            self.check_interrupt()
             loc = location(join(
                 data['PT or Outreach Loc Address Line1'],
                 data['PT or Outreach Loc Address Line2'],
@@ -219,6 +227,7 @@ class ImportProcess(Thread):
                 account_number=acct_no)
 
         def assoc_cat(data, civil=True):
+            self.check_interrupt()
             key = 'Civil Category Code'
             if not civil:
                 key = 'Crime Category Code'
@@ -230,13 +239,14 @@ class ImportProcess(Thread):
                 off.categories.add(cat)
             except models.Office.DoesNotExist:
                 logging.warn(
-                    'office for firm %s with acct no %s not found' %
+                    'Office for firm %s with acct no %s not found' %
                     (data['Firm Number'], data['Account Number']))
             self.progress['count'] += 1
 
         map(assoc_cat, rows)
 
         def assoc_criminal_cat(data):
+            self.check_interrupt()
             assoc_cat(data, civil=False)
 
         rows = self.sheet_to_dict(self.category_criminal_sheet)
@@ -248,20 +258,25 @@ class ImportProcess(Thread):
         map(assoc_criminal_cat, rows)
 
     def prime_geocoder_cache(self):
+        print "Caching known postcode locations"
         for location_model in models.Location.objects.exclude(point__isnull=True):
             geocode.cache[location_model.postcode] = location_model.point
 
     def run(self):
-        if self.should_prime_geocoder:
-            print "Caching known postcode locations"
-            self.prime_geocoder_cache()
-        self.import_organisations()
-        self.import_offices()
-        self.import_outreach()
-        self.import_categories()
-        self.progress = {'task': 'done'}
-
-        geocode.clear_cache()  # this helps geodjango in garbage collection
+        try:
+            actions = [self.import_organisations, self.import_offices,
+                       self.import_outreach, self.import_categories]
+            if self.should_prime_geocoder:
+                actions.insert(0, self.prime_geocoder_cache)
+            for action in actions:
+                self.check_interrupt()
+                action()
+            self.progress = {'task': 'done'}
+        except KeyboardInterrupt:
+            pass
+        finally:
+            # this helps geodjango in garbage collection
+            geocode.clear_cache()
 
 
 class ImportShellRun(object):
@@ -270,10 +285,16 @@ class ImportShellRun(object):
         importer = ImportProcess(path, should_prime_geocoder=should_prime_geocoder)
         importer.start()
 
-        while importer.is_alive() and importer.progress['task'] is not None:
-            sleep(1)
-            print '{task}'.format(**importer.progress),
-            if importer.progress['total']:
-                print '\b: {count} / {total}'.format(**importer.progress)
-            else:
-                print ''
+        try:
+            while importer.is_alive() and importer.progress['task'] is not None:
+                sleep(1)
+                print '{task}'.format(**importer.progress),
+                if 'total' in importer.progress:
+                    print '\b: {count} / {total}'.format(**importer.progress)
+                else:
+                    print ''
+        except KeyboardInterrupt:
+            print "Interrupting importer thread"
+            importer.interrupt()
+            importer.join()
+            print "Importer stopped"
