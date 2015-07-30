@@ -224,7 +224,7 @@ class ImportProcess(Thread):
             firm_id, acct_no = firm_acct
             return models.Office.objects.get(
                 organisation__firm=firm_id,
-                account_number=acct_no)
+                account_number=acct_no.upper())
 
         def assoc_cat(data, civil=True):
             self.check_interrupt()
