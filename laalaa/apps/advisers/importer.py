@@ -4,6 +4,7 @@ from threading import Thread, Event
 from time import sleep
 
 from django.contrib.gis.geos import Point
+from django.core.management import call_command
 from django.db import IntegrityError
 import xlrd
 
@@ -72,16 +73,22 @@ def location(address):
     return _location
 
 
+def perform_clear_db():
+    print "Clearing database"
+    call_command('clear_db')
+
+
 class ImportProcess(Thread):
     """
     Loads/Updates data from xls spreadsheet
     """
 
-    def __init__(self, path, should_prime_geocoder=True):
+    def __init__(self, path, should_prime_geocoder=True, clear_db=True):
         super(ImportProcess, self).__init__()
         self.progress = {'task': 'initialising'}
         self._interrupt = Event()
         self.should_prime_geocoder = should_prime_geocoder
+        self.clear_db = clear_db
         workbook = xlrd.open_workbook(path)
         self.organisation_sheet = workbook.sheet_by_name('LOCAL ADVICE ORG')
         self.office_sheet = workbook.sheet_by_name('OFFICE LOCATION')
@@ -278,6 +285,8 @@ class ImportProcess(Thread):
         try:
             actions = [self.import_organisations, self.import_offices,
                        self.import_outreach, self.import_categories]
+            if self.clear_db:
+                actions.insert(0, perform_clear_db)
             if self.should_prime_geocoder:
                 actions.insert(0, prime_geocoder_cache)
             for action in actions:
@@ -293,8 +302,9 @@ class ImportProcess(Thread):
 
 class ImportShellRun(object):
 
-    def __call__(self, path, should_prime_geocoder=True):
-        importer = ImportProcess(path, should_prime_geocoder=should_prime_geocoder)
+    def __call__(self, path, should_prime_geocoder=True, clear_db=True):
+        importer = ImportProcess(path, should_prime_geocoder=should_prime_geocoder,
+                                 clear_db=clear_db)
         importer.start()
 
         try:
