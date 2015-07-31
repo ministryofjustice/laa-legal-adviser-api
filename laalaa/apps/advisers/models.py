@@ -11,7 +11,7 @@ class OrganisationType(models.Model):
 
 
 class Organisation(models.Model):
-    firm = models.IntegerField(null=True)
+    firm = models.IntegerField(null=True)  # TODO: shouldn't this be unique?
     name = models.CharField(max_length=255)
     website = models.URLField(null=True, blank=True)
     contracted = models.BooleanField(default=True)

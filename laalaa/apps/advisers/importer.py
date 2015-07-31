@@ -205,11 +205,13 @@ class ImportProcess(Thread):
                 data['PT or Outreach Loc Address Line3'],
                 data['City (outreach)'],
                 data['PT or Outreach Loc Postcode']))
-            offices = models.Office.objects.filter(
-                account_number=data['Account Number'].upper())
-            office = None
-            if len(offices):
-                office = offices[0]
+            try:
+                office = models.Office.objects.get(
+                    account_number=data['Account Number'].upper())
+            except models.Office.DoesNotExist:
+                logging.warn('Office for outreach with acct no %s not found' %
+                             data['Account Number'])
+                return
             _outreachtype = outreachtype(data['PT or Outreach Indicator'])
             models.OutreachService.objects.get_or_create(
                 type_id=_outreachtype.id,
