@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
 from threading import Thread, Event
-from time import sleep
 
 from django.contrib.gis.geos import Point
 from django.core.management import call_command
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 import xlrd
 
 from . import models
@@ -83,12 +82,14 @@ class ImportProcess(Thread):
     Loads/Updates data from xls spreadsheet
     """
 
-    def __init__(self, path, should_prime_geocoder=True, clear_db=True):
+    def __init__(self, path, should_prime_geocoder=True, clear_db=True, single_transaction=True):
         super(ImportProcess, self).__init__()
         self.progress = {'task': 'initialising'}
         self._interrupt = Event()
         self.should_prime_geocoder = should_prime_geocoder
         self.clear_db = clear_db
+        if single_transaction:
+            self.run = transaction.atomic(self.run)
         workbook = xlrd.open_workbook(path)
         self.organisation_sheet = workbook.sheet_by_name('LOCAL ADVICE ORG')
         self.office_sheet = workbook.sheet_by_name('OFFICE LOCATION')
@@ -298,25 +299,3 @@ class ImportProcess(Thread):
         finally:
             # this helps geodjango in garbage collection
             geocode.clear_cache()
-
-
-class ImportShellRun(object):
-
-    def __call__(self, path, should_prime_geocoder=True, clear_db=True):
-        importer = ImportProcess(path, should_prime_geocoder=should_prime_geocoder,
-                                 clear_db=clear_db)
-        importer.start()
-
-        try:
-            while importer.is_alive() and importer.progress['task'] is not None:
-                sleep(1)
-                print '{task}'.format(**importer.progress),
-                if 'total' in importer.progress:
-                    print '\b: {count} / {total}'.format(**importer.progress)
-                else:
-                    print ''
-        except KeyboardInterrupt:
-            print "Interrupting importer thread"
-            importer.interrupt()
-            importer.join()
-            print "Importer stopped"
