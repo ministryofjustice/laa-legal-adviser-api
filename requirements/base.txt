@@ -1,4 +1,4 @@
-django==1.7.4
+django==1.7.9
 psycopg2==2.6
 djangorestframework==3.0.5
 djangorestframework-gis==0.8

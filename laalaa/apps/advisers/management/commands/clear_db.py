@@ -1,12 +1,12 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import NoArgsCommand
 from django.db import connection
 
 
-class Command(BaseCommand):
+class Command(NoArgsCommand):
     help = 'Clears advisers data'
     requires_model_validation = True
 
-    def handle(self, *args, **options):
+    def handle_noargs(self, **options):
         cursor = connection.cursor()
 
         def clear(table):
@@ -14,8 +14,10 @@ class Command(BaseCommand):
             cursor.execute(
                 'ALTER SEQUENCE advisers_%s_id_seq RESTART WITH 1' % table)
 
+        clear('outreachservice_categories')
         clear('outreachservice')
         clear('outreachtype')
+        clear('office_categories')
         clear('office')
         clear('organisation')
         clear('organisationtype')
