@@ -175,18 +175,13 @@ class ImportProcess(Thread):
                 data['Postcode']))
             org = models.Organisation.objects.filter(firm=data['Firm Number']).first()
             account_number = data['Account Number'].upper()
-            try:
-                _office = models.Office.objects.get(account_number=account_number)
-                _office.telephone = data['Telephone Number']
-                _office.organisation_id = org.id
-                _office.location_id = loc.id
-                _office.save()
-            except models.Office.DoesNotExist:
-                models.Office.objects.create(
-                    telephone=data['Telephone Number'],
-                    account_number=account_number,
-                    organisation_id=org.id,
-                    location_id=loc.id)
+            office_defaults = {
+                'telephone': data['Telephone Number'],
+                'organisation_id': org.id,
+                'location_id': loc.id,
+            }
+            models.Office.objects.update_or_create(defaults=office_defaults,
+                                                   account_number=account_number)
             self.progress['count'] += 1
 
         map(office, rows)
