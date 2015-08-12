@@ -45,6 +45,10 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OfficeSerializer
     filter_backends = (CategoryFilter,)
 
+    def __init__(self, **kwargs):
+        super(AdviserViewSet, self).__init__(**kwargs)
+        self.origin = None
+
     def get_origin_postcode(self):
         postcode = self.request.query_params.get('postcode')
         if not postcode:
@@ -52,33 +56,35 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
 
         try:
             result = geocoder.geocode(postcode)
-            return Point(result.longitude, result.latitude), result.postcode
+            point = Point(result.longitude, result.latitude)
+            self.origin = {
+                'postcode': postcode,
+                'point': {
+                    'type': 'Point',
+                    'coordinates': [point.x, point.y]}}
+            return point
         except geocoder.GeocoderError:
             raise exceptions.ParseError('Postcode not found')
 
     def get_origin_point(self):
         try:
-            point = self.request.query_params.get('point')
-            if point:
-                return Point(*(float, point.split(',')))
+            point_param = self.request.query_params.get('point')
+            if point_param:
+                point = Point(*map(float, point_param.split(',')))
+                self.origin = {
+                    'postcode': None,
+                    'point': {
+                        'type': 'Point',
+                        'coordinates': [point.x, point.y]}}
+                return point
         except ValueError:
             raise exceptions.ParseError(
                 'point parameter must be a lon,lat coordinate')
 
     def get_queryset(self):
-
-        origin, postcode = self.get_origin_postcode()
-        if origin:
-            self.origin = {
-                'postcode': postcode,
-                'point': {
-                    'type': 'Point',
-                    'coordinates': [origin.x, origin.y]}}
-
-        origin = self.get_origin_point()
-
         queryset = Office.objects.all()
 
+        origin = self.get_origin_point() or self.get_origin_postcode()
         if origin:
             return queryset.distance(
                 origin, field_name='location__point').order_by('distance')
@@ -87,8 +93,7 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         response = super(AdviserViewSet, self).list(request, *args, **kwargs)
-        if hasattr(self, 'origin'):
-            response.data['origin'] = self.origin
+        response.data['origin'] = self.origin
         return response
 
 
