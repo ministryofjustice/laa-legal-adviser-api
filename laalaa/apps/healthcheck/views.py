@@ -39,22 +39,26 @@ def healthcheck(request):
 
     # Default status is `DOWN` for all services
     health = {
-        'addressfinder': {
+        'postcodeinfo': {
             'status': 'DOWN',
-            'endpoint': settings.ADDRESSFINDER_API_HOST
+            'endpoint': settings.POSTCODEINFO_API_URL
         }
     }
 
-    # Test address finder
+    # Test postcodeinfo
     try:
-        headers = {'Authorization': 'Token {0}'.format(settings.ADDRESSFINDER_API_TOKEN)}
-        req = requests.get('{0}/addresses/?postcode=sw1a1aa'.format(settings.ADDRESSFINDER_API_HOST), headers=headers)
+        headers = {'Authorization': 'Token {0}'.format(
+            settings.POSTCODEINFO_AUTH_TOKEN)}
+        req = requests.get(
+            '{0}/addresses/?postcode=sw1a1aa'.format(
+                settings.POSTCODEINFO_API_URL),
+            headers=headers)
         if req.status_code == 200:
-            health['addressfinder']['status'] = 'UP'
+            health['postcodeinfo']['status'] = 'UP'
     except:
         pass
 
-    if health['addressfinder']['status'] == 'UP':
+    if health['postcodeinfo']['status'] == 'UP':
         return JsonResponse(health, status=200)
     else:
         return JsonResponse(health, status=503)
