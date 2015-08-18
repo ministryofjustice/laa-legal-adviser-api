@@ -111,10 +111,9 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'advisers.views.custom_exception_handler'
 }
 
-ADDRESSFINDER_API_HOST = os.environ.get(
-    'ADDRESSFINDER_API_HOST',
-    'http://127.0.0.1:8003')
-ADDRESSFINDER_API_TOKEN = os.environ.get('ADDRESSFINDER_API_TOKEN', '')
+POSTCODEINFO_API_URL = os.environ.get(
+    'POSTCODEINFO_API_URL', 'https://postcodeinfo.service.justice.gov.uk/')
+POSTCODEINFO_AUTH_TOKEN = os.environ.get('POSTCODEINFO_AUTH_TOKEN')
 
 LOGGING = {
     'version': 1,
