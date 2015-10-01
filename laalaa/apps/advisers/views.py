@@ -31,7 +31,7 @@ def custom_exception_handler(exc):
 
 class CategoryFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        queryset = queryset.exclude(location__point__isnull=True)
+        queryset = queryset.exclude(location__point__isnull=True).distinct()
 
         category_code = request.query_params.get('category')
         if category_code:
@@ -41,9 +41,44 @@ class CategoryFilter(filters.BaseFilterBackend):
         return queryset
 
 
+class MultipleCategoryFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+
+        category_codes = request.query_params.getlist('categories')
+        if category_codes:
+            category_codes = [c.upper() for c in category_codes]
+            return queryset.filter(categories__code__in=category_codes)
+
+        return queryset
+
+
+class OrganisationTypeFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+
+        organisation_type_names = request.query_params.getlist(
+            'organisation_types')
+        if organisation_type_names:
+            return queryset.filter(
+                organisation__type__name__in=organisation_type_names)
+
+        return queryset
+
+
+class OrganisationNameFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+
+        organisation_name = request.query_params.get('organisation_name')
+        if organisation_name:
+            return queryset.filter(
+                organisation__name__icontains=organisation_name)
+
+        return queryset
+
+
 class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OfficeSerializer
-    filter_backends = (CategoryFilter,)
+    filter_backends = (CategoryFilter, MultipleCategoryFilter,
+                       OrganisationTypeFilter, OrganisationNameFilter)
 
     def __init__(self, **kwargs):
         super(AdviserViewSet, self).__init__(**kwargs)
