@@ -93,7 +93,7 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
             result = geocoder.geocode(postcode)
             point = Point(result.longitude, result.latitude)
             self.origin = {
-                'postcode': postcode,
+                'postcode': result.postcode,
                 'point': {
                     'type': 'Point',
                     'coordinates': [point.x, point.y]}}
