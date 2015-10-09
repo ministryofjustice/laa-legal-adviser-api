@@ -42,7 +42,7 @@ class OfficeInline(admin.StackedInline):
 class LocationAdmin(admin.ModelAdmin):
     exclude = ('point',)
     inlines = [OfficeInline]
-    list_display = ('organisation', '__str__', 'type')
+    list_display = ('id', '__str__', 'type')
     list_display_links = ('__str__',)
     list_filter = (LocationTypeFilter,)
     search_fields = ('address', 'city', 'postcode')
@@ -75,4 +75,3 @@ class MyAdminSite(admin.AdminSite):
 
 admin_site = MyAdminSite()
 admin_site.index_template = 'admin_index.html'
-admin_site.register(Location, LocationAdmin)
