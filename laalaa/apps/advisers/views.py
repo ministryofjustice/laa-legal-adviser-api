@@ -91,9 +91,11 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
 
         try:
             result = geocoder.geocode(postcode)
+            if hasattr(result, 'postcode'):
+                postcode = result.postcode
             point = Point(result.longitude, result.latitude)
             self.origin = {
-                'postcode': result.postcode,
+                'postcode': postcode,
                 'point': {
                     'type': 'Point',
                     'coordinates': [point.x, point.y]}}
