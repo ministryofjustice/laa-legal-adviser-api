@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.gis.geos import Point
 from django.contrib import messages
@@ -71,6 +73,10 @@ class OrganisationNameFilter(filters.BaseFilterBackend):
         return queryset
 
 
+def format_postcode(postcode):
+    return re.sub(r'^(.*)(\d\w\w)', '\\1 \\2', postcode).upper()
+
+
 class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OfficeSerializer
     filter_backends = (CategoryFilter, MultipleCategoryFilter,
@@ -91,7 +97,7 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
                 postcode = result.postcode
             point = Point(result.longitude, result.latitude)
             self.origin = {
-                'postcode': postcode,
+                'postcode': format_postcode(postcode),
                 'point': {
                     'type': 'Point',
                     'coordinates': [point.x, point.y]}}
