@@ -103,13 +103,16 @@ class ImportProcess(Thread):
         self.sheets = {}
         self.temp_dir = tempfile.mkdtemp()
 
-        # if options.pop('single_transaction', False):
-            # self.run = transaction.atomic(self.run)
+        if options.pop('single_transaction', True):
+            self.run = transaction.atomic(self.run)
 
-        prime_geocoder_cache()
+        if options.pop('prime_geocoder', True):
+            prime_geocoder_cache()
+
+        if options.pop('clear_db', True):
+            clear_db()
 
         csv_metadata = self.convert_excel_to_csv(xlsx_file)
-        clear_db()
         for csv_filename, headers, types in csv_metadata:
             self.load_csv_into_db(csv_filename, headers, types)
 
