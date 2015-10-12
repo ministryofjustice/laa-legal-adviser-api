@@ -1,17 +1,13 @@
-import logging
-
 from django import forms
 from django.contrib.gis.geos import Point
-from django.core.urlresolvers import reverse
+from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.views.generic import TemplateView
 from rest_framework import exceptions, viewsets, filters
 from rest_framework.views import exception_handler
-from django.contrib.gis.measure import D
 
 from . import geocoder
-from .importer import ImportProcess
+from .importer import Import
 from .models import Office
 from .serializers import OfficeSerializer
 
@@ -148,9 +144,20 @@ def upload_spreadsheet(request):
         form = UploadSpreadsheetForm(request.POST, request.FILES)
         if form.is_valid():
             if importer is None:
-                importer = ImportProcess(
-                    request.FILES['xlfile'].temporary_file_path())
-                importer.start()
+                try:
+                    importer = Import(
+                        request.FILES['xlfile'].temporary_file_path())
+                    importer.start()
+
+                except Import.Balk:
+                    messages.error(request, 'Import already in progress')
+
+                except Import.Fail:
+                    messages.error(request, 'Import failed')
+
+                else:
+                    messages.success(request, 'Import started')
+
             return redirect('/admin/import-in-progress/')
     return render(request, 'upload.html', {'form': form})
 
@@ -158,5 +165,5 @@ def upload_spreadsheet(request):
 def import_progress(request):
     global importer
     if importer is not None:
-        return JsonResponse(importer.progress)
+        return JsonResponse(importer.thread.progress)
     return JsonResponse({'status': 'not running'})

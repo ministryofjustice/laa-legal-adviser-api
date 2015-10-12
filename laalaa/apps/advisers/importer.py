@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+import csv
 import logging
+import os
+import tempfile
 from threading import Thread, Event
+from time import sleep
 
 from django.contrib.gis.geos import Point
-from django.core.management import call_command
-from django.db import IntegrityError, transaction
+from django.db import connection, transaction
+from django.utils.text import slugify
 import xlrd
 
 from . import models
@@ -45,36 +49,36 @@ def geocode(postcode):
 
 
 def prime_geocoder_cache():
-    print "Caching known postcode locations"
-    for location_model in models.Location.objects.exclude(point__isnull=True):
-        geocode.cache[location_model.postcode] = location_model.point
+    """
+    Cache known postcode locations
+    """
+    for location in models.Location.objects.exclude(point__isnull=True):
+        geocode.cache[location.postcode] = location.point
 
 
-def location(address):
-    addr1, addr2, addr3, city, pcode = address
-    address = '\n'.join(filter(None, [addr1, addr2, addr3]))
-    loc = models.Location.objects.filter(
-        address=address,
-        city=city,
-        postcode=pcode)
-    if loc.exists():
-        if loc.first().point is None:
-            point = geocode(pcode)
-            if point is not None:
-                # previously unknown postcode found
-                loc.update(point=point)
-        return loc.first()
-    _location, _ = models.Location.objects.get_or_create(
-        address=address,
-        city=city,
-        postcode=pcode,
-        point=geocode(pcode))
-    return _location
+def clear_db():
+    cursor = connection.cursor()
+    tables = (
+        'advisers_location',
+        'advisers_organisationtype',
+        'advisers_outreachtype',
+        'advisers_category')
+    for table in tables:
+        cursor.execute("TRUNCATE {table} RESTART IDENTITY CASCADE".format(
+            table=table))
 
 
-def perform_clear_db():
-    print "Clearing database"
-    call_command('clear_db')
+class StrippedDict(dict):
+    """
+    A dict with all values stripped of leading and trailing whitespace on
+    initializing
+    """
+
+    def __init__(self, iterable=None, **kwargs):
+        iterable = (
+            (k, v.strip() if isinstance(v, basestring) else v)
+            for k, v in iterable)
+        super(StrippedDict, self).__init__(iterable, **kwargs)
 
 
 class ImportProcess(Thread):
@@ -82,21 +86,242 @@ class ImportProcess(Thread):
     Loads/Updates data from xls spreadsheet
     """
 
-    def __init__(self, path, should_prime_geocoder=True, clear_db=True, single_transaction=True):
+    worksheet_names = (
+        'LOCAL ADVICE ORG',
+        'OFFICE LOCATION',
+        'CAT OF LAW CRIME',
+        'CAT OF LAW CIVIL',
+        'OUTREACH SERVICE',
+    )
+
+    def __init__(self, xlsx_file, record, **options):
         super(ImportProcess, self).__init__()
+        self.options = options
         self.progress = {'task': 'initialising'}
+        self.record = record
         self._interrupt = Event()
-        self.should_prime_geocoder = should_prime_geocoder
-        self.clear_db = clear_db
-        if single_transaction:
+        self.sheets = {}
+        self.temp_dir = tempfile.mkdtemp()
+
+        if options.pop('single_transaction', True):
             self.run = transaction.atomic(self.run)
-        workbook = xlrd.open_workbook(path)
-        self.organisation_sheet = workbook.sheet_by_name('LOCAL ADVICE ORG')
-        self.office_sheet = workbook.sheet_by_name('OFFICE LOCATION')
-        self.category_criminal_sheet = workbook.sheet_by_name(
-            'CAT OF LAW CRIME')
-        self.category_civil_sheet = workbook.sheet_by_name('CAT OF LAW CIVIL')
-        self.outreach_sheet = workbook.sheet_by_name('OUTREACH SERVICE')
+
+        if options.pop('prime_geocoder', True):
+            prime_geocoder_cache()
+
+        if options.pop('clear_db', True):
+            clear_db()
+
+        csv_metadata = self.convert_excel_to_csv(xlsx_file)
+        for csv_filename, headers, types in csv_metadata:
+            self.load_csv_into_db(csv_filename, headers, types)
+
+        self.translate_data()
+
+        for meta in csv_metadata:
+            self.drop_csv_table(meta[0])
+
+    def convert_excel_to_csv(self, xlsx_file):
+        workbook = xlrd.open_workbook(xlsx_file)
+        csv_metadata = []
+        for name in workbook.sheet_names():
+            if name in self.worksheet_names:
+                worksheet = workbook.sheet_by_name(name)
+                csv_metadata.append(self.write_to_csv(name, worksheet))
+        return csv_metadata
+
+    def write_to_csv(self, name, worksheet):
+        csv_filename = '{0}.csv'.format(slugify(unicode(name)))
+        csv_filename = os.path.join(self.temp_dir, csv_filename)
+        headers = [unicode(value) for value in worksheet.row_values(0)]
+        types = worksheet.row_types(1)
+
+        def value(cell):
+            if cell.ctype == xlrd.XL_CELL_NUMBER:
+                return int(cell.value)
+            return cell.value.encode('utf-8', errors='ignore')
+
+        with open(csv_filename, 'wb') as csv_file:
+            writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+            for row in xrange(worksheet.nrows):
+                writer.writerow([
+                    value(cell)
+                    for cell in worksheet.row(row)])
+        return csv_filename, headers, types
+
+    def load_csv_into_db(self, csv_filename, headers, types):
+        table_name = os.path.basename(csv_filename)[:-4].replace('-', '_')
+        columns = [
+            '{header} {ctype}'.format(
+                header=slugify(header).replace('-', '_'),
+                ctype='integer' if type_ == xlrd.XL_CELL_NUMBER else 'varchar')
+            for header, type_ in zip(headers, types)]
+        cursor = connection.cursor()
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS {table} ({columns})".format(
+                table=table_name,
+                columns=', '.join(columns)))
+        cursor.execute("DELETE FROM {table}".format(table=table_name))
+        cursor.execute(
+            "COPY {table} FROM '{filename}' DELIMITER ',' CSV HEADER".format(
+                table=table_name,
+                filename=csv_filename))
+
+    def drop_csv_table(self, csv_filename):
+        table_name = os.path.basename(csv_filename)[:-4].replace('-', '_')
+        cursor = connection.cursor()
+        cursor.execute("DROP TABLE {table}".format(table=table_name))
+
+    def translate_data(self):
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT
+                INTO advisers_organisationtype (name)
+                SELECT
+                    DISTINCT(type_of_organisation)
+                    FROM local_advice_org""")
+        cursor.execute("""
+            INSERT
+                INTO advisers_organisation (
+                    name, website, contracted, type_id, firm)
+                SELECT
+                    firm_name,
+                    website,
+                    (upper(la_contracted_status) = 'YES'),
+                    (SELECT
+                        id
+                        FROM advisers_organisationtype orgtype
+                        WHERE orgtype.name LIKE type_of_organisation),
+                    firm_number
+                    FROM local_advice_org""")
+
+        cursor.execute("""
+            INSERT
+                INTO advisers_location (address, city, postcode)
+                SELECT DISTINCT
+                    rtrim(
+                        concat_ws(E'\\n',
+                            address_line_1,
+                            address_line_2,
+                            address_line_3),
+                        E'\\n '),
+                    city,
+                    postcode
+                    FROM office_location""")
+
+        cursor.execute("""
+            INSERT
+                INTO advisers_office (
+                    telephone, account_number, location_id, organisation_id)
+                SELECT
+                    telephone_number,
+                    account_number,
+                    loc.id as location_id,
+                    org.id as organisation_id
+                    FROM office_location office
+                    JOIN advisers_location loc
+                        ON loc.address = rtrim(
+                                concat_ws(E'\\n',
+                                    address_line_1, address_line_2,
+                                    address_line_3),
+                                E'\\n ') AND
+                            loc.city = office.city AND
+                            loc.postcode = office.postcode
+                    JOIN advisers_organisation org
+                        ON org.firm = firm_number""")
+
+        cursor.execute("""
+            INSERT
+                INTO advisers_outreachtype (name)
+                SELECT DISTINCT
+                    pt_or_outreach_indicator
+                    FROM outreach_service""")
+
+        cursor.execute("""
+            INSERT
+                INTO advisers_location (address, city, postcode)
+                SELECT DISTINCT
+                    rtrim(
+                        concat_ws(E'\\n',
+                            pt_or_outreach_loc_address_line1,
+                            pt_or_outreach_loc_address_line2,
+                            pt_or_outreach_loc_address_line3),
+                        E'\\n '),
+                    city_outreach,
+                    pt_or_outreach_loc_postcode
+                    FROM outreach_service
+                    EXCEPT
+                        SELECT
+                            address, city, postcode
+                            FROM advisers_location""")
+
+        cursor.execute("""
+            INSERT
+                INTO advisers_outreachservice (
+                    type_id, location_id, office_id)
+                SELECT
+                    otype.id as type_id,
+                    loc.id as location_id,
+                    office.id as office_id
+                    FROM outreach_service os
+                    JOIN advisers_outreachtype otype
+                        ON otype.name = os.pt_or_outreach_indicator
+                    JOIN advisers_location loc
+                        ON loc.address = rtrim(
+                            concat_ws(E'\\n',
+                                os.pt_or_outreach_loc_address_line1,
+                                os.pt_or_outreach_loc_address_line2,
+                                os.pt_or_outreach_loc_address_line3),
+                            E'\\n ') AND
+                        loc.city = os.city_outreach AND
+                        loc.postcode = os.pt_or_outreach_loc_postcode
+                    JOIN advisers_office office
+                        ON office.account_number = os.account_number""")
+
+        cursor.execute("""
+            INSERT
+                INTO advisers_category (code, civil)
+                SELECT DISTINCT
+                    civil_category_code, true
+                    FROM cat_of_law_civil""")
+        cursor.execute("""
+            INSERT
+                INTO advisers_category (code, civil)
+                SELECT DISTINCT
+                    crime_category_code, false
+                    FROM cat_of_law_crime""")
+        cursor.execute("""
+            INSERT
+                INTO advisers_office_categories (office_id, category_id)
+                SELECT DISTINCT
+                    off.id,
+                    cat.id
+                    FROM
+                        cat_of_law_civil civ,
+                        advisers_office off,
+                        advisers_category cat,
+                        advisers_organisation org
+                    WHERE
+                        org.firm = civ.firm_number AND
+                        off.organisation_id = org.id AND
+                        off.account_number = civ.account_number AND
+                        cat.code = civ.civil_category_code""")
+        cursor.execute("""
+            INSERT
+                INTO advisers_office_categories (office_id, category_id)
+                SELECT DISTINCT
+                    off.id,
+                    cat.id
+                    FROM
+                        cat_of_law_crime cri,
+                        advisers_office off,
+                        advisers_category cat,
+                        advisers_organisation org
+                    WHERE
+                        org.firm = cri.firm_number AND
+                        off.organisation_id = org.id AND
+                        off.account_number = cri.account_number AND
+                        cat.code = cri.crime_category_code""")
 
     def interrupt(self):
         self._interrupt.set()
@@ -105,192 +330,156 @@ class ImportProcess(Thread):
         if self._interrupt.is_set():
             raise KeyboardInterrupt
 
-    @classmethod
-    def sheet_to_dict(cls, worksheet):
-        """
-        Parse worksheet into list of dicts
-        """
-        class StrippedDict(dict):
-            def __init__(self, iterable=None, **kwargs):
-                iterable = ((k, v.strip() if isinstance(v, basestring) else v) for k, v in iterable)
-                super(StrippedDict, self).__init__(iterable, **kwargs)
-
-        headings = [_cell.value for _cell in worksheet.row(0)]
-
-        def value(cell):
-            if cell.ctype == xlrd.XL_CELL_NUMBER:
-                return int(cell.value)
-            return cell.value.encode('utf-8', errors='ignore')
-
-        def row(index):
-            return StrippedDict(zip(headings, map(value, worksheet.row(index))))
-
-        return map(row, range(1, worksheet.nrows))
-
-    def import_organisations(self):
-
-        rows = self.sheet_to_dict(self.organisation_sheet)
-        self.progress = {
-            'task': 'Importing organisations',
-            'total': len(rows),
-            'count': 0}
-
-        def orgtype(name):
-            _orgtype, _ = models.OrganisationType.objects.get_or_create(
-                name=name)
-            return _orgtype
-
-        def org(data):
-            self.check_interrupt()
-            _orgtype = orgtype(data['Type of Organisation'])
-            try:
-                models.Organisation.objects.get_or_create(
-                    firm=data['Firm Number'],
-                    name=data['Firm Name'],
-                    website=data['Website'],
-                    contracted=data['LA Contracted Status'],
-                    type_id=_orgtype.id)
-            except IntegrityError:
-                print data, _orgtype.id
-                raise
-            self.progress['count'] += 1
-
-        map(org, rows)
-
-    def import_offices(self):
-
-        rows = self.sheet_to_dict(self.office_sheet)
-        self.progress = {
-            'task': 'Importing offices',
-            'total': len(rows),
-            'count': 0}
-
-        def office(data):
-            self.check_interrupt()
-            loc = location((
-                data['Address Line 1'],
-                data['Address Line 2'],
-                data['Address Line 3'],
-                data['City'],
-                data['Postcode']))
-            org = models.Organisation.objects.filter(firm=data['Firm Number']).first()
-            account_number = data['Account Number'].upper()
-            office_defaults = {
-                'telephone': data['Telephone Number'],
-                'organisation_id': org.id,
-                'location_id': loc.id,
-            }
-            models.Office.objects.update_or_create(defaults=office_defaults,
-                                                   account_number=account_number)
-            self.progress['count'] += 1
-
-        map(office, rows)
-
-    def import_outreach(self):
-
-        rows = self.sheet_to_dict(self.outreach_sheet)
-        self.progress = {
-            'task': 'Importing outreach locations',
-            'total': len(rows),
-            'count': 0}
-
-        @cached
-        def outreachtype(name):
-            _outreachtype, _ = models.OutreachType.objects.get_or_create(
-                name=name)
-            return _outreachtype
-
-        def outreach(data):
-            self.check_interrupt()
-            loc = location((
-                data['PT or Outreach Loc Address Line1'],
-                data['PT or Outreach Loc Address Line2'],
-                data['PT or Outreach Loc Address Line3'],
-                data['City (outreach)'],
-                data['PT or Outreach Loc Postcode']))
-            try:
-                office = models.Office.objects.get(
-                    account_number=data['Account Number'].upper())
-            except models.Office.DoesNotExist:
-                logging.warn('Office for outreach with acct no %s not found' %
-                             data['Account Number'])
-                return
-            _outreachtype = outreachtype(data['PT or Outreach Indicator'])
-            models.OutreachService.objects.get_or_create(
-                type_id=_outreachtype.id,
-                location_id=loc.id,
-                office_id=office.id)
-            self.progress['count'] += 1
-
-        map(outreach, rows)
-
-    def import_categories(self):
-        rows = self.sheet_to_dict(self.category_civil_sheet)
-        self.progress = {
-            'task': 'Importing civil categories',
-            'total': len(rows),
-            'count': 0}
-
-        @cached
-        def category(code_civil):
-            code, civil = code_civil
-            cat, _ = models.Category.objects.get_or_create(
-                code=code,
-                civil=civil)
-            return cat
-
-        @cached
-        def office(firm_acct):
-            firm_id, acct_no = firm_acct
-            return models.Office.objects.get(
-                organisation__firm=firm_id,
-                account_number=acct_no.upper())
-
-        def assoc_cat(data, civil=True):
-            self.check_interrupt()
-            key = 'Civil Category Code'
-            if not civil:
-                key = 'Crime Category Code'
-            cat = category((data[key], civil))
-            try:
-                off = office((
-                    data['Firm Number'],
-                    data['Account Number']))
-                off.categories.add(cat)
-            except models.Office.DoesNotExist:
-                logging.warn(
-                    'Office for firm %s with acct no %s not found' %
-                    (data['Firm Number'], data['Account Number']))
-            self.progress['count'] += 1
-
-        map(assoc_cat, rows)
-
-        def assoc_criminal_cat(data):
-            self.check_interrupt()
-            assoc_cat(data, civil=False)
-
-        rows = self.sheet_to_dict(self.category_criminal_sheet)
-        self.progress = {
-            'task': 'Importing criminal categories',
-            'total': len(rows),
-            'count': 0}
-
-        map(assoc_criminal_cat, rows)
+    def increment_progress(self, num):
+        self.progress['count'] += num
 
     def run(self):
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT DISTINCT postcode FROM advisers_location""")
+        postcodes = cursor.fetchall()
+
+        def chunks(n=1000):
+            for i in xrange(0, len(postcodes), n):
+                yield postcodes[i:i + n]
+
+        self.progress = {
+            'task': 'geocoding locations',
+            'count': 0,
+            'total': len(postcodes)}
+
+        threads = []
+        for i, chunk in enumerate(chunks()):
+            thread = GeocoderThread(i, chunk, self)
+            thread.start()
+            threads.append(thread)
+
         try:
-            actions = [self.import_organisations, self.import_offices,
-                       self.import_outreach, self.import_categories]
-            if self.clear_db:
-                actions.insert(0, perform_clear_db)
-            if self.should_prime_geocoder:
-                actions.insert(0, prime_geocoder_cache)
-            for action in actions:
+            while any(map(lambda x: x.is_alive(), threads)):
                 self.check_interrupt()
-                action()
-            self.progress = {'task': 'done'}
+                sleep(1)
+
         except KeyboardInterrupt:
-            pass
+            for i, thread in enumerate(threads):
+                print 'Stopping geocoder thread %d' % i
+                thread.interrupt()
+                thread.join()
+            self.record.status = models.IMPORT_STATUSES.ABORTED
+
+        except Exception:
+            self.record.status = models.IMPORT_STATUSES.FAILURE
+            raise
+
+        else:
+            self.record.status = models.IMPORT_STATUSES.SUCCESS
+
         finally:
             # this helps geodjango in garbage collection
             geocode.clear_cache()
+            self.record.save()
+
+
+class GeocoderThread(Thread):
+
+    def __init__(self, num, postcodes, importer, *args, **kwargs):
+        super(GeocoderThread, self).__init__(*args, **kwargs)
+        self._interrupt = Event()
+        self.num = num
+        self.postcodes = postcodes
+        self.importer = importer
+
+    def run(self):
+        try:
+            for postcode in self.postcodes:
+                self.check_interrupt()
+                point = geocode(postcode[0].encode('utf-8'))
+                if point:
+                    models.Location.objects.filter(
+                        postcode=postcode[0]
+                    ).update(point=point)
+                    self.importer.increment_progress(1)
+
+        except KeyboardInterrupt:
+            pass
+
+    def interrupt(self):
+        self._interrupt.set()
+
+    def check_interrupt(self):
+        if self._interrupt.is_set():
+            raise KeyboardInterrupt
+
+
+def import_running():
+    return 0 < models.Import.objects.filter(
+        status__in=models.IMPORT_STATUSES.RUNNING).count()
+
+
+class Import(object):
+
+    class ImportError(Exception):
+        pass
+
+    class Balk(ImportError):
+        pass
+
+    class Fail(ImportError):
+        pass
+
+    def __init__(self, xlsx_file, user=None, **options):
+        self.xlsx_file = xlsx_file
+        self.user = user
+        self.options = options
+        self.record = None
+        self.thread = None
+
+    def start(self):
+        if import_running():
+            raise Import.Balk()
+
+        record = models.Import.objects.create(
+            status=models.IMPORT_STATUSES.RUNNING,
+            filename=self.xlsx_file,
+            user=self.user)
+
+        try:
+            self.thread = ImportProcess(self.xlsx_file, record, **self.options)
+
+        except xlrd.XLRDError as error:
+            raise Import.Fail(error)
+
+        self.thread.start()
+
+    @property
+    def task(self):
+        if self.thread:
+            return self.thread.progress.get('task')
+
+    @property
+    def count(self):
+        if self.thread:
+            return self.thread.progress.get('count')
+
+    @property
+    def total(self):
+        if self.thread:
+            return self.thread.progress.get('total')
+
+    def is_running(self):
+        return (
+            self.thread and
+            self.thread.is_alive() and
+            self.thread.progress.get('task') is not None)
+
+    @property
+    def progress(self):
+        return '{task}{progress}'.format(
+            task=self.task,
+            progress=(
+                ': {0.count} / {0.total}'.format(self)
+                if self.total else ''))
+
+    def stop(self):
+        if self.is_running():
+            self.thread.interrupt()
+            self.thread.join()

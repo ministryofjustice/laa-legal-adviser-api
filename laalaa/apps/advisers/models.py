@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 
 
@@ -5,9 +6,15 @@ class Category(models.Model):
     code = models.CharField(max_length=8)
     civil = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return unicode(self.code)
+
 
 class OrganisationType(models.Model):
     name = models.CharField(max_length=48)
+
+    def __unicode__(self):
+        return unicode(self.name)
 
 
 class Organisation(models.Model):
@@ -16,6 +23,9 @@ class Organisation(models.Model):
     website = models.URLField(null=True, blank=True)
     contracted = models.BooleanField(default=True)
     type = models.ForeignKey('OrganisationType')
+
+    def __unicode__(self):
+        return unicode(self.name)
 
 
 class Location(models.Model):
@@ -26,11 +36,11 @@ class Location(models.Model):
 
     objects = models.GeoManager()
 
-    def __str__(self):
-        return ', '.join([
-            self.address.replace('\n', ', '),
-            self.city,
-            self.postcode])
+    def __unicode__(self):
+        return u', '.join([
+            unicode(self.address.replace('\n', ', ')),
+            unicode(self.city),
+            unicode(self.postcode)])
 
     def organisation(self):
         if self.office_set.count():
@@ -59,9 +69,36 @@ class Office(models.Model):
 class OutreachType(models.Model):
     name = models.CharField(max_length=48)
 
+    def __unicode__(self):
+        return unicode(self.name)
+
 
 class OutreachService(models.Model):
     office = models.ForeignKey('Office')
     location = models.ForeignKey('Location')
     type = models.ForeignKey('OutreachType')
     categories = models.ManyToManyField(Category)
+
+
+class Choices(object):
+
+    def __init__(self, *pairs):
+        self._choices = pairs
+        self.__dict__.update(pairs)
+
+    def __iter__(self):
+        return iter(self._choices)
+
+
+IMPORT_STATUSES = Choices(
+    ('RUNNING', 'running'),
+    ('SUCCESS', 'success'),
+    ('FAILURE', 'failure'),
+    ('ABORTED', 'aborted'))
+
+
+class Import(models.Model):
+    started = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=7, choices=list(IMPORT_STATUSES))
+    filename = models.TextField()
+    user = models.ForeignKey(User, null=True)
