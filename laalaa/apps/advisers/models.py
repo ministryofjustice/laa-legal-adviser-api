@@ -28,13 +28,27 @@ class Organisation(models.Model):
         return unicode(self.name)
 
 
+class LocationManager(models.GeoManager):
+    def get_queryset(self):
+        return super(LocationManager, self).get_queryset().select_related(
+            'office',
+            'office__organisation',
+            'outreachservice',
+            'outreachservice__type',
+            'outreachservice__office__organisation',
+        ).prefetch_related(
+            'office__categories',
+            'outreachservice__categories',
+        )
+
+
 class Location(models.Model):
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=48)
     postcode = models.CharField(max_length=16)
     point = models.PointField(null=True)
 
-    objects = models.GeoManager()
+    objects = LocationManager()
 
     def __unicode__(self):
         return u', '.join([
