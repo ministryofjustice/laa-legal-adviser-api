@@ -1,3 +1,4 @@
+from django.db.models import Q
 import re
 
 from django import forms
@@ -10,8 +11,8 @@ from rest_framework.views import exception_handler
 
 from . import geocoder
 from .importer import Import
-from .models import Office
-from .serializers import OfficeSerializer
+from .models import Location
+from .serializers import LocationOfficeSerializer
 
 
 def custom_exception_handler(exc):
@@ -29,12 +30,14 @@ def custom_exception_handler(exc):
 
 class CategoryFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        queryset = queryset.exclude(location__point__isnull=True).distinct()
+        queryset = queryset.exclude(point__isnull=True).distinct()
 
         category_code = request.query_params.get('category')
         if category_code:
             category_code = category_code.upper()
-            return queryset.filter(categories__code=category_code)
+            return queryset.filter(
+                Q(office__categories__code=category_code) |
+                Q(outreachservice__categories__code=category_code))
 
         return queryset
 
@@ -45,7 +48,9 @@ class MultipleCategoryFilter(filters.BaseFilterBackend):
         category_codes = request.query_params.getlist('categories')
         if category_codes:
             category_codes = [c.upper() for c in category_codes]
-            return queryset.filter(categories__code__in=category_codes)
+            return queryset.filter(
+                Q(office__categories__code__in=category_codes) |
+                Q(outreachservice__categories__code__in=category_codes))
 
         return queryset
 
@@ -57,7 +62,10 @@ class OrganisationTypeFilter(filters.BaseFilterBackend):
             'organisation_types')
         if organisation_type_names:
             return queryset.filter(
-                organisation__type__name__in=organisation_type_names)
+                Q(office__organisation__type__name__in=
+                  organisation_type_names) |
+                Q(outreachservice__office__organisation__type__name__in=
+                  organisation_type_names))
 
         return queryset
 
@@ -68,7 +76,9 @@ class OrganisationNameFilter(filters.BaseFilterBackend):
         organisation_name = request.query_params.get('organisation_name')
         if organisation_name:
             return queryset.filter(
-                organisation__name__icontains=organisation_name)
+                Q(office__organisation__name__icontains=organisation_name) |
+                Q(outreachservice__office__organisation__name__icontains=
+                  organisation_name))
 
         return queryset
 
@@ -78,7 +88,7 @@ def format_postcode(postcode):
 
 
 class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = OfficeSerializer
+    serializer_class = LocationOfficeSerializer
     filter_backends = (CategoryFilter, MultipleCategoryFilter,
                        OrganisationTypeFilter, OrganisationNameFilter)
 
@@ -121,12 +131,12 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
                 'point parameter must be a lon,lat coordinate')
 
     def get_queryset(self):
-        queryset = Office.objects.all()
+        queryset = Location.objects.all()
 
         origin = self.get_origin_point() or self.get_origin_postcode()
         if origin:
             return queryset.distance(
-                origin, field_name='location__point').order_by('distance')
+                origin, field_name='point').order_by('distance')
 
         return queryset
 
