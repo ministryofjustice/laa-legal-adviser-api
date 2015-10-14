@@ -23,7 +23,7 @@ class LocationSerializer(gis_serializers.GeoModelSerializer):
             'address', 'city', 'postcode', 'point', 'type')
 
 
-class OfficeSerializer(gis_serializers.GeoModelSerializer):
+class LocationOfficeSerializer(gis_serializers.GeoModelSerializer):
     location = LocationSerializer()
     organisation = OrganisationSerializer()
     distance = DistanceField()
@@ -31,7 +31,7 @@ class OfficeSerializer(gis_serializers.GeoModelSerializer):
         slug_field='code', many=True, read_only=True)
 
     class Meta:
-        model = Office
+        model = Location
         fields = (
             'telephone', 'location', 'organisation', 'distance',
             'categories')

@@ -174,12 +174,149 @@ class ImportProcess(Thread):
 
     def translate_data(self):
         cursor = connection.cursor()
+
+        cursor.execute("DROP FUNCTION IF EXISTS count_office_relations(integer);")
+
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION count_office_relations(
+                _id int
+                , OUT _count int)
+                RETURNS int AS
+                    $func$
+
+                BEGIN
+
+                SELECT INTO _count COUNT(*) FROM advisers_office o WHERE o.location_id=_id;
+
+                RAISE NOTICE 'Location: % , Count: %', _id, _count;
+
+                END
+                $func$  LANGUAGE plpgsql""")
+
+        cursor.execute("DROP FUNCTION IF EXISTS count_outreachservice_relations(integer);")
+
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION count_outreachservice_relations(
+                _id int
+                , OUT _count int)
+                RETURNS int AS
+                    $func$
+
+                BEGIN
+
+                SELECT INTO _count COUNT(*) FROM advisers_outreachservice o WHERE o.location_id=_id;
+
+                END
+                $func$  LANGUAGE plpgsql""")
+
+        cursor.execute("DROP FUNCTION IF EXISTS fetch_free_location(integer);")
+
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION fetch_free_location(
+                _address_line_1 character varying
+                , _address_line_2 character varying
+                , _address_line_3 character varying
+                , _city character varying
+                , _postcode character varying
+                , OUT _id int)
+                RETURNS int AS
+                    $func$
+
+                BEGIN
+
+                SELECT INTO _id DISTINCT l.id
+                    FROM advisers_location l
+                    WHERE l.address = rtrim(
+                                concat_ws(E'\\n',
+                                    _address_line_1, _address_line_2,
+                                    _address_line_3),
+                                E'\\n ') AND
+                            l.city = _city AND
+                            l.postcode = _postcode AND
+                          count_office_relations(l.id)=0 AND
+                          count_outreachservice_relations(l.id)=0
+                    ORDER BY l.id DESC
+                    LIMIT 1;
+
+                END
+                $func$  LANGUAGE plpgsql""")
+
+        cursor.execute("DROP FUNCTION IF EXISTS load_offices(integer);")
+
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION load_offices()
+                RETURNS void AS
+                    $func$
+
+                DECLARE
+                    ol_row record;
+
+                BEGIN
+
+                    FOR ol_row IN
+                        SELECT DISTINCT
+                            ol.*, org.id as organisation_id
+                        FROM office_location ol
+                        JOIN advisers_organisation org ON org.firm = ol.firm_number
+                    LOOP
+                        INSERT INTO advisers_office (
+                            telephone, account_number, location_id, organisation_id)
+                        values(
+                            ol_row.telephone_number,
+                            ol_row.account_number,
+                            fetch_free_location(ol_row.address_line_1, ol_row.address_line_2, ol_row.address_line_3, ol_row.city, ol_row.postcode),
+                            ol_row.organisation_id );
+                    END LOOP;
+
+                END
+                $func$  LANGUAGE plpgsql""")
+
+        cursor.execute("DROP FUNCTION IF EXISTS load_outreachservices(integer);")
+
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION load_outreachservices()
+                RETURNS void AS
+                    $func$
+
+                DECLARE
+                    os_row record;
+
+                BEGIN
+
+                    FOR os_row IN
+                        SELECT DISTINCT
+                            os.*, otype.id as type_id, office.id as office_id
+                        FROM outreach_service os
+                        JOIN advisers_outreachtype otype
+                            ON otype.name = os.pt_or_outreach_indicator
+                        JOIN advisers_office office
+                            ON office.account_number = os.account_number
+                    LOOP
+                        INSERT INTO advisers_outreachservice (
+                            type_id, location_id, office_id)
+                        values(
+                            os_row.type_id,
+                            fetch_free_location(os_row.pt_or_outreach_loc_address_line1, os_row.pt_or_outreach_loc_address_line2, os_row.pt_or_outreach_loc_address_line3, os_row.city_outreach, os_row.pt_or_outreach_loc_postcode),
+                            os_row.office_id );
+                    END LOOP;
+
+                END
+                $func$  LANGUAGE plpgsql""")
+
         cursor.execute("""
             INSERT
                 INTO advisers_organisationtype (name)
                 SELECT
                     DISTINCT(type_of_organisation)
                     FROM local_advice_org""")
+
+        cursor.execute("""
+            INSERT
+                INTO advisers_outreachtype (name)
+                SELECT DISTINCT
+                    pt_or_outreach_indicator
+                    FROM outreach_service""")
+
         cursor.execute("""
             INSERT
                 INTO advisers_organisation (
@@ -198,7 +335,7 @@ class ImportProcess(Thread):
         cursor.execute("""
             INSERT
                 INTO advisers_location (address, city, postcode)
-                SELECT DISTINCT
+                SELECT
                     rtrim(
                         concat_ws(E'\\n',
                             address_line_1,
@@ -211,36 +348,8 @@ class ImportProcess(Thread):
 
         cursor.execute("""
             INSERT
-                INTO advisers_office (
-                    telephone, account_number, location_id, organisation_id)
-                SELECT
-                    telephone_number,
-                    account_number,
-                    loc.id as location_id,
-                    org.id as organisation_id
-                    FROM office_location office
-                    JOIN advisers_location loc
-                        ON loc.address = rtrim(
-                                concat_ws(E'\\n',
-                                    address_line_1, address_line_2,
-                                    address_line_3),
-                                E'\\n ') AND
-                            loc.city = office.city AND
-                            loc.postcode = office.postcode
-                    JOIN advisers_organisation org
-                        ON org.firm = firm_number""")
-
-        cursor.execute("""
-            INSERT
-                INTO advisers_outreachtype (name)
-                SELECT DISTINCT
-                    pt_or_outreach_indicator
-                    FROM outreach_service""")
-
-        cursor.execute("""
-            INSERT
                 INTO advisers_location (address, city, postcode)
-                SELECT DISTINCT
+                SELECT
                     rtrim(
                         concat_ws(E'\\n',
                             pt_or_outreach_loc_address_line1,
@@ -249,34 +358,11 @@ class ImportProcess(Thread):
                         E'\\n '),
                     city_outreach,
                     pt_or_outreach_loc_postcode
-                    FROM outreach_service
-                    EXCEPT
-                        SELECT
-                            address, city, postcode
-                            FROM advisers_location""")
+                    FROM outreach_service""")
 
-        cursor.execute("""
-            INSERT
-                INTO advisers_outreachservice (
-                    type_id, location_id, office_id)
-                SELECT
-                    otype.id as type_id,
-                    loc.id as location_id,
-                    office.id as office_id
-                    FROM outreach_service os
-                    JOIN advisers_outreachtype otype
-                        ON otype.name = os.pt_or_outreach_indicator
-                    JOIN advisers_location loc
-                        ON loc.address = rtrim(
-                            concat_ws(E'\\n',
-                                os.pt_or_outreach_loc_address_line1,
-                                os.pt_or_outreach_loc_address_line2,
-                                os.pt_or_outreach_loc_address_line3),
-                            E'\\n ') AND
-                        loc.city = os.city_outreach AND
-                        loc.postcode = os.pt_or_outreach_loc_postcode
-                    JOIN advisers_office office
-                        ON office.account_number = os.account_number""")
+        cursor.execute("""SELECT * FROM load_offices()""")
+
+        cursor.execute("""SELECT * FROM load_outreachservices()""")
 
         cursor.execute("""
             INSERT

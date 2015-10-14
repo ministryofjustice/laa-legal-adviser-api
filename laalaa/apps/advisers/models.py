@@ -28,13 +28,27 @@ class Organisation(models.Model):
         return unicode(self.name)
 
 
+class LocationManager(models.GeoManager):
+    def get_queryset(self):
+        return super(LocationManager, self).get_queryset().select_related(
+            'office',
+            'office__organisation',
+            'outreachservice',
+            'outreachservice__type',
+            'outreachservice__office__organisation',
+        ).prefetch_related(
+            'office__categories',
+            'outreachservice__categories',
+        )
+
+
 class Location(models.Model):
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=48)
     postcode = models.CharField(max_length=16)
     point = models.PointField(null=True)
 
-    objects = models.GeoManager()
+    objects = LocationManager()
 
     def __unicode__(self):
         return u', '.join([
@@ -43,27 +57,39 @@ class Location(models.Model):
             unicode(self.postcode)])
 
     def organisation(self):
-        if self.office_set.count():
-            return self.office_set.all()[0].organisation
-        if self.outreachservice_set.count():
-            return self.outreachservice_set.all()[0].office.organisation
+        return self.place.organisation
+
+    @property
+    def place(self):
+        try:
+            return self.office
+        except Office.DoesNotExist:
+            return self.outreachservice
 
     def type(self):
-        if self.office_set.count():
-            return 'Office'
-        elif self.outreachservice_set.count():
-            return self.outreachservice_set.all()[0].type.name
-        return ''
+        if isinstance(self.place, OutreachService):
+            return self.outreachservice.type.name
+        return self.place.__class__.__name__
+
+    @property
+    def telephone(self):
+        return self.place.telephone
+
+    @property
+    def categories(self):
+        return self.place.categories
+
+    @property
+    def location(self):
+        return self
 
 
 class Office(models.Model):
     telephone = models.CharField(max_length=48)
     account_number = models.CharField(max_length=10, unique=True)
     organisation = models.ForeignKey('Organisation')
-    location = models.ForeignKey('Location')
+    location = models.OneToOneField('Location', null=True)
     categories = models.ManyToManyField(Category)
-
-    objects = models.GeoManager()
 
 
 class OutreachType(models.Model):
@@ -75,9 +101,17 @@ class OutreachType(models.Model):
 
 class OutreachService(models.Model):
     office = models.ForeignKey('Office')
-    location = models.ForeignKey('Location')
+    location = models.OneToOneField('Location', null=True)
     type = models.ForeignKey('OutreachType')
     categories = models.ManyToManyField(Category)
+
+    @property
+    def telephone(self):
+        return self.office.telephone
+
+    @property
+    def organisation(self):
+        return self.office.organisation
 
 
 class Choices(object):
