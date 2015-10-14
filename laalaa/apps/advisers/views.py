@@ -84,6 +84,7 @@ class OrganisationNameFilter(filters.BaseFilterBackend):
 
 
 def format_postcode(postcode):
+    postcode = re.sub(r"\s+", "", postcode)
     return re.sub(r'^(.*)(\d\w\w)', '\\1 \\2', postcode).upper()
 
 
