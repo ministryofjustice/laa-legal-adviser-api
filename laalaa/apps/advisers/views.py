@@ -181,6 +181,6 @@ def upload_spreadsheet(request):
 
 def import_progress(request):
     global importer
-    if importer is not None:
+    if importer and importer.is_running():
         return JsonResponse(importer.thread.progress)
     return JsonResponse({'status': 'not running'})
