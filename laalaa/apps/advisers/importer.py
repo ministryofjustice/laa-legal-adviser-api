@@ -6,6 +6,7 @@ import tempfile
 from threading import Thread, Event
 from time import sleep
 
+from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.db import connection, transaction
 from django.utils.text import slugify
@@ -162,10 +163,21 @@ class ImportProcess(Thread):
                 table=table_name,
                 columns=', '.join(columns)))
         cursor.execute("DELETE FROM {table}".format(table=table_name))
-        cursor.execute(
-            "COPY {table} FROM '{filename}' DELIMITER ',' CSV HEADER".format(
-                table=table_name,
-                filename=csv_filename))
+
+        psql_command = [
+            'export PGPASSWORD=%s &&' % settings.DATABASES['default']['PASSWORD'],
+            'psql',
+            settings.DATABASES['default']['NAME'],
+            '-U',
+            settings.DATABASES['default']['USER'],
+            '-h',
+            settings.DATABASES['default']['HOST'],
+            '-c',
+            '"\copy {table} FROM {filename} DELIMITER \',\' CSV HEADER;"'.format(
+                table=table_name, filename=csv_filename)
+        ]
+
+        os.system(' '.join(psql_command))
 
     def drop_csv_table(self, csv_filename):
         table_name = os.path.basename(csv_filename)[:-4].replace('-', '_')
