@@ -132,7 +132,9 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
                 'point parameter must be a lon,lat coordinate')
 
     def get_queryset(self):
-        queryset = Location.objects.all()
+        queryset = Location.objects.filter(
+            Q(outreachservice__isnull=False) | Q(office__isnull=False)
+        )
 
         origin = self.get_origin_point() or self.get_origin_postcode()
         if origin:
