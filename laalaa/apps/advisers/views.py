@@ -10,7 +10,7 @@ from rest_framework import exceptions, viewsets, filters
 from rest_framework.views import exception_handler
 
 from . import geocoder
-from .importer import Import
+from .importer import Import, import_running
 from .models import Location
 from .serializers import LocationOfficeSerializer
 
@@ -183,6 +183,6 @@ def upload_spreadsheet(request):
 
 def import_progress(request):
     global importer
-    if importer is not None:
+    if importer and import_running():
         return JsonResponse(importer.thread.progress)
     return JsonResponse({'status': 'not running'})
