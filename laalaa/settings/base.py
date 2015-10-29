@@ -43,6 +43,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
 
+    'djcelery',
+    'kombu.transport.django',
     'rest_framework',
 
     'advisers',
@@ -110,6 +112,9 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
     'EXCEPTION_HANDLER': 'advisers.views.custom_exception_handler'
 }
+
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+BROKER_URL = 'django://'
 
 POSTCODEINFO_API_URL = os.environ.get(
     'POSTCODEINFO_API_URL', 'https://postcodeinfo.service.justice.gov.uk/')
