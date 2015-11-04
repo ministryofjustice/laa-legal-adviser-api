@@ -116,6 +116,15 @@ REST_FRAMEWORK = {
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 BROKER_URL = 'django://'
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': root('cache'),
+    }
+}
+
+TEMP_DIRECTORY = root('tmp')
+
 POSTCODEINFO_API_URL = os.environ.get(
     'POSTCODEINFO_API_URL', 'https://postcodeinfo.service.justice.gov.uk/')
 POSTCODEINFO_AUTH_TOKEN = os.environ.get('POSTCODEINFO_AUTH_TOKEN')
