@@ -132,6 +132,7 @@ IMPORT_STATUSES = Choices(
 
 
 class Import(models.Model):
+    task_id = models.CharField(max_length=50, default='')
     started = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=7, choices=list(IMPORT_STATUSES))
     filename = models.TextField()
