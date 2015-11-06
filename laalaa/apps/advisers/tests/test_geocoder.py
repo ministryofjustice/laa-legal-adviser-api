@@ -6,7 +6,7 @@ import django.test
 import postcodeinfo
 from rest_framework.test import APIRequestFactory
 
-from advisers import geocoder, importer
+from advisers import geocoder
 from advisers.views import AdviserViewSet
 
 
@@ -57,25 +57,6 @@ class GeocoderTest(unittest.TestCase):
 
                 with self.assertRaises(geocoder.GeocoderError):
                     geocoder.geocode(postcode)
-
-
-class ImporterTest(django.test.TestCase):
-
-    def test_geocode(self):
-        with mock.patch('postcodeinfo.Client') as Client:
-            postcode = 'sw1a1aa'
-            lon = -0.1442833
-            lat = 51.5016681
-
-            client = Client.return_value
-            info = client.lookup_postcode.return_value
-            info.longitude = lon
-            info.latitude = lat
-
-            point = importer.geocode(postcode)
-
-            self.assertAlmostEqual(lon, point.x)
-            self.assertAlmostEqual(lat, point.y)
 
 
 class AdviserViewSetTest(django.test.TestCase):

@@ -1,38 +1,31 @@
 # -*- coding: utf-8 -*-
 import csv
 import logging
-import os
+import time
 import tempfile
-from threading import Thread, Event
-from time import sleep
-
+from celery.task import TaskSet
+import re
+from django.utils.text import slugify
+import os
+from celery import shared_task, subtask, group
+from celery import Task
 from django.conf import settings
 from django.contrib.gis.geos import Point
+from django.core.cache import cache
 from django.db import connection, transaction
-from django.utils.text import slugify
-import xlrd
 
 from . import models
 from . import geocoder
+import xlrd
 
 
 logging.basicConfig(filename='adviser_import.log', level=logging.WARNING)
 
 
-def cached(fn):
-    cache = {}
-
-    def wrapped(name):
-        if name not in cache:
-            cache[name] = fn(name)
-        return cache[name]
-
-    wrapped.cache = cache
-    wrapped.clear_cache = cache.clear
-    return wrapped
+def to_key(postcode):
+    return re.sub('[^0-9A-Z]+', '', postcode)
 
 
-@cached
 def geocode(postcode):
     point = None
     try:
@@ -40,8 +33,15 @@ def geocode(postcode):
         if len(loc) and loc[0].point:
             point = loc[0].point
         else:
-            result = geocoder.geocode(postcode)
-            point = Point(result.longitude, result.latitude)
+            cached_lon_lat = cache.get(to_key(postcode), None)
+            if cached_lon_lat:
+                print 'DIIIIIIIIIIIID FIND IN CACHE: %s' % to_key(postcode)
+                lon, lat = cached_lon_lat['lon'], cached_lon_lat['lat']
+            else:
+                print 'NOT FOUND IN CACHE: %s' % to_key(postcode)
+                result = geocoder.geocode(postcode)
+                lon, lat = result.longitude, result.latitude
+            point = Point(lon, lat)
     except geocoder.PostcodeNotFound:
         logging.warn('Failed geocoding postcode: %s' % postcode)
     except geocoder.GeocoderError as e:
@@ -54,7 +54,10 @@ def prime_geocoder_cache():
     Cache known postcode locations
     """
     for location in models.Location.objects.exclude(point__isnull=True):
-        geocode.cache[location.postcode] = location.point
+        cache.set(to_key(location.postcode.encode('utf-8')), {
+            'lon': location.point.x,
+            'lat': location.point.y
+        })
 
 
 def clear_db():
@@ -82,11 +85,26 @@ class StrippedDict(dict):
         super(StrippedDict, self).__init__(iterable, **kwargs)
 
 
-class ImportProcess(Thread):
-    """
-    Loads/Updates data from xls spreadsheet
-    """
+class GeocoderTask(Task):
 
+    def run(self, postcodes):
+        tot = len(postcodes)
+        for n, postcode in enumerate(postcodes):
+            point = geocode(postcode[0].encode('utf-8'))
+            if point:
+                models.Location.objects.filter(
+                    postcode=postcode[0]
+                ).update(point=point)
+                self.update_state(
+                    state='RUNNING',
+                    meta={
+                        'count': n,
+                        'total': tot
+                    }
+                )
+
+
+class ProgressiveAdviserImport(Task):
     worksheet_names = (
         'LOCAL ADVICE ORG',
         'OFFICE LOCATION',
@@ -95,32 +113,90 @@ class ImportProcess(Thread):
         'OUTREACH SERVICE',
     )
 
-    def __init__(self, xlsx_file, record, **options):
-        super(ImportProcess, self).__init__()
-        self.options = options
-        self.progress = {'task': 'initialising'}
-        self.record = record
-        self._interrupt = Event()
+    def __init__(self):
+        self.total = None
+        self.record = None
         self.sheets = {}
         self.temp_dir = tempfile.mkdtemp()
+        self.progress = {'task': 'initialising'}
 
-        if options.pop('single_transaction', True):
-            self.run = transaction.atomic(self.run)
+    def run(self, xlsx_file, record=None, *args, **kwargs):
+        cache.clear()
+        self.record = record
 
-        if options.pop('prime_geocoder', True):
-            prime_geocoder_cache()
+        self.update_state(
+            state='INITIALIZING',
+            meta=self.progress)
 
-        if options.pop('clear_db', True):
-            clear_db()
+        prime_geocoder_cache()
 
         csv_metadata = self.convert_excel_to_csv(xlsx_file)
         for csv_filename, headers, types in csv_metadata:
             self.load_csv_into_db(csv_filename, headers, types)
 
+        clear_db()
+
         self.translate_data()
 
         for meta in csv_metadata:
             self.drop_csv_table(meta[0])
+
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT DISTINCT postcode FROM advisers_location""")
+        postcodes = cursor.fetchall()
+
+        self.total = len(postcodes)
+
+        def chunks(n=1000):
+            for i in xrange(0, len(postcodes), n):
+                yield postcodes[i:i + n]
+
+        self.update_count()
+
+        tasks = []
+        for chunk in chunks():
+            t = GeocoderTask().subtask(args=(chunk,))
+            tasks.append(t)
+        ts = TaskSet(tasks=tasks)
+        res = ts.apply_async()
+
+        task_counts = {}
+
+        def update_task_counts(task_id, task_count):
+            task_counts[task_id] = task_count
+
+        while res.completed_count() < len(tasks):
+            [update_task_counts(r.task_id, r.result.get('count')) for r in
+             res if r.result]
+
+            count = sum([c for c in task_counts.values()])
+            self.update_count(count)
+            time.sleep(1)
+
+    def update_count(self, count=0, task='geocoding locations'):
+        self.progress = {
+            'task': task,
+            'count': count,
+            'total': self.total}
+
+        self.update_state(
+            state='RUNNING',
+            meta=self.progress)
+
+    def on_success(self, retval, task_id, args, kwargs):
+        self.save_state(models.IMPORT_STATUSES.SUCCESS)
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        self.save_state(models.IMPORT_STATUSES.FAILURE)
+
+    def save_state(self, status):
+        import_object = models.Import.objects.get(task_id=self.request.id)
+        import_object.status = status
+        import_object.save()
+        self.update_state(
+            state=status.upper(),
+            meta=self.progress)
 
     def convert_excel_to_csv(self, xlsx_file):
         workbook = xlrd.open_workbook(xlsx_file)
@@ -129,6 +205,7 @@ class ImportProcess(Thread):
             if name in self.worksheet_names:
                 worksheet = workbook.sheet_by_name(name)
                 csv_metadata.append(self.write_to_csv(name, worksheet))
+        os.remove(xlsx_file)
         return csv_metadata
 
     def write_to_csv(self, name, worksheet):
@@ -420,164 +497,3 @@ class ImportProcess(Thread):
                         off.organisation_id = org.id AND
                         off.account_number = cri.account_number AND
                         cat.code = cri.crime_category_code""")
-
-    def interrupt(self):
-        self._interrupt.set()
-
-    def check_interrupt(self):
-        if self._interrupt.is_set():
-            raise KeyboardInterrupt
-
-    def increment_progress(self, num):
-        self.progress['count'] += num
-
-    def run(self):
-        cursor = connection.cursor()
-        cursor.execute("""
-            SELECT DISTINCT postcode FROM advisers_location""")
-        postcodes = cursor.fetchall()
-
-        def chunks(n=1000):
-            for i in xrange(0, len(postcodes), n):
-                yield postcodes[i:i + n]
-
-        self.progress = {
-            'task': 'geocoding locations',
-            'count': 0,
-            'total': len(postcodes)}
-
-        threads = []
-        for i, chunk in enumerate(chunks()):
-            thread = GeocoderThread(i, chunk, self)
-            thread.start()
-            threads.append(thread)
-
-        try:
-            while any(map(lambda x: x.is_alive(), threads)):
-                self.check_interrupt()
-                sleep(1)
-
-        except KeyboardInterrupt:
-            for i, thread in enumerate(threads):
-                print 'Stopping geocoder thread %d' % i
-                thread.interrupt()
-                thread.join()
-            self.record.status = models.IMPORT_STATUSES.ABORTED
-
-        except Exception:
-            self.record.status = models.IMPORT_STATUSES.FAILURE
-            raise
-
-        else:
-            self.record.status = models.IMPORT_STATUSES.SUCCESS
-
-        finally:
-            # this helps geodjango in garbage collection
-            geocode.clear_cache()
-            self.record.save()
-
-
-class GeocoderThread(Thread):
-
-    def __init__(self, num, postcodes, importer, *args, **kwargs):
-        super(GeocoderThread, self).__init__(*args, **kwargs)
-        self._interrupt = Event()
-        self.num = num
-        self.postcodes = postcodes
-        self.importer = importer
-
-    def run(self):
-        try:
-            for postcode in self.postcodes:
-                self.check_interrupt()
-                point = geocode(postcode[0].encode('utf-8'))
-                if point:
-                    models.Location.objects.filter(
-                        postcode=postcode[0]
-                    ).update(point=point)
-                    self.importer.increment_progress(1)
-
-        except KeyboardInterrupt:
-            pass
-
-    def interrupt(self):
-        self._interrupt.set()
-
-    def check_interrupt(self):
-        if self._interrupt.is_set():
-            raise KeyboardInterrupt
-
-
-def import_running():
-    return 0 < models.Import.objects.filter(
-        status__in=models.IMPORT_STATUSES.RUNNING).count()
-
-
-class Import(object):
-
-    class ImportError(Exception):
-        pass
-
-    class Balk(ImportError):
-        pass
-
-    class Fail(ImportError):
-        pass
-
-    def __init__(self, xlsx_file, user=None, **options):
-        self.xlsx_file = xlsx_file
-        self.user = user
-        self.options = options
-        self.record = None
-        self.thread = None
-
-    def start(self):
-        if import_running():
-            raise Import.Balk()
-
-        record = models.Import.objects.create(
-            status=models.IMPORT_STATUSES.RUNNING,
-            filename=self.xlsx_file,
-            user=self.user)
-
-        try:
-            self.thread = ImportProcess(self.xlsx_file, record, **self.options)
-
-        except xlrd.XLRDError as error:
-            raise Import.Fail(error)
-
-        self.thread.start()
-
-    @property
-    def task(self):
-        if self.thread:
-            return self.thread.progress.get('task')
-
-    @property
-    def count(self):
-        if self.thread:
-            return self.thread.progress.get('count')
-
-    @property
-    def total(self):
-        if self.thread:
-            return self.thread.progress.get('total')
-
-    def is_running(self):
-        return (
-            self.thread and
-            self.thread.is_alive() and
-            self.thread.progress.get('task') is not None)
-
-    @property
-    def progress(self):
-        return '{task}{progress}'.format(
-            task=self.task,
-            progress=(
-                ': {0.count} / {0.total}'.format(self)
-                if self.total else ''))
-
-    def stop(self):
-        if self.is_running():
-            self.thread.interrupt()
-            self.thread.join()

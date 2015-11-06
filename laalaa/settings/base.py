@@ -43,8 +43,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
 
-    'djcelery',
     'kombu.transport.django',
+    'djcelery',
     'rest_framework',
 
     'advisers',
@@ -113,15 +113,20 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'advisers.views.custom_exception_handler'
 }
 
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
-BROKER_URL = 'django://'
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': root('cache'),
     }
 }
+
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack']
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+BROKER_URL = 'amqp://%s:%s@%s//' % (
+    os.environ.get('RABBITMQ_USER', 'guest'),
+    os.environ.get('RABBITMQ_PASS', '**'),
+    os.environ.get('HOST_IP', '172.17.42.1'),
+)
 
 TEMP_DIRECTORY = root('tmp')
 
