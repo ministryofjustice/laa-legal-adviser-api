@@ -124,8 +124,8 @@ CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack']
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 BROKER_URL = 'amqp://%s:%s@%s//' % (
     os.environ.get('RABBITMQ_USER', 'guest'),
-    os.environ.get('RABBITMQ_PASS', '**'),
-    os.environ.get('HOST_IP', '172.17.42.1'),
+    os.environ.get('RABBITMQ_PASS', 'guest'),
+    os.environ.get('HOST_IP', '127.0.0.1'),
 )
 
 TEMP_DIRECTORY = root('tmp')

@@ -203,9 +203,10 @@ def import_progress(request):
             response = {
                 'task': res.get('task'),
                 'count': res.get('count') or 0,
-                'total': res.get('total') or 'calculating'
+                'total': res.get('total') or 'calculating',
+                'errors': res.get('errors') or []
             }
         else:
-            response = {'status': 'not %s' % last_import.status}
+            response = {'status': last_import.status}
 
     return JsonResponse(response)

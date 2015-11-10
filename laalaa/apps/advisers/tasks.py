@@ -3,16 +3,16 @@ import csv
 import logging
 import time
 import tempfile
+import itertools
 from celery.task import TaskSet
 import re
 from django.utils.text import slugify
 import os
-from celery import shared_task, subtask, group
 from celery import Task
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
-from django.db import connection, transaction
+from django.db import connection
 
 from . import models
 from . import geocoder
@@ -28,24 +28,17 @@ def to_key(postcode):
 
 def geocode(postcode):
     point = None
-    try:
-        loc = models.Location.objects.filter(postcode=postcode)
-        if len(loc) and loc[0].point:
-            point = loc[0].point
+    loc = models.Location.objects.filter(postcode=postcode)
+    if len(loc) and loc[0].point:
+        point = loc[0].point
+    else:
+        cached_lon_lat = cache.get(to_key(postcode), None)
+        if cached_lon_lat:
+            lon, lat = cached_lon_lat['lon'], cached_lon_lat['lat']
         else:
-            cached_lon_lat = cache.get(to_key(postcode), None)
-            if cached_lon_lat:
-                print 'DIIIIIIIIIIIID FIND IN CACHE: %s' % to_key(postcode)
-                lon, lat = cached_lon_lat['lon'], cached_lon_lat['lat']
-            else:
-                print 'NOT FOUND IN CACHE: %s' % to_key(postcode)
-                result = geocoder.geocode(postcode)
-                lon, lat = result.longitude, result.latitude
-            point = Point(lon, lat)
-    except geocoder.PostcodeNotFound:
-        logging.warn('Failed geocoding postcode: %s' % postcode)
-    except geocoder.GeocoderError as e:
-        logging.warn('Error connecting to geocoder: %s' % e)
+            result = geocoder.geocode(postcode)
+            lon, lat = result.longitude, result.latitude
+        point = Point(lon, lat)
     return point
 
 
@@ -87,19 +80,37 @@ class StrippedDict(dict):
 
 class GeocoderTask(Task):
 
+    def __init__(self):
+        self.errors = []
+
     def run(self, postcodes):
         tot = len(postcodes)
         for n, postcode in enumerate(postcodes):
-            point = geocode(postcode[0].encode('utf-8'))
+            pc = ' '.join(postcode[0].encode('utf-8').split())
+            err = None
+            try:
+                point = geocode(pc)
+            except geocoder.PostcodeNotFound:
+                err = 'Failed geocoding postcode: %s' % postcode
+                logging.warn(err)
+            except geocoder.GeocoderError as e:
+                err = 'Failed postcode: "%s" .Error connecting to ' \
+                      'geocoder: %s' % (pc, e)
+                logging.warn(err)
+
+            if err:
+                self.errors.append(err)
+
             if point:
                 models.Location.objects.filter(
-                    postcode=postcode[0]
+                    postcode=pc
                 ).update(point=point)
                 self.update_state(
                     state='RUNNING',
                     meta={
                         'count': n,
-                        'total': tot
+                        'total': tot,
+                        'errors': self.errors,
                     }
                 )
 
@@ -162,23 +173,28 @@ class ProgressiveAdviserImport(Task):
         res = ts.apply_async()
 
         task_counts = {}
+        task_errors = {}
 
-        def update_task_counts(task_id, task_count):
-            task_counts[task_id] = task_count
+        def update_task_process(task_id, result):
+            task_counts[task_id] = result.get('count')
+            task_errors[task_id] = result.get('errors')
 
         while res.completed_count() < len(tasks):
-            [update_task_counts(r.task_id, r.result.get('count')) for r in
-             res if r.result]
+            [update_task_process(r.task_id, r.result) for r in res
+             if r.result]
 
             count = sum([c for c in task_counts.values()])
-            self.update_count(count)
+            errors = list(itertools.chain(*task_errors.values()))
+            self.update_count(count, errors)
             time.sleep(1)
 
-    def update_count(self, count=0, task='geocoding locations'):
+    def update_count(self, count=0, errors=[], task='geocoding locations'):
         self.progress = {
             'task': task,
             'count': count,
-            'total': self.total}
+            'total': self.total,
+            'errors': errors,
+        }
 
         self.update_state(
             state='RUNNING',

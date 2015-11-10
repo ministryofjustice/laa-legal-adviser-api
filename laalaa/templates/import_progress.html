@@ -42,6 +42,13 @@
   background-color: #7ca0c7;
   overflow: hidden;
 }
+.errors {
+  border: 2px solid #999;
+  display: none;
+  padding: 20px 40px;
+  width: 50%;
+  min-width: 400px;
+}
 </style>
 {% endblock %}
 
@@ -50,6 +57,7 @@
   <p id="status">Initializing</p>
   <div id="progressbar"><div></div></div>
   <p class="counts"></p>
+  <ul class="errors"></ul>
 </div>
 <script type="text/javascript">
 $(function () {
@@ -59,6 +67,8 @@ $(function () {
   var progressBar = $('#progressbar');
   var counts = $('.counts');
   var polling = window.setInterval(checkProgress, 1000);
+  var errors = [];
+  var $errors = $('.errors');
 
   function progress(percent, $el, delay) {
     if (delay == undefined) {
@@ -79,12 +89,23 @@ $(function () {
       progress(percent, progressBar);
       counts.html('<span>' + data.count + ' of ' + data.total + '</span>');
     } else {
-      label.text('No import running');
+      var labelText = data.status || 'No import running';
+      label.text(labelText);
     }
     if (data.task === 'done' || data.status === 'not running') {
       window.clearInterval(polling);
       progressBar.remove();
       counts.remove();
+    }
+    if (data.errors) {
+      errors = data.errors;
+    }
+    if (errors.length > 0) {
+      $errors.css('display', 'block');
+      $errors.empty();
+      for (var i = 0; i < errors.length; i++) {
+        $errors.append($('<li></li>').text(errors[i]));
+      }
     }
   }
 
