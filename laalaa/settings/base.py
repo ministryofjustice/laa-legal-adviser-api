@@ -43,6 +43,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
 
+    'kombu.transport.django',
+    'djcelery',
     'rest_framework',
 
     'advisers',
@@ -110,6 +112,23 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
     'EXCEPTION_HANDLER': 'advisers.views.custom_exception_handler'
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': root('cache'),
+    }
+}
+
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack']
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+BROKER_URL = 'amqp://%s:%s@%s//' % (
+    os.environ.get('RABBITMQ_USER', 'guest'),
+    os.environ.get('RABBITMQ_PASS', 'guest'),
+    os.environ.get('HOST_IP', '127.0.0.1'),
+)
+
+TEMP_DIRECTORY = root('tmp')
 
 POSTCODEINFO_API_URL = os.environ.get(
     'POSTCODEINFO_API_URL', 'https://postcodeinfo.service.justice.gov.uk/')

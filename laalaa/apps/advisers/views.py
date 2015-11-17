@@ -1,18 +1,21 @@
-from django.db.models import Q
+import os
 import re
-
+from celery.result import AsyncResult
+from django.db.models import Q
 from django import forms
+from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib import messages
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from rest_framework import exceptions, viewsets, filters
 from rest_framework.views import exception_handler
 
 from . import geocoder
-from .importer import Import
-from .models import Location
+from .models import Location, Import, IMPORT_STATUSES
 from .serializers import LocationOfficeSerializer
+from .tasks import ProgressiveAdviserImport
 
 
 def custom_exception_handler(exc):
@@ -149,40 +152,61 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
         return response
 
 
-importer = None
-
-
 class UploadSpreadsheetForm(forms.Form):
     xlfile = forms.FileField(label="Spreadsheet")
 
 
 def upload_spreadsheet(request):
-    global importer
+    last_import = Import.objects.all().order_by('-id').first()
+
+    if last_import:
+        if last_import.status == IMPORT_STATUSES.RUNNING:
+            return redirect('/admin/import-in-progress/')
+        elif last_import.status == IMPORT_STATUSES.FAILURE:
+            messages.error(request, 'Last import failed')
+        elif last_import.status == IMPORT_STATUSES.ABORTED:
+            messages.error(request, 'Last import aborted')
+        elif last_import.status == IMPORT_STATUSES.SUCCESS:
+            messages.success(request, 'Last import successful')
+
     form = UploadSpreadsheetForm()
     if request.method == 'POST':
         form = UploadSpreadsheetForm(request.POST, request.FILES)
         if form.is_valid():
-            if importer is None:
-                try:
-                    importer = Import(
-                        request.FILES['xlfile'].temporary_file_path())
-                    importer.start()
+            file = request.FILES['xlfile']
+            xls_file = os.path.join(settings.TEMP_DIRECTORY, file.name)
 
-                except Import.Balk:
-                    messages.error(request, 'Import already in progress')
+            with open(xls_file, 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
 
-                except Import.Fail:
-                    messages.error(request, 'Import failed')
+            task = ProgressiveAdviserImport()
+            task_id = task.delay(xls_file)
 
-                else:
-                    messages.success(request, 'Import started')
+            Import.objects.create(
+                task_id=task_id,
+                status=IMPORT_STATUSES.RUNNING,
+                filename=xls_file,
+                user=request.user
+            )
 
             return redirect('/admin/import-in-progress/')
     return render(request, 'upload.html', {'form': form})
 
 
 def import_progress(request):
-    global importer
-    if importer is not None:
-        return JsonResponse(importer.thread.progress)
-    return JsonResponse({'status': 'not running'})
+    last_import = Import.objects.all().order_by('-id').first()
+    response = {'status': 'not running'}
+    if last_import:
+        if last_import.status == IMPORT_STATUSES.RUNNING:
+            res = AsyncResult(last_import.task_id).result or {}
+            response = {
+                'task': res.get('task'),
+                'count': res.get('count') or 0,
+                'total': res.get('total') or 'calculating',
+                'errors': res.get('errors') or []
+            }
+        else:
+            response = {'status': last_import.status}
+
+    return JsonResponse(response)

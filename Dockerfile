@@ -34,11 +34,11 @@ ADD . /home/app
 RUN rm -rf /home/app/.git
 RUN  chown -R app: /home/app
 
-
 # Set correct environment variables.
 ENV HOME /home/app
 WORKDIR /home/app
 ENV APP_HOME /home/app
 USER app
 EXPOSE 8000
+
 ENTRYPOINT ["/home/app/docker/run.sh"]

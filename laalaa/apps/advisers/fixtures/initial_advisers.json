@@ -161803,25 +161803,5 @@
   },
   "model": "advisers.outreachservice",
   "pk": 1962
-},
-{
-  "fields": {
-    "started": "2015-10-14T13:35:05.130Z",
-    "status": "success",
-    "user": null,
-    "filename": "/var/folders/mr/2fr5znnn36j_9v3_sdntfl_c0000gp/T/tmp0QbAri.upload"
-  },
-  "model": "advisers.import",
-  "pk": 1
-},
-{
-  "fields": {
-    "started": "2015-10-14T14:59:00.952Z",
-    "status": "success",
-    "user": null,
-    "filename": "/var/folders/mr/2fr5znnn36j_9v3_sdntfl_c0000gp/T/tmpfmpp5s.upload"
-  },
-  "model": "advisers.import",
-  "pk": 2
 }
 ]
