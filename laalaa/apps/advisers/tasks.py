@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 import csv
+import itertools
 import logging
+import os
+import re
 import time
 import tempfile
-import itertools
+import xlrd
+
 from celery.task import TaskSet
-import re
 from django.utils.text import slugify
-import os
 from celery import Task
 from django.conf import settings
 from django.contrib.gis.geos import Point
@@ -16,7 +18,6 @@ from django.db import connection
 
 from . import models
 from . import geocoder
-import xlrd
 
 
 logging.basicConfig(filename='adviser_import.log', level=logging.WARNING)
@@ -27,9 +28,10 @@ def to_key(postcode):
 
 
 def geocode(postcode):
-    point = None
-    loc = models.Location.objects.filter(postcode=postcode)
-    if len(loc) and loc[0].point:
+    loc = models.Location.objects.filter(
+        postcode=postcode,
+        point__isnull=False)
+    if len(loc):
         point = loc[0].point
     else:
         cached_lon_lat = cache.get(to_key(postcode), None)
@@ -85,26 +87,26 @@ class GeocoderTask(Task):
 
     def run(self, postcodes):
         tot = len(postcodes)
+
+        def log_error(err):
+            logging.warn(err)
+            self.errors.append(err)
+
         for n, postcode in enumerate(postcodes):
-            pc = ' '.join(postcode[0].encode('utf-8').split())
-            err = None
+            pc = re.sub(' +', ' ', postcode[0]).encode('utf-8')
             try:
                 point = geocode(pc)
             except geocoder.PostcodeNotFound:
-                err = 'Failed geocoding postcode: %s' % postcode
-                logging.warn(err)
+                log_error('Failed geocoding postcode: %s' % postcode)
+                continue
             except geocoder.GeocoderError as e:
-                err = 'Failed postcode: "%s" .Error connecting to ' \
-                      'geocoder: %s' % (pc, e)
-                logging.warn(err)
-
-            if err:
-                self.errors.append(err)
+                log_error('Failed postcode: "%s" .Error connecting to '
+                          'geocoder: %s' % (pc, e))
+                continue
 
             if point:
-                models.Location.objects.filter(
-                    postcode=pc
-                ).update(point=point)
+                locations = models.Location.objects.filter(postcode=pc)
+                locations.update(point=point)
                 self.update_state(
                     state='RUNNING',
                     meta={
@@ -180,10 +182,9 @@ class ProgressiveAdviserImport(Task):
             task_errors[task_id] = result.get('errors')
 
         while res.completed_count() < len(tasks):
-            [update_task_process(r.task_id, r.result) for r in res
-             if r.result]
+            [update_task_process(r.task_id, r.result) for r in res if r.result]
 
-            count = sum([c for c in task_counts.values()])
+            count = sum(task_counts.values())
             errors = list(itertools.chain(*task_errors.values()))
             self.update_count(count, errors)
             time.sleep(1)
