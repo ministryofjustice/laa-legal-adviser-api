@@ -6,7 +6,6 @@ from django import forms
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib import messages
-from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from rest_framework import exceptions, viewsets, filters
