@@ -17,6 +17,9 @@ from .serializers import LocationOfficeSerializer
 from .tasks import ProgressiveAdviserImport
 
 
+LOCATION = re.compile('^[a-zA-Z -]+$')
+
+
 def custom_exception_handler(exc):
     # Call REST framework's default exception handler first,
     # to get the standard error response.
@@ -138,10 +141,15 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
             Q(outreachservice__isnull=False) | Q(office__isnull=False)
         )
 
-        origin = self.get_origin_point() or self.get_origin_postcode()
-        if origin:
-            return queryset.distance(
-                origin, field_name='point').order_by('distance')
+        postcode = self.request.query_params.get('postcode')
+
+        if postcode and LOCATION.match(postcode) is not None:
+            queryset = queryset.filter(city__icontains=postcode)
+        else:
+            origin = self.get_origin_point() or self.get_origin_postcode()
+            if origin:
+                return queryset.distance(
+                    origin, field_name='point').order_by('distance')
 
         return queryset
 
