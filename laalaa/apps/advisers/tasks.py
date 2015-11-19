@@ -13,7 +13,6 @@ from django.utils.text import slugify
 from celery import Task
 from django.conf import settings
 from django.contrib.gis.geos import Point
-from django.core.cache import cache
 from django.db import connection
 
 from . import models
@@ -34,25 +33,9 @@ def geocode(postcode):
     if len(loc):
         point = loc[0].point
     else:
-        cached_lon_lat = cache.get(to_key(postcode), None)
-        if cached_lon_lat:
-            lon, lat = cached_lon_lat['lon'], cached_lon_lat['lat']
-        else:
-            result = geocoder.geocode(postcode)
-            lon, lat = result.longitude, result.latitude
-        point = Point(lon, lat)
+        result = geocoder.geocode(postcode)
+        point = Point(result.longitude, result.latitude)
     return point
-
-
-def prime_geocoder_cache():
-    """
-    Cache known postcode locations
-    """
-    for location in models.Location.objects.exclude(point__isnull=True):
-        cache.set(to_key(location.postcode.encode('utf-8')), {
-            'lon': location.point.x,
-            'lat': location.point.y
-        })
 
 
 def clear_db():
@@ -134,14 +117,11 @@ class ProgressiveAdviserImport(Task):
         self.progress = {'task': 'initialising'}
 
     def run(self, xlsx_file, record=None, *args, **kwargs):
-        cache.clear()
         self.record = record
 
         self.update_state(
             state='INITIALIZING',
             meta=self.progress)
-
-        prime_geocoder_cache()
 
         csv_metadata = self.convert_excel_to_csv(xlsx_file)
         for csv_filename, headers, types in csv_metadata:
