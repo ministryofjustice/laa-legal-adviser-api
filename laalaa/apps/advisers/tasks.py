@@ -11,6 +11,7 @@ import xlrd
 from celery.task import TaskSet
 from django.utils.text import slugify
 from celery import Task
+from django.core.cache import cache
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.db import connection
@@ -168,6 +169,8 @@ class ProgressiveAdviserImport(Task):
             errors = list(itertools.chain(*task_errors.values()))
             self.update_count(count, errors)
             time.sleep(1)
+
+        cache.clear()
 
     def update_count(self, count=0, errors=[], task='geocoding locations'):
         self.progress = {
