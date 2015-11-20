@@ -144,7 +144,7 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
         postcode = self.request.query_params.get('postcode')
 
         if postcode and LOCATION.match(postcode) is not None:
-            queryset = queryset.filter(city__icontains=postcode)
+            queryset = queryset.filter(city__icontains=postcode.strip())
         else:
             origin = self.get_origin_point() or self.get_origin_postcode()
             if origin:
