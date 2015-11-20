@@ -8,6 +8,7 @@ from django.contrib.gis.geos import Point
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.cache import never_cache
 from rest_framework import exceptions, viewsets, filters
 from rest_framework.views import exception_handler
 
@@ -163,6 +164,7 @@ class UploadSpreadsheetForm(forms.Form):
     xlfile = forms.FileField(label="Spreadsheet")
 
 
+@never_cache
 def upload_spreadsheet(request):
     last_import = Import.objects.all().order_by('-id').first()
 
@@ -201,6 +203,7 @@ def upload_spreadsheet(request):
     return render(request, 'upload.html', {'form': form})
 
 
+@never_cache
 def import_progress(request):
     last_import = Import.objects.all().order_by('-id').first()
     response = {'status': 'not running'}
