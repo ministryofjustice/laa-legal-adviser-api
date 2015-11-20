@@ -1,5 +1,4 @@
-from django.conf import settings
-from django.contrib.gis.geos import Point
+import re
 import postcodeinfo
 
 
@@ -15,7 +14,11 @@ class PostcodeNotFound(GeocoderError):
 
 def geocode(postcode):
     try:
-        result = postcodeinfo.Client().lookup_postcode(postcode)
+        if len(postcode) < 5:
+            result = postcodeinfo.Client().lookup_partial_postcode(postcode)
+        else:
+            result = postcodeinfo.Client().lookup_postcode(postcode)
+
         if not result.valid:
             raise PostcodeNotFound(postcode)
         return result

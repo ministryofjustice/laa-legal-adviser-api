@@ -6,7 +6,6 @@ from django import forms
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib import messages
-from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from rest_framework import exceptions, viewsets, filters
@@ -16,6 +15,9 @@ from . import geocoder
 from .models import Location, Import, IMPORT_STATUSES
 from .serializers import LocationOfficeSerializer
 from .tasks import ProgressiveAdviserImport
+
+
+LOCATION = re.compile('^[a-zA-Z -]+$')
 
 
 def custom_exception_handler(exc):
@@ -139,10 +141,15 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
             Q(outreachservice__isnull=False) | Q(office__isnull=False)
         )
 
-        origin = self.get_origin_point() or self.get_origin_postcode()
-        if origin:
-            return queryset.distance(
-                origin, field_name='point').order_by('distance')
+        postcode = self.request.query_params.get('postcode')
+
+        if postcode and LOCATION.match(postcode) is not None:
+            queryset = queryset.filter(city__icontains=postcode.strip())
+        else:
+            origin = self.get_origin_point() or self.get_origin_postcode()
+            if origin:
+                return queryset.distance(
+                    origin, field_name='point').order_by('distance')
 
         return queryset
 
