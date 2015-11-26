@@ -264,6 +264,32 @@ class ProgressiveAdviserImport(Task):
     def translate_data(self):
         cursor = connection.cursor()
 
+        cursor.execute("""
+            INSERT
+                INTO advisers_category (code, civil)
+                SELECT DISTINCT
+                    civil_category_code, true
+                    FROM cat_of_law_civil""")
+        cursor.execute("""
+            INSERT
+                INTO advisers_category (code, civil)
+                SELECT DISTINCT
+                    crime_category_code, false
+                    FROM cat_of_law_crime""")
+        cursor.execute("""
+            INSERT
+                INTO advisers_organisationtype (name)
+                SELECT
+                    DISTINCT(type_of_organisation)
+                    FROM local_advice_org""")
+
+        cursor.execute("""
+            INSERT
+                INTO advisers_outreachtype (name)
+                SELECT DISTINCT
+                    pt_or_outreach_indicator
+                    FROM outreach_service""")
+
         cursor.execute("DROP FUNCTION IF EXISTS count_office_relations(integer);")
 
         cursor.execute("""
@@ -374,37 +400,29 @@ class ProgressiveAdviserImport(Task):
 
                     FOR os_row IN
                         SELECT DISTINCT
-                            os.*, otype.id as type_id, office.id as office_id
+                            os.*, otype.id as type_id, office.id as office_id, cat.id as cat_id
                         FROM outreach_service os
                         JOIN advisers_outreachtype otype
                             ON otype.name = os.pt_or_outreach_indicator
                         JOIN advisers_office office
                             ON office.account_number = os.account_number
+                        LEFT JOIN advisers_category cat
+                            ON cat.code = os.category_of_law
                     LOOP
-                        INSERT INTO advisers_outreachservice (
-                            type_id, location_id, office_id)
-                        values(
-                            os_row.type_id,
-                            fetch_free_location(os_row.pt_or_outreach_loc_address_line1, os_row.pt_or_outreach_loc_address_line2, os_row.pt_or_outreach_loc_address_line3, os_row.city_outreach, os_row.pt_or_outreach_loc_postcode),
-                            os_row.office_id );
+                        WITH aos as (
+                            INSERT INTO advisers_outreachservice (
+                                type_id, location_id, office_id)
+                            values(
+                                os_row.type_id,
+                                fetch_free_location(os_row.pt_or_outreach_loc_address_line1, os_row.pt_or_outreach_loc_address_line2, os_row.pt_or_outreach_loc_address_line3, os_row.city_outreach, os_row.pt_or_outreach_loc_postcode),
+                                os_row.office_id ) RETURNING id, os_row.cat_id as cat_id
+                        ) INSERT INTO advisers_outreachservice_categories (
+                            outreachservice_id, category_id)
+                                SELECT id, cat_id FROM aos;
                     END LOOP;
 
                 END
                 $func$  LANGUAGE plpgsql""")
-
-        cursor.execute("""
-            INSERT
-                INTO advisers_organisationtype (name)
-                SELECT
-                    DISTINCT(type_of_organisation)
-                    FROM local_advice_org""")
-
-        cursor.execute("""
-            INSERT
-                INTO advisers_outreachtype (name)
-                SELECT DISTINCT
-                    pt_or_outreach_indicator
-                    FROM outreach_service""")
 
         cursor.execute("""
             INSERT
@@ -453,18 +471,6 @@ class ProgressiveAdviserImport(Task):
 
         cursor.execute("""SELECT * FROM load_outreachservices()""")
 
-        cursor.execute("""
-            INSERT
-                INTO advisers_category (code, civil)
-                SELECT DISTINCT
-                    civil_category_code, true
-                    FROM cat_of_law_civil""")
-        cursor.execute("""
-            INSERT
-                INTO advisers_category (code, civil)
-                SELECT DISTINCT
-                    crime_category_code, false
-                    FROM cat_of_law_crime""")
         cursor.execute("""
             INSERT
                 INTO advisers_office_categories (office_id, category_id)
