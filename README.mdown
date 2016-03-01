@@ -28,11 +28,9 @@ docker-machine env laa-laa
 eval $(docker-machine env laa-laa)
 
 # Build the Docker images with docker-compose build
-cd docker/laalaa_app
-docker build .
-cd ../docker/postgres
-docker build .
-
+docker build -t laalaa_app .
+cd docker/postgres
+docker build -t laalaa_db .
 ```
 
 

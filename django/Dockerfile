@@ -21,16 +21,16 @@ RUN DEBIAN_FRONTEND='noninteractive' \
 RUN apt-get clean
 
 # Install latest python
-ADD ../install_python.sh /install_python.sh
+ADD ./docker/install_python.sh /install_python.sh
 RUN chmod 755 /install_python.sh
 RUN /install_python.sh
 
 # Add requirements to docker
-ADD ../../requirements/base.txt /requirements.txt
+ADD ./requirements/base.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 # Add project directory to docker
-ADD ../../. /home/app
+ADD . /home/app
 RUN rm -rf /home/app/.git
 RUN  chown -R app: /home/app
 
@@ -41,4 +41,9 @@ ENV APP_HOME /home/app
 USER app
 EXPOSE 8000
 
-ENTRYPOINT ["/home/app/docker/run.sh"]
+ENV DB_NAME laalaa
+ENV POSTGRES_USER postgres
+ENV POSTGRES_PASSWORD postgres
+ENV POSTGRES_HOST db
+ENV POSTGRES_PORT 5432
+

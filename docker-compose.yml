@@ -1,14 +1,14 @@
 db:
-    image: laa-legal-adviser-api_db
+    image: laalaa_db
     command: postgres
     volumes:
         - /home/docker/data:/var/lib/postgresql/data
 
 django:
-    image: laa-legal-adviser-api_django
+    image: laalaa_django
     command: /bin/bash
-    volumes:
-        - /home/docker/django:/home/app
+    #volumes:
+    #    - /home/docker/django:/home/app
     ports:
         - "8000:8000"
     links:
