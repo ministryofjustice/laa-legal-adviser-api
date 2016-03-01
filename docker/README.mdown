@@ -6,16 +6,16 @@ Service to search for LAA Legal Advisers by lat/lon.
 Dependencies
 ------------
 
- * [Docker Toolbox (OS X and Windows)](https://www.docker.com/products/docker-toolbox) or [Docker Machine]
+ * [Docker Toolbox](https://www.docker.com/products/docker-toolbox)(OS X and Windows) or [Docker and Docker Machine](https://docs.docker.com/machine/install-machine/)(Linux)
 
 NB. It is not necessary to install packages of any type (Python, Postgres etc) outside of docker images so a virtualenv is not required.
 
 Installation
 ------------
 
-Docker Machine is installed as normal using 
+Docker Toolbox installs all necessary Docker related tools using a pkg/exe. In Linux you need to separately install the Docker and Docker machine binaries (the instructions for installing Docker Machine cover both), unless you want to run docker contaiers direct on a Linux machine/VM, in which case just install Docker.
 
-If you are familiar with Docker Machine these instructions can easily be adapted to use the default VM and Quickstart Terminal to save a few bash commands each time the system is loaded but the following explains how to set up a dedicated machine for this project.
+If you are familiar with Docker Toolbox these instructions can easily be adapted to use the default VM and Quickstart Terminal to save a few bash commands each time the system is loaded but the following explains how to set up a dedicated machine for this project.
 
 In a new shell enter the following:
 
@@ -35,14 +35,17 @@ Start
 -----
 
 ```sh
-# Start this project's 
+# Start this project's Docker VM and set Docker Machine to use it
+docker-machine start laa-laa
+docker-machine env laa-laa
+eval $(docker-machine env laa-laa)
 
 ```
 
 Start the servers by entering the following command:
 
 ```sh
-fig up
+docker-compose up
 ```
 
 On the **first run only**, enter the following commands to prepare the database:
@@ -52,7 +55,11 @@ fig run django python manage.py migrate
 fig run django python manage.py createsuperuser --username=admin
 ```
 
-The API should now be accessible at http://boot2docker:8000/
+Get the address of the running API, which can be found on port 8000
+
+```sh
+docker-machine ip laa-laa
+```
 
 There is a Django admin site which allows importing and editing the database
 of legal advisers.
