@@ -1,30 +1,16 @@
 db:
-    build: docker/postgres
-    links:
-        - dbdata
-    volumes_from:
-        - dbdata
-    environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-
-dbdata:
-    image: busybox
-    command: /bin/sh
+    image: laalaa_db
+    command: postgres
     volumes:
-        - /var/lib/postgresql/data
+        - /home/docker/data:/var/lib/postgresql/data
 
 django:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    image: laalaa_django
+    command: /bin/bash
     volumes:
-        - .:/app
+        - /home/docker/django:/home/app
     ports:
         - "8000:8000"
     links:
         - db
-    environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_HOST: db
-        POSTGRES_PORT: 5432
+        
