@@ -35,7 +35,14 @@ docker build .
 
 ```
 
-Start
+
+Start the servers by entering the following command:
+
+```sh
+docker-compose run --service-ports django /bin/bash
+```
+
+Each Start
 -----
 
 ```sh
@@ -44,19 +51,12 @@ docker-machine start laa-laa
 docker-machine env laa-laa
 eval $(docker-machine env laa-laa)
 
-```
-
-Start the servers by entering the following command:
-
-```sh
+# Start the containers
 docker-compose run --service-ports django /bin/bash
-```
 
-On the **first run only**, enter the following commands to prepare the database:
+# Within the app container, start the server
+./runserver.sh
 
-```sh
-docker-compose run django python manage.py migrate
-docker-compose python manage.py createsuperuser --username=admin
 ```
 
 Get the ip on which the api is contactable, at port 8000.
