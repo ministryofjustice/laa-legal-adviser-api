@@ -1,11 +1,11 @@
 db:
-    image: laalaa_db
+    image: laa-legal-adviser-api_db
     command: postgres
     volumes:
         - /home/docker/data:/var/lib/postgresql/data
 
 django:
-    image: laalaa_django
+    image: laa-legal-adviser-api_django
     command: /bin/bash
     volumes:
         - /home/docker/django:/home/app

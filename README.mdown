@@ -49,7 +49,7 @@ eval $(docker-machine env laa-laa)
 Start the servers by entering the following command:
 
 ```sh
-docker-compose up
+docker-compose run --service-ports django /bin/bash
 ```
 
 On the **first run only**, enter the following commands to prepare the database:
