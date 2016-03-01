@@ -1,0 +1,1 @@
+CREATE DATABASE laalaa WITH OWNER postgres ENCODING 'utf-8';
