@@ -6,14 +6,14 @@ Service to search for LAA Legal Advisers by lat/lon.
 Dependencies
 ------------
 
- * [Docker Toolbox (OS X and Windows)](https://www.docker.com/products/docker-toolbox) or [Docker Machine]
+ * [Docker Toolbox (OS X and Windows)](https://www.docker.com/products/docker-toolbox) or [Docker Machine](https://docs.docker.com/machine/install-machine/)(Linux)
 
 NB. It is not necessary to install packages of any type (Python, Postgres etc) outside of docker images so a virtualenv is not required.
 
 Installation
 ------------
 
-Docker Machine is installed as normal using 
+Docker Toolbox contains all the necessary docker related tools and is installed using .exe/.pkg. In Linux, you must install Docker and Docker Machine separately from the above page.
 
 If you are familiar with Docker Machine these instructions can easily be adapted to use the default VM and Quickstart Terminal to save a few bash commands each time the system is loaded but the following explains how to set up a dedicated machine for this project.
 
@@ -35,24 +35,31 @@ Start
 -----
 
 ```sh
-# Start this project's 
+# Start this project's VM and set shell to address it
+docker-machine start laa-laa
+docker-machine env laa-laa
+eval $(docker-machine env laa-laa)
 
 ```
 
 Start the servers by entering the following command:
 
 ```sh
-fig up
+docker-compose up
 ```
 
 On the **first run only**, enter the following commands to prepare the database:
 
 ```sh
-fig run django python manage.py migrate
-fig run django python manage.py createsuperuser --username=admin
+docker-compose run django python manage.py migrate
+docker-compose python manage.py createsuperuser --username=admin
 ```
 
-The API should now be accessible at http://boot2docker:8000/
+Get the ip on which the api is contactable, at port 8000.
+```sh
+docker-machine ip laa-laa
+```
+
 
 There is a Django admin site which allows importing and editing the database
 of legal advisers.
