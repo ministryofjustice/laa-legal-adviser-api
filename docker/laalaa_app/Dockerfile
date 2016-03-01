@@ -21,16 +21,16 @@ RUN DEBIAN_FRONTEND='noninteractive' \
 RUN apt-get clean
 
 # Install latest python
-ADD ./docker/install_python.sh /install_python.sh
+ADD ../install_python.sh /install_python.sh
 RUN chmod 755 /install_python.sh
 RUN /install_python.sh
 
 # Add requirements to docker
-ADD ./requirements/base.txt /requirements.txt
+ADD ../../requirements/base.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 # Add project directory to docker
-ADD . /home/app
+ADD ../../. /home/app
 RUN rm -rf /home/app/.git
 RUN  chown -R app: /home/app
 
