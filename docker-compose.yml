@@ -8,7 +8,7 @@ django:
     image: laalaa_django
     command: /bin/bash
     volumes:
-        - /Users/jamesnarey/Development/Projects/laa-legal-adviser-api/django:/home/app
+        - /Users/jamesnarey/Development/Projects/laa-legal-adviser-api:/home/app
     ports:
         - "8000:8000"
     links:
