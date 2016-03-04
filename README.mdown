@@ -28,7 +28,7 @@ docker-machine env laa-laa
 eval $(docker-machine env laa-laa)
 
 # Build the Docker images with docker-compose build
-docker build -t laalaa_app .
+docker build -t laalaa_django .
 cd docker/postgres
 docker build -t laalaa_db .
 ```
