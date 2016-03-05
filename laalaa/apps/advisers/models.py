@@ -137,3 +137,4 @@ class Import(models.Model):
     status = models.CharField(max_length=7, choices=list(IMPORT_STATUSES))
     filename = models.TextField()
     user = models.ForeignKey(User, null=True)
+

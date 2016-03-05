@@ -9,6 +9,8 @@ from rest_framework.test import APIRequestFactory
 from advisers import geocoder
 from advisers.views import AdviserViewSet
 
+from advisers import pc_fallback
+
 
 class GeocoderTest(unittest.TestCase):
 
@@ -19,7 +21,7 @@ class GeocoderTest(unittest.TestCase):
             fallback_client = PostCoder.return_value
 
             postcode = 'sw1a1aa'
-            geocoder.geocode_fallback(postcode)
+            pc_fallback.geocode(postcode)
 
             fallback_client.get.assert_called_with(postcode)
 
