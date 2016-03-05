@@ -11,6 +11,7 @@ logstash-formatter==0.5.9
 uwsgi
 requests
 postcodeinfo>=0.0.2,<0.1.0
+postcodes
 django-extensions
 werkzeug
 

@@ -61,6 +61,10 @@ venv
 *.iws
 
 .DS_Store
+.cache/
+.bash_history
+app.log
+debug.log
 
 # node
 node_modules/

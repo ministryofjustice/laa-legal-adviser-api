@@ -12,6 +12,17 @@ from advisers.views import AdviserViewSet
 
 class GeocoderTest(unittest.TestCase):
 
+    def test_geocode_fallback(self):
+
+        with mock.patch('postcodes.PostCoder') as PostCoder:
+
+            fallback_client = PostCoder.return_value
+
+            postcode = 'sw1a1aa'
+            geocoder.geocode_fallback(postcode)
+
+            fallback_client.get.assert_called_with(postcode)
+
     def test_geocode(self):
 
         with mock.patch('postcodeinfo.Client') as Client:
