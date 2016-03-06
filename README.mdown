@@ -6,9 +6,17 @@ Service to search for LAA Legal Advisers by lat/lon.
 Dependencies
 ------------
 
+If using Docker:
+
  * [Docker Toolbox (OS X and Windows)](https://www.docker.com/products/docker-toolbox) or [Docker Machine](https://docs.docker.com/machine/install-machine/) (Linux)
 
-NB. It is not necessary to install packages of any type (Python, Postgres etc) outside of docker images so a virtualenv is not required.
+NB. It is not necessary to install packages of any type (Python, Postgres etc) outside of docker images so a virtualenv is not required unless you follow the instructions for installing natively on OSX.
+
+If intalling natively:
+
+ * Virtualenv
+ * Python 2.7
+ * Postgres => 9.3
 
 Installation
 ------------
@@ -67,6 +75,46 @@ Get the ip on which the api is contactable, at port 8000.
 docker-machine ip laa-laa
 ```
 
+
+Run Natively on OS X
+-----
+
+```sh
+# Install Virtualenv if necessary
+# sudo may be required if Python is not installed via brew
+pip install virtualenv
+
+# Create a virtualenv
+# In the directory in which the virtualenv directory should be created
+virtualenv -p python2 venv
+
+# Start the virtualenv
+source venv/bin/activate
+
+# Install further requirements with pip, assuming you are in the
+# project directory
+pip install -r requirements/base.py
+
+# Create a new database using an admin account, where YOUR_PASSWORD and YOUR_USERNAME should
+# be substituted for your admin account credentials, not using quotes
+PGPASSWORD=YOUR_PASSWORD psql --host localhost -U YOUR_USERNAME -f ./docker/sql/create_db.sql
+
+# Create an unprivileged account with username 'postgres' and password 'postgres' for
+interacting with the database (or change laalaa/settings/base.py to use the details for
+another account)
+
+[TO DO]
+
+# Use the chosen account to create the database tables and populate with dummy data
+# and create a Django admin account:
+python manage.py migrate
+python manage.py createsuperuser --username=admin
+
+```
+
+Get the ip on which the api is contactable, at port 8000.
+```sh
+docker-machine ip laa-laa
 
 There is a Django admin site which allows importing and editing the database
 of legal advisers.
