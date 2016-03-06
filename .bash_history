@@ -60,3 +60,42 @@ exit
 export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
 ./runserver.sh 
 exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+ls -la
+cd laalaa/apps/advisers/tests/
+ls -l
+python test_geocoder.py
+pip install mock
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh 
+cd ..
+cd ..
+cd ..
+cd ..
+./runserver.sh 
+ls -la
+cd laalaa/
+cd apps/
+cd advisers/
+ls -la
+~/runserver.sh 
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh 
+exit
+python manage.py makemigrations
+python manage.py migrate
+exit
+./runserver.sh 
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh 
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh 
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh 
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh 
+exit

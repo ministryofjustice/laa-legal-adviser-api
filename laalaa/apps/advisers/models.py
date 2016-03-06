@@ -138,3 +138,10 @@ class Import(models.Model):
     filename = models.TextField()
     user = models.ForeignKey(User, null=True)
 
+
+class TemporaryPostcodes(models.Model):
+
+    postcode_index = models.CharField(
+        max_length=7, db_index=True, primary_key=True)
+    latitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
