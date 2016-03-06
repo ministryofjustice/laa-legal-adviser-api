@@ -99,3 +99,73 @@ exit
 export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
 ./runserver.sh 
 exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh 
+./runserver.sh exit
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+\
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+./runserver.sh
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
+export POSTCODEINFO_AUTH_TOKEN=a4a3c5ed091552daf8d4a6b87a43bf100e359e89
+./runserver.sh
+exit
