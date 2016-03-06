@@ -141,7 +141,7 @@ class Import(models.Model):
 
 class TemporaryPostcodes(models.Model):
 
-    postcode_index = models.CharField(
+    postcode = models.CharField(
         max_length=7, db_index=True, primary_key=True)
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)

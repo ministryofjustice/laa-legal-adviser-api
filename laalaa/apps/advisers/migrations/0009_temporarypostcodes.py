@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TemporaryPostcodes',
             fields=[
-                ('postcode_index', models.CharField(max_length=7, serialize=False, primary_key=True, db_index=True)),
+                ('postcode', models.CharField(max_length=7, serialize=False, primary_key=True, db_index=True)),
                 ('latitude', models.FloatField(null=True)),
                 ('longitude', models.FloatField(null=True)),
             ],

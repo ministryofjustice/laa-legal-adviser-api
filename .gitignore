@@ -1,5 +1,7 @@
 *.py[cod]
 
+runonce_osx.sh
+
 # C extensions
 *.so
 
