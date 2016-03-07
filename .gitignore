@@ -1,5 +1,7 @@
 *.py[cod]
 
+runonce_osx.sh
+
 # C extensions
 *.so
 
@@ -61,6 +63,10 @@ venv
 *.iws
 
 .DS_Store
+.cache/
+.bash_history
+app.log
+debug.log
 
 # node
 node_modules/

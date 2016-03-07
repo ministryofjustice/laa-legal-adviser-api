@@ -6,63 +6,120 @@ Service to search for LAA Legal Advisers by lat/lon.
 Dependencies
 ------------
 
- * [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
- * [boot2docker](http://boot2docker.io/)
- * [Fig](http://www.fig.sh/)
+If using Docker:
+
+ * [Docker Toolbox (OS X and Windows)](https://www.docker.com/products/docker-toolbox) or [Docker Machine](https://docs.docker.com/machine/install-machine/) (Linux)
+
+NB. It is not necessary to install packages of any type (Python, Postgres etc) outside of docker images so a virtualenv is not required unless you follow the instructions for installing natively on OSX.
+
+If intalling natively:
+
+ * Virtualenv
+ * Python 2.7
+ * Postgres => 9.3
 
 Installation
 ------------
 
-Enter the following commands into your shell (you can cut and paste this):
+Docker Toolbox contains all the necessary docker related tools and is installed using .exe/.pkg. In Linux, you must install Docker and Docker Machine separately, both from the above page.
+
+If you are familiar with Docker Machine these instructions can easily be adapted to use the default VM and Quickstart Terminal to save a few bash commands each time the system is loaded but the following explains how to set up a dedicated machine for this project.
+
+In a new shell enter the following:
 
 ```sh
-# Create boot2docker VM
-boot2docker init
+# Create and run a new Docker VM
+docker-machine create --driver virtualbox laa-laa
 
-# Start VM
-boot2docker start
+# Set envioronment variables so that 'docker' and 'docker-compose' commands (amongst others) address the images and containers in your new VM
+docker-machine env laa-laa
+eval $(docker-machine env laa-laa)
 
-# Set up environment variables
-$(boot2docker shellinit)
-
-# Build the Docker images with Fig
-fig build
+# Build the Docker images with docker-compose build
+docker build -t laalaa_django .
+cd docker/postgres
+docker build -t laalaa_db .
 ```
 
-Start
------
-
-Add the following line to `/etc/hosts`:
-
-```text
-192.168.59.103 boot2docker
-```
-
-Add the following line to `~/.bashrc`:
-
-```sh
-export DOCKER_HOST=tcp://boot2docker:2376
-```
 
 Start the servers by entering the following command:
 
 ```sh
-fig up
+docker-compose run --service-ports django /bin/bash
 ```
 
-On the **first run only**, enter the following commands to prepare the database:
+On the first run, enter:
+```sh
+./runonce.sh
+```
+
+Each Start
+-----
 
 ```sh
-fig run django python manage.py migrate
-fig run django python manage.py createsuperuser --username=admin
+# Start this project's VM and set shell to address it
+docker-machine start laa-laa
+docker-machine env laa-laa
+eval $(docker-machine env laa-laa)
+
+# Start the containers
+docker-compose run --service-ports django /bin/bash
+
+# Within the app container, start the server
+./runserver.sh
+
 ```
 
-The API should now be accessible at http://boot2docker:8000/
+Get the ip on which the api is contactable, at port 8000.
+```sh
+docker-machine ip laa-laa
+```
+
+
+Run Natively on OS X
+-----
+
+```sh
+# Install Virtualenv if necessary
+# sudo may be required if Python is not installed via brew
+pip install virtualenv
+
+# Create a virtualenv
+# In the directory in which the virtualenv directory should be created
+virtualenv -p python2 venv
+
+# Start the virtualenv
+source venv/bin/activate
+
+# Install further requirements with pip, assuming you are in the
+# project directory
+pip install -r requirements/base.py
+
+# Create a new database using an admin account, where YOUR_PASSWORD and YOUR_USERNAME should
+# be substituted for your admin account credentials, not using quotes
+PGPASSWORD=YOUR_PASSWORD psql --host localhost -U YOUR_USERNAME -f ./docker/sql/create_db.sql
+
+# Create an unprivileged account with username 'postgres' and password 'postgres' for
+interacting with the database (or change laalaa/settings/base.py to use the details for
+another account)
+
+[TO DO]
+
+# Use the chosen account to create the database tables and populate with dummy data
+# and create a Django admin account:
+python manage.py migrate
+python manage.py createsuperuser --username=admin
+
+```
+
+Get the ip on which the api is contactable, at port 8000.
+```sh
+docker-machine ip laa-laa
 
 There is a Django admin site which allows importing and editing the database
 of legal advisers.
 
-Go to http://boot2docker:8000/admin/ and sign in with the admin password you
+Go to http://XXX.XXX.XXX.XXX:8000/admin/ (get correct IP address as above) and sign in with the admin password you
 just set.
 
 # Jenkins CI Build Jobs
