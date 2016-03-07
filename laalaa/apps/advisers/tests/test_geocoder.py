@@ -14,16 +14,6 @@ from advisers import pc_fallback
 
 class GeocoderTest(unittest.TestCase):
 
-    def test_geocode_fallback(self):
-
-        with mock.patch('postcodes.PostCoder') as PostCoder:
-
-            fallback_client = PostCoder.return_value
-
-            postcode = 'sw1a1aa'
-            pc_fallback.geocode(postcode)
-
-            fallback_client.get.assert_called_with(postcode)
 
     def test_geocode(self):
 

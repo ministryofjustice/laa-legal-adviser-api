@@ -18,62 +18,50 @@ def format_postcode(postcode):
 
 def geocode(postcode):
 
+    # Format postcode as lower-case, without spaces
     formatted_pc = format_postcode(postcode)
 
+    # Check whether the postcode has a record in the temporary table
     result = check_temp_table(formatted_pc)
 
+    # Has the temporary table yielded a result?
     if result:
-        print '******GEOCODE - POSTCODE FOUND IN TEMPORARY TABLE*********'
+        print '******Postcode provided by temporary table*******'
         return result
     else:
-
-        print '******GEOCODE - POSTCODE NOT FOUND IN TEMPORARY TABLE*********'
-        print '******GEOCODE - CHECKING ' + formatted_pc + ' AT POSTCODES.IO********'
+        # Read from Postcodes.io API
         postcode_data = PostCoder().get(formatted_pc)
-        print '******GEOCCODE - POSTCODES.IO RESPONSE:'
-        print postcode_data
-
+        # Has Postcodes.io yielded a result?
         if postcode_data:
+            print '********Postcode provided by Postcodes.io*********'
             result = PostcodePlaceholder()
             result.postcode = format_postcode(postcode_data['postcode'])
             result.latitude = postcode_data['geo']['lat']
             result.longitude = postcode_data['geo']['lng']
             store_temp_pc(result)
-        else:
-            print '******Postcode Not Found Exception Placeholder********'
-
-    return result
+            return result
+    print '**********No postcode provided***********'
+    return None
 
 
 def check_temp_table(formatted_pc):
 
-    result = PostcodePlaceholder()
-
-    if TemporaryPostcodes.objects.filter(postcode_index=formatted_pc):
-        postcode_data = TemporaryPostcodes.objects.get(postcode_index=formatted_pc)
-        result.postcode = postcode_data.postcode_index
-        result.longitude = postcode_data.longitude
-        result.latitude = postcode_data.latitude
-        print '*********DB CHECK - POSTCODE FOUND IN DATABASE**********'
-        print '*********DB CHECK - FOUND DATA:'
-        print result.postcode
+    # Check whether the postcode exists in the temp table
+    if TemporaryPostcodes.objects.filter(postcode=formatted_pc):
+        # Get the record
+        result = TemporaryPostcodes.objects.get(postcode=formatted_pc)
         return result
 
     else:
-        print '*********DB CHECK - POSTCODE NOT FOUND IN TEMPORARY TABLE*******'
         return None
 
 
 def store_temp_pc(pc_placeholder):
 
-    #try:
-    pc = TemporaryPostcodes(postcode_index=pc_placeholder.postcode, latitude=pc_placeholder.latitude,
+    pc = TemporaryPostcodes(postcode=pc_placeholder.postcode, latitude=pc_placeholder.latitude,
                             longitude=pc_placeholder.longitude)
-    print '***********DB WRITE - RECORD CREATED:'
-    print pc.postcode_index
     pc.save()
-    print '***********DB WRITE - DATABASE WRITE SUCCESSFUL********'
-    #except:
-    #    print '***********DB WRITE - DATABASE WRITE FAILED************'
+
+
 
 
