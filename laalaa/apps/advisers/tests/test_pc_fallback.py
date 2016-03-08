@@ -1,29 +1,24 @@
-import json
-import mock
 import unittest
-
-import django.test
-import postcodeinfo
-from rest_framework.test import APIRequestFactory
-
-from advisers import geocoder
-from advisers.views import AdviserViewSet
 
 import advisers.pc_fallback
 
 
-class FallbackTest(django.test.Testcase):
+class FallbackTest(unittest.TestCase):
 
-   def test_geocode_fallback(self):
-
-        with mock.patch('postcodes.PostCoder') as PostCoder:
-
-            fallback_client = PostCoder.return_value
+    def test_geocode_fallback(self):
 
             postcode = 'sw1a1aa'
-            advisers.pc_fallback.geocode(postcode)
+            result = advisers.pc_fallback.geocode(postcode)
 
-            fallback_client.get.assert_called_with(postcode)
+            self.assertIsNotNone(result, 'No result returned for sample postcode')
 
-#if __name__ == '__main__':
-#    unittest.main()
+    def test_formatter(self):
+
+            formatted_pc = advisers.pc_fallback.format_postcode('SW1A 1AA')
+
+            self.assertNotIn(' ', formatted_pc, 'Formatted postcode has space')
+            self.assertNotIn('AA', formatted_pc, 'Formatted postcode has AA')
+            self.assertIn('aa', formatted_pc, 'Formatted postcode does not have aa')
+
+if __name__ == '__main__':
+    unittest.main()
