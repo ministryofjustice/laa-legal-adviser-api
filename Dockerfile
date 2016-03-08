@@ -41,4 +41,9 @@ ENV APP_HOME /home/app
 USER app
 EXPOSE 8000
 
-ENTRYPOINT ["/home/app/docker/run.sh"]
+ENV DB_NAME laalaa
+ENV POSTGRES_USER postgres
+ENV POSTGRES_PASSWORD postgres
+ENV POSTGRES_HOST db
+ENV POSTGRES_PORT 5432
+

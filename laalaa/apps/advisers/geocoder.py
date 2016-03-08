@@ -1,5 +1,6 @@
 import re
 import postcodeinfo
+import pc_fallback
 
 
 class GeocoderError(Exception):
@@ -20,7 +21,12 @@ def geocode(postcode):
             result = postcodeinfo.Client().lookup_postcode(postcode)
 
         if not result.valid:
-            raise PostcodeNotFound(postcode)
+            print '******Result not valid********'
+            result = pc_fallback.geocode(postcode)
+
+            if not result.latitude:
+                raise PostcodeNotFound(postcode)
+
         return result
     except postcodeinfo.PostcodeInfoException as e:
         raise GeocoderError(e)
