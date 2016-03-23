@@ -1,0 +1,4 @@
+-r base.txt
+django-extensions
+werkzeug
+mock

@@ -32,6 +32,8 @@ RUN pip install -r /requirements.txt
 # Add project directory to docker
 ADD . /home/app
 RUN rm -rf /home/app/.git
+RUN chmod 755 /home/app/docker/collectstatic.sh
+RUN /home/app/docker/collectstatic.sh
 RUN  chown -R app: /home/app
 
 # Set correct environment variables.

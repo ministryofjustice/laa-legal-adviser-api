@@ -1,13 +1,12 @@
 import json
 import mock
 import unittest
-
 import django.test
 import postcodeinfo
 from rest_framework.test import APIRequestFactory
-
 from advisers import geocoder
 from advisers.views import AdviserViewSet
+from advisers import pc_fallback
 
 
 class GeocoderTest(unittest.TestCase):
@@ -31,7 +30,7 @@ class GeocoderTest(unittest.TestCase):
 
             _query_api.side_effect = no_results
 
-            postcode = 'sw1a1aa'
+            postcode = 'sw1x1aa'
             with self.assertRaises(geocoder.PostcodeNotFound) as context:
                 geocoder.geocode(postcode)
 
