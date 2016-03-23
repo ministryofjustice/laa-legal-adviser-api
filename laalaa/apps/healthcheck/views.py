@@ -1,3 +1,4 @@
+import os
 import requests
 from django.http import JsonResponse
 from django.conf import settings
@@ -6,31 +7,11 @@ from django.conf import settings
 def ping(request):
 
     res = {
-        "version_number": None,
-        "build_date": None,
-        "commit_id": None,
-        "build_tag": None
+        "version_number": os.environ.get('APPVERSION'),
+        "build_date": os.environ.get('APP_BUILD_DATE'),
+        "commit_id": os.environ.get('APP_GIT_COMMIT'),
+        "build_tag": os.environ.get('APP_BUILD_TAG')
     }
-
-    # Get version details
-    try:
-        res['version_number'] = str(open("{0}/../VERSION".format(settings.PROJECT_ROOT)).read().strip())
-        res['commit_id'] = res['version_number']
-        res['build'] = res['version_number']
-    except IOError:
-        pass
-
-    # Get build tag
-    try:
-        res['build_tag'] = str(open("{0}/../BUILD_TAG".format(settings.PROJECT_ROOT)).read().strip())
-    except IOError:
-        pass
-
-    # Get build date
-    try:
-        res['build_date'] = str(open("{0}/../BUILD_DATE".format(settings.PROJECT_ROOT)).read().strip())
-    except IOError:
-        pass
 
     return JsonResponse(res)
 
