@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'kombu.transport.django',
     'djcelery',
     'rest_framework',
+    'rest_framework_gis',
 
     'advisers',
 )
@@ -66,9 +67,21 @@ ROOT_URLCONF = 'laalaa.urls'
 
 WSGI_APPLICATION = 'laalaa.wsgi.application'
 
-TEMPLATE_DIRS = (
-    root('templates'),
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+        'DIRS': [root('templates')],
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
@@ -105,13 +118,14 @@ MAX_UPLOAD_SIZE = 10485760
 FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.7/howto/static-files/
+# https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
 STATIC_ROOT = root('static')
 
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 10,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
     'EXCEPTION_HANDLER': 'advisers.views.custom_exception_handler'
 }
 
