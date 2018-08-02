@@ -6,10 +6,19 @@ Service to search for LAA Legal Advisers by lat/lon.
 Dependencies
 ------------
 
- * Virtualenv
- * Python 2.7
- * Postgres => 9.3
+* Virtualenv
+* Python 2.7
+* RabbitMQ
+* PostgreSQL => 9.3 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
+* [PostGIS](https://postgis.net/)
 
+:memo: If you are using Docker to provide a database, please use `circleci/postgres:9.4-alpine-postgis`, which has the required extensions installed.
+
+    docker run --detach --publish 5432:5432 circleci/postgres:9.4-alpine-postgis
+
+:memo: If you are using Docker to provide RabbitMQ, it's preferable to use one with management interface enabled:
+
+    docker run --detach --publish 5672:5672 --publish 15672:15672 rabbitmq:3.7-management-alpine
 
 Installation
 ------------
@@ -30,17 +39,8 @@ source venv/bin/activate
 # project directory
 pip install -r requirements/development.txt
 
-# Create a new database using an admin account, where YOUR_PASSWORD and YOUR_USERNAME should
-# be substituted for your admin account credentials, not using quotes
-PGPASSWORD=YOUR_PASSWORD psql --host localhost -U YOUR_USERNAME -f ./sql/create_db.sql
-
-# Create an unprivileged account with username 'postgres' and password 'postgres' for
-interacting with the database (or create laalaa/settings/local.py with alternative
-credentials).
-
-# Use the chosen account to run the following commands in psql, with the new database selected:
-
-PGPASSWORD=postgres psql --host localhost -U postgres -f ./sql/create_extensions.sql
+# Create a database and install required PostgreSQL extensions
+PGHOST=localhost PGUSER=postgres ./setup_postgres.sh
 
 # Create the database tables and populate with dummy data
 # and create a Django admin account:
@@ -57,16 +57,14 @@ Each Run
 export POSTCODEINFO_AUTH_TOKEN=auth-token-no-space-or-quotes 
 ```
 
-...or add it to your local.py in laalaa/settings.
+...or add it to your `laalaa/settings/local.py` settings.
 
-Run:
+| Service | Command |
+| --- | --- |
+| API | `python manage.py runserver` |
+| Worker | `python manage.py celery worker` |
 
-```sh
-python manage.py runserver
-```
-
-There is a Django admin site which allows importing and editing the database
-of legal advisers.
+There is a Django admin site which allows importing and editing the database of legal advisers.
 
 Go to admin/ and sign in with the admin password you just set.
 
