@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
+from unittest import skip
 
 from .. import geocoder
 
@@ -146,6 +147,7 @@ FAILING_POSTCODES = [
 
 
 class GeocodeTestCase(TestCase):
+    @skip("Do not integration test in the unit test suite")
     def test_failing_postcodes(self):
         passed = []
         failed = []
