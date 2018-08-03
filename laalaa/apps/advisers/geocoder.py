@@ -15,10 +15,11 @@ class PostcodeNotFound(GeocoderError):
 
 def geocode(postcode):
     try:
+        postcode_client = postcodeinfo.Client(timeout = 30)
         if len(postcode) < 5:
-            result = postcodeinfo.Client().lookup_partial_postcode(postcode)
+            result = postcode_client.lookup_partial_postcode(postcode)
         else:
-            result = postcodeinfo.Client().lookup_postcode(postcode)
+            result = postcode_client.lookup_postcode(postcode)
 
         if not result.valid:
             result = pc_fallback.geocode(postcode)
