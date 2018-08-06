@@ -2,7 +2,8 @@ import json
 import mock
 import unittest
 import django.test
-import postcodeinfo
+import requests
+
 from rest_framework.test import APIRequestFactory
 from advisers import geocoder
 from advisers.views import AdviserViewSet
@@ -11,72 +12,72 @@ from advisers import pc_fallback
 
 class GeocoderTest(unittest.TestCase):
 
-    def test_geocode(self):
+    def setUp(self):
+        self.postcode = 'sw1a1aa'
+        self.good_result = u'{"status":200,"result":{"postcode":"SW1A 1AA","longitude":-0.141588,"latitude":51.501009}}'
 
-        with mock.patch('postcodeinfo.Client') as Client:
-            client = Client.return_value
+    @mock.patch('lib.PostCodeClient.getLookupPostCode')
+    def test_geocode_calls_postcode_lookup(self, lookup_mock):
+        lookup_mock.return_value = self.good_result
+        result = geocoder.geocode(self.postcode)
 
-            postcode = 'sw1a1aa'
-            geocoder.geocode(postcode)
+        self.assertEqual(result.postcode, 'sw1a1aa')
+        self.assertEqual(result.latitude, 51.501009)
+        self.assertEqual(result.longitude, -0.141588)
 
-            client.lookup_postcode.assert_called_with(postcode)
 
-    def test_geocode_no_results(self):
-        import postcodeinfo
+    @mock.patch('lib.PostCodeClient.getLookupPostCode')
+    def test_raises_geocoder_error_when_postcode_lookup_fails_with_timeout(self, lookup_mock):
+        lookup_mock.side_effect = requests.exceptions.ConnectTimeout()
 
-        with mock.patch.object(postcodeinfo.Client, '_query_api') as _query_api:
-            def no_results(*args, **kwargs):
-                raise postcodeinfo.NoResults
+        with self.assertRaisesRegexp(geocoder.GeocoderError, 'Caused by ConnectTimeout'):
+            geocoder.geocode(self.postcode)
 
-            _query_api.side_effect = no_results
 
-            postcode = 'sw1x1aa'
-            with self.assertRaises(geocoder.PostcodeNotFound) as context:
-                geocoder.geocode(postcode)
+    @mock.patch('lib.PostCodeClient.getLookupPostCode')
+    def test_raises_geocoder_error_when_postcode_lookup_fails_with_server_error(self, lookup_mock):
+        lookup_mock.return_value = u'{"status":500,"message":"Bad things happened"}'
 
-            self.assertEqual(postcode, context.exception.postcode)
+        with self.assertRaisesRegexp(geocoder.GeocoderError, 'Bad things happened'):
+            geocoder.geocode(self.postcode)
 
-    def test_geocode_server_error(self):
-        with mock.patch('postcodeinfo.Client') as Client:
-            client = Client.return_value
 
-            def server_error(exception):
+    @mock.patch('lib.PostCodeClient.getLookupPostCode')
+    def test_raises_geocoder_error_when_postcode_lookup_fails_with_client_error(self, lookup_mock):
+        lookup_mock.return_value = u'{"status":400,"message":"Invalid request"}'
 
-                def lookup_postcode(postcode):
-                    raise exception
+        with self.assertRaisesRegexp(geocoder.GeocoderError, 'Invalid request'):
+            geocoder.geocode(self.postcode)
 
-                return lookup_postcode
 
-            postcode = 'sw1a1aa'
-            for exception in [
-                    postcodeinfo.ServerException,
-                    postcodeinfo.ServiceUnavailable]:
+    @mock.patch('lib.PostCodeClient.getLookupPostCode')
+    def test_raises_postcode_not_found_error_when_postcode_lookup_cannot_find_the_postcode(self, lookup_mock):
+        lookup_mock.return_value = u'{"status":404,"error":"Postcode not found"}'
 
-                client.lookup_postcode.side_effect = server_error(exception)
-
-                with self.assertRaises(geocoder.GeocoderError):
-                    geocoder.geocode(postcode)
+        with self.assertRaises(geocoder.PostcodeNotFound) as not_found_error:
+            geocoder.geocode(self.postcode)
+        
+        self.assertEqual(not_found_error.exception.postcode, 'sw1a1aa')
 
 
 class AdviserViewSetTest(django.test.TestCase):
 
-    def test_geocode(self):
-        with mock.patch('postcodeinfo.Client') as Client:
-            postcode = 'sw1a1aa'
-            client = Client.return_value
-            info = client.lookup_postcode.return_value
-            info.longitude = -0.1442833
-            info.latitude = 51.5016681
-            info.postcode = 'SW1A 1AA'
+    def setUp(self):
+        self.postcode = 'sw1a1aa'
+        self.good_result = u'{"status":200,"result":{"postcode":"SW1A 1AA","longitude":-0.141588,"latitude":51.501009}}'
 
-            request = APIRequestFactory().get(
-                '/legal-advisers/?postcode=%s' % postcode)
-            view = AdviserViewSet.as_view({'get': 'list'})
-            response = view(request)
+    @mock.patch('lib.PostCodeClient.getLookupPostCode')
+    def test_postcode_query_returns_origin_point(self, lookup_mock):
+        lookup_mock.return_value = self.good_result
 
-            client.lookup_postcode.assert_called_with(postcode)
-            origin = response.data['origin']
-            self.assertEqual(info.postcode, origin['postcode'])
-            coords = origin['point']['coordinates']
-            self.assertEqual(info.longitude, coords[0])
-            self.assertEqual(info.latitude, coords[1])
+        request = APIRequestFactory().get('/legal-advisers/?postcode=%s' % self.postcode)
+        view = AdviserViewSet.as_view({'get': 'list'})
+        response = view(request)
+
+        self.assertEqual({
+            'postcode': 'SW1A 1AA',
+            'point': {
+                'type': 'Point',
+                'coordinates': [-0.141588, 51.501009]
+            }
+        }, response.data['origin'])

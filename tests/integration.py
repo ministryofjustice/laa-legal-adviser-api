@@ -24,12 +24,25 @@ try:
         sys.exit(1)
 
     '''
-    Check response has coordinates within the first result
+    Check that response contains all required fields
     '''
     data = json.loads(req.text)
-    if len(data['results'][0]['location']['point']['coordinates']) != 2:
-        print '[ERROR] Response does not have coordinates'
-        sys.exit(1)
+    assert 'count' in data
+    assert 'next' in data
+    assert 'previous' in data
+    assert 'origin' in data
+    assert 'results' in data
+
+    '''
+    Check response has coordinates within the first result
+    '''
+    first_result_point = data['results'][0]['location']['point']
+    assertion_message = 'Invalid point schema: {0}'.format(first_result_point)
+    assert 'type' in first_result_point, assertion_message
+    assert 'coordinates' in first_result_point, assertion_message
+    assert len(first_result_point['coordinates']) == 2, assertion_message
+
+    print '[SUCCESS] Everything passed!'
 
 except requests.exceptions.ConnectionError:
     print '[ERROR] Failed to connect to: {0}'.format(url)
