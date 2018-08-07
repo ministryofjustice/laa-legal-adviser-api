@@ -65,14 +65,14 @@ class AdviserViewSetTest(django.test.TestCase):
     def setUp(self):
         self.postcode = 'sw1a1aa'
         self.good_result = u'{"status":200,"result":{"postcode":"SW1A 1AA","longitude":-0.141588,"latitude":51.501009}}'
+        self.request = APIRequestFactory().get('/legal-advisers/?postcode=%s' % self.postcode)
+        self.view = AdviserViewSet.as_view({'get': 'list'})
+
 
     @mock.patch('lib.PostCodeClient.getLookupPostCode')
     def test_postcode_query_returns_origin_point(self, lookup_mock):
         lookup_mock.return_value = self.good_result
-
-        request = APIRequestFactory().get('/legal-advisers/?postcode=%s' % self.postcode)
-        view = AdviserViewSet.as_view({'get': 'list'})
-        response = view(request)
+        response = self.view(self.request)
 
         self.assertEqual({
             'postcode': 'SW1A 1AA',
@@ -81,3 +81,12 @@ class AdviserViewSetTest(django.test.TestCase):
                 'coordinates': [-0.141588, 51.501009]
             }
         }, response.data['origin'])
+
+
+    @mock.patch('lib.PostCodeClient.getLookupPostCode')
+    def test_postcode_query_returns_valid_results(self, lookup_mock):
+        lookup_mock.return_value = self.good_result
+        response = self.view(self.request)
+
+        # TODO: check that the response results work (from the database) and are formatted according to the schema
+        pass
