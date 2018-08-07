@@ -7,7 +7,6 @@ import requests
 from rest_framework.test import APIRequestFactory
 from advisers import geocoder
 from advisers.views import AdviserViewSet
-from advisers import pc_fallback
 
 
 class GeocoderTest(unittest.TestCase):
