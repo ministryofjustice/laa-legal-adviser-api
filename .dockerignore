@@ -21,6 +21,7 @@
 .sass-cache/
 .tox
 .webassets-cache
+Dockerfile
 app.log
 bin
 build
