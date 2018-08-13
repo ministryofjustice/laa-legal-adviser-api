@@ -2,11 +2,8 @@ import json
 import logging
 import requests
 
-from lib import PostCodeClient
-
 
 class PostcodePlaceholder:
-
     def __init__(self):
         self.postcode = None
         self.longitude = None
@@ -37,25 +34,23 @@ def result_to_postcode(result):
     return postcode
 
 
-def lookup_postcode(logger, postcode):
-    # Partial lookup: http://api.postcodes.io/postcodes?q=SW1A1&limit=30
-    client = PostCodeClient()
-    result = json.loads(client.getLookupPostCode(postcode))
-
-    if result['status'] == 404:
-        raise PostcodeNotFound(postcode)
-
-    if result['status'] >= 400:
-        logger.warn('Postcode lookup failed with response "{0}"'.format(result))
-        raise GeocoderError(result)
-
-    return result_to_postcode(result['result'])
+def lookup_postcode(postcode):
+    raw = requests.get('http://api.postcodes.io/postcodes/?q={postcode}&limit=1'.format(postcode=postcode))
+    return json.loads(raw.text)
 
 
 def geocode(postcode):
     logger = logging.getLogger(__name__)
     try:
-        return lookup_postcode(logger, postcode)
+        result = lookup_postcode(postcode)
+        if result['status'] == 404:
+            raise PostcodeNotFound(postcode)
+
+        if result['status'] >= 400:
+            logger.warn('Postcode lookup failed with response "{0}"'.format(result))
+            raise GeocoderError(result)
+
+        return result_to_postcode(result['result'][0])
     except requests.exceptions.RequestException as e:
         logger.error('Postcode lookup failed with error "{0}"'.format(repr(e)))
         raise GeocoderError('Caused by ' + repr(e))
