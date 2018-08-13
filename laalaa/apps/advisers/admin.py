@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.contrib import admin
 from django.db.models import Q
 from django.views.generic import TemplateView
@@ -60,16 +60,16 @@ class MyAdminSite(admin.AdminSite):
 
     def get_urls(self):
         urls = super(MyAdminSite, self).get_urls()
-        my_urls = patterns('',
-            (r'^upload/$', views.upload_spreadsheet),
+        my_urls = [
+            url(r'^upload/$', views.upload_spreadsheet),
             url(
                 r'^import-in-progress/$',
                 TemplateView.as_view(
                     template_name='import_progress.html',
                     get_context_data=lambda: {"title": "Importing data"}),
                 name='import_in_progress'),
-            (r'^import-progress/$', views.import_progress)
-        )
+            url(r'^import-progress/$', views.import_progress)
+        ]
         return my_urls + urls
 
 
