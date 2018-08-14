@@ -3,6 +3,7 @@ import mock
 import unittest
 import django.test
 import requests
+import responses
 
 from rest_framework.test import APIRequestFactory
 from advisers import geocoder
@@ -15,7 +16,16 @@ class GeocoderTest(unittest.TestCase):
 
     def setUp(self):
         self.postcode = 'sw1a1aa'
-        self.good_result = {'status':200,'result':[{"postcode":"SW1A 1AA","longitude":-0.141588,"latitude":51.501009}]}
+        self.good_result = {'status':200,'result':[{'postcode':'SW1A 1AA','longitude':-0.141588,'latitude':51.501009}]}
+
+
+    @responses.activate
+    def test_geocode_strips_spaces_before_calling_external_api(self):
+        responses.add(responses.GET, 'http://api.postcodes.io/postcodes/?q=sw1a1aa&limit=1',
+            match_querystring=True, json=self.good_result, status=200)
+        geocoder.geocode('SW1A 1AA')
+        self.assertEqual(len(responses.calls), 1)
+
 
     @mock.patch('advisers.geocoder.lookup_postcode')
     def test_geocode_calls_postcode_lookup(self, lookup_mock):

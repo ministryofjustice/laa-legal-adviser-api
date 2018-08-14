@@ -20,7 +20,7 @@ class PostcodeNotFound(GeocoderError):
         self.postcode = postcode
 
 
-def format_postcode(postcode):
+def normalise_postcode(postcode):
     formatted_pc = postcode.replace(' ', '')
     formatted_pc = formatted_pc.lower()
     return formatted_pc
@@ -28,14 +28,15 @@ def format_postcode(postcode):
 
 def result_to_postcode(result):
     postcode = PostcodePlaceholder()
-    postcode.postcode = format_postcode(result['postcode'])
+    postcode.postcode = normalise_postcode(result['postcode'])
     postcode.longitude = result['longitude']
     postcode.latitude = result['latitude']
     return postcode
 
 
 def lookup_postcode(postcode):
-    raw = requests.get('http://api.postcodes.io/postcodes/?q={postcode}&limit=1'.format(postcode=postcode))
+    normalised_postcode = normalise_postcode(postcode)
+    raw = requests.get('http://api.postcodes.io/postcodes/?q={postcode}&limit=1'.format(postcode=normalised_postcode))
     return json.loads(raw.text)
 
 
