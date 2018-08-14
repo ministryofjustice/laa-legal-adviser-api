@@ -6,7 +6,9 @@ import requests
 
 from rest_framework.test import APIRequestFactory
 from advisers import geocoder
+from advisers import models
 from advisers.views import AdviserViewSet
+from django.contrib.gis import db
 
 
 class GeocoderTest(unittest.TestCase):
@@ -62,8 +64,8 @@ class GeocoderTest(unittest.TestCase):
 class AdviserViewSetTest(django.test.TestCase):
 
     def setUp(self):
-        self.postcode = 'sw1a1aa'
-        self.good_result = {"status":200,"result":[{"postcode":"SW1A 1AA","longitude":-0.141588,"latitude":51.501009}]}
+        self.postcode = 'ex3ple'
+        self.good_result = {"status":200,"result":[{"postcode":"EX3 PLE","longitude":0.0,"latitude":51.15}]}
         self.request = APIRequestFactory().get('/legal-advisers/?postcode=%s' % self.postcode)
         self.view = AdviserViewSet.as_view({'get': 'list'})
 
@@ -74,18 +76,52 @@ class AdviserViewSetTest(django.test.TestCase):
         response = self.view(self.request)
 
         self.assertEqual({
-            'postcode': 'SW1A 1AA',
+            'postcode': 'EX 3PLE',
             'point': {
                 'type': 'Point',
-                'coordinates': [-0.141588, 51.501009]
+                'coordinates': [0.0, 51.15]
             }
         }, response.data['origin'])
 
 
+    def create_test_location(self):
+        category = models.Category.objects.get(code='CRM')
+        org_type = models.OrganisationType.objects.get(name='Solicitor')
+
+        org = models.Organisation.objects.create(
+            firm=99999, name='Example Legal Aid Provider', website='http://example.org', type=org_type)
+
+        loc = models.Location.objects.create(
+            postcode='EX3 PL3', city='Test Town', address='Test Address', point='POINT (0.001 51.005)')
+
+        office = models.Office.objects.create(
+            telephone='0200 000 0000', location=loc, organisation=org)
+        office.categories = [category]
+        office.save()
+
+
     @mock.patch('advisers.geocoder.lookup_postcode')
     def test_postcode_query_returns_valid_results(self, lookup_mock):
+        self.create_test_location()
         lookup_mock.return_value = self.good_result
         response = self.view(self.request)
 
-        # TODO: check that the response results work (from the database) and are formatted according to the schema
-        pass
+        self.assertEqual({
+            'telephone': '0200 000 0000',
+            'location': {
+                'address': 'Test Address',
+                'city': 'Test Town',
+                'postcode': 'EX3 PL3',
+                'point': {
+                    'type': 'Point',
+                    'coordinates': [0.001, 51.005]
+                },
+                'type': 'Office'
+            },
+            'organisation': {
+                'name': 'Example Legal Aid Provider',
+                'website': 'http://example.org'
+            },
+            'distance': 10.01863983643646, # miles
+            'categories': ['CRM']
+        }, response.data['results'][0])
