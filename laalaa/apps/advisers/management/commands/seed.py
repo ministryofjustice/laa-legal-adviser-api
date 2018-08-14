@@ -2,6 +2,7 @@ import os
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core import serializers
+from advisers import models
 
 class Command(BaseCommand):
     help = 'Seeds the initial set of data for adviser locations, offices, etc.'
@@ -9,6 +10,10 @@ class Command(BaseCommand):
     fixture_filename = 'initial_advisers.json'
 
     def handle(self, *args, **options):
+        if models.Location.objects.count() > 0:
+            print('Database already contains adviser data. Skipping seeding initial data.')
+            return
+
         fixture_file = os.path.join(self.fixture_dir, self.fixture_filename)
         fixture = open(fixture_file, 'rb')
         objects = list(serializers.deserialize('json', fixture, ignorenonexistent=True))
