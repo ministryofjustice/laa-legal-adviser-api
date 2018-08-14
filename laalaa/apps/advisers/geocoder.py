@@ -1,6 +1,7 @@
 import json
 import logging
 import requests
+from django.conf import settings
 
 
 class PostcodePlaceholder:
@@ -36,7 +37,8 @@ def result_to_postcode(result):
 
 def lookup_postcode(postcode):
     normalised_postcode = normalise_postcode(postcode)
-    raw = requests.get('https://api.postcodes.io/postcodes/?q={postcode}&limit=1'.format(postcode=normalised_postcode))
+    raw = requests.get('{host}/postcodes/?q={postcode}&limit=1'.format(host=settings.POSTCODES_IO_URL,
+        postcode=normalised_postcode))
     return json.loads(raw.text)
 
 

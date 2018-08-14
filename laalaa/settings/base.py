@@ -148,9 +148,7 @@ BROKER_URL = 'amqp://%s:%s@%s//' % (
 
 TEMP_DIRECTORY = root('tmp')
 
-POSTCODEINFO_API_URL = os.environ.get(
-    'POSTCODEINFO_API_URL', 'https://postcodeinfo.service.justice.gov.uk/')
-POSTCODEINFO_AUTH_TOKEN = os.environ.get('POSTCODEINFO_AUTH_TOKEN')
+POSTCODES_IO_URL = 'https://api.postcodes.io'
 
 LOGGING = {
     'version': 1,
