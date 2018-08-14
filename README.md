@@ -10,7 +10,7 @@ Dependencies
 * Python 2.7
 * RabbitMQ
 * PostgreSQL => 9.3 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
-* [PostGIS](https://postgis.net/)
+* [PostGIS](https://postgis.net/) (`brew install postgis`)
 
 :memo: If you are using Docker to provide a database, please use `circleci/postgres:9.4-alpine-postgis`, which has the required extensions installed.
 
