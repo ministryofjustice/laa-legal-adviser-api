@@ -62,8 +62,18 @@ class GeocoderTest(unittest.TestCase):
 
 
     @mock.patch('advisers.geocoder.lookup_postcode')
-    def test_raises_postcode_not_found_error_when_postcode_lookup_cannot_find_the_postcode(self, lookup_mock):
+    def test_raises_postcode_not_found_error_when_postcode_lookup_returns_404(self, lookup_mock):
         lookup_mock.return_value = {"status":404,"error":"Postcode not found"}
+
+        with self.assertRaises(geocoder.PostcodeNotFound) as not_found_error:
+            geocoder.geocode(self.postcode)
+
+        self.assertEqual(not_found_error.exception.postcode, 'sw1a1aa')
+
+
+    @mock.patch('advisers.geocoder.lookup_postcode')
+    def test_raises_postcode_not_found_error_when_postcode_lookup_cannot_find_the_postcode(self, lookup_mock):
+        lookup_mock.return_value = {"status":200,"result":None}
 
         with self.assertRaises(geocoder.PostcodeNotFound) as not_found_error:
             geocoder.geocode(self.postcode)

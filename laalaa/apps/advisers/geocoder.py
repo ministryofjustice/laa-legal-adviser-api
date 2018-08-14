@@ -51,6 +51,9 @@ def geocode(postcode):
             logger.warn('Postcode lookup failed with response "{0}"'.format(result))
             raise GeocoderError(result)
 
+        if not result['result']:
+            raise PostcodeNotFound(postcode)
+
         return result_to_postcode(result['result'][0])
     except requests.exceptions.RequestException as e:
         logger.error('Postcode lookup failed with error "{0}"'.format(repr(e)))
