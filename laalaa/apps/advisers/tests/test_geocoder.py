@@ -21,7 +21,7 @@ class GeocoderTest(unittest.TestCase):
 
     @responses.activate
     def test_geocode_strips_spaces_before_calling_external_api(self):
-        responses.add(responses.GET, 'http://api.postcodes.io/postcodes/?q=sw1a1aa&limit=1',
+        responses.add(responses.GET, 'https://api.postcodes.io/postcodes/?q=sw1a1aa&limit=1',
             match_querystring=True, json=self.good_result, status=200)
         geocoder.geocode('SW1A 1AA')
         self.assertEqual(len(responses.calls), 1)

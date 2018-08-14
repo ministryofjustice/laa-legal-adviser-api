@@ -36,7 +36,7 @@ def result_to_postcode(result):
 
 def lookup_postcode(postcode):
     normalised_postcode = normalise_postcode(postcode)
-    raw = requests.get('http://api.postcodes.io/postcodes/?q={postcode}&limit=1'.format(postcode=normalised_postcode))
+    raw = requests.get('https://api.postcodes.io/postcodes/?q={postcode}&limit=1'.format(postcode=normalised_postcode))
     return json.loads(raw.text)
 
 
