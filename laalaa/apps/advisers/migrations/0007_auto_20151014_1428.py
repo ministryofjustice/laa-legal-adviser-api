@@ -8,7 +8,7 @@ from django.core import serializers
 
 
 fixture_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../fixtures'))
-fixture_filename = 'initial_advisers.json'
+fixture_filename = 'initial_categories.json'
 
 
 def load_fixture(apps, schema_editor):

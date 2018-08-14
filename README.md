@@ -42,11 +42,14 @@ pip install -r requirements/development.txt
 # Create a database and install required PostgreSQL extensions
 PGHOST=localhost PGUSER=postgres ./setup_postgres.sh
 
-# Create the database tables and populate with dummy data
-# and create a Django admin account:
+# Create the database tables and create a Django admin account:
 python manage.py migrate
 python manage.py createsuperuser --username=admin
+```
 
+To populate the database with initial seed data, run:
+```
+python manage.py seed
 ```
 
 Each Run
