@@ -43,4 +43,4 @@ ENV APP_HOME /home/app
 USER app
 EXPOSE 8000
 
-ENTRYPOINT ["/home/app/docker/run.sh"]
+CMD ["/home/app/docker/run.sh"]
