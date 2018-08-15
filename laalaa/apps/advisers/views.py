@@ -6,6 +6,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
@@ -165,6 +166,7 @@ class UploadSpreadsheetForm(forms.Form):
 
 
 @never_cache
+@login_required(login_url='/admin/login')
 def upload_spreadsheet(request):
     last_import = Import.objects.all().order_by('-id').first()
 
