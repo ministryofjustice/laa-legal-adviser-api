@@ -20,26 +20,21 @@ def healthcheck(request):
 
     # Default status is `DOWN` for all services
     health = {
-        'postcodeinfo': {
+        'postcodes.io': {
             'status': 'DOWN',
-            'endpoint': settings.POSTCODEINFO_API_URL
+            'endpoint': settings.POSTCODES_IO_URL
         }
     }
 
     # Test postcodeinfo
     try:
-        headers = {'Authorization': 'Token {0}'.format(
-            settings.POSTCODEINFO_AUTH_TOKEN)}
-        req = requests.get(
-            '{0}/addresses/?postcode=sw1a1aa'.format(
-                settings.POSTCODEINFO_API_URL),
-            headers=headers)
+        req = requests.get('{0}/postcodes/SW1A1AA'.format(settings.POSTCODES_IO_URL))
         if req.status_code == 200:
-            health['postcodeinfo']['status'] = 'UP'
+            health['postcodes.io']['status'] = 'UP'
     except:
         pass
 
-    if health['postcodeinfo']['status'] == 'UP':
+    if health['postcodes.io']['status'] == 'UP':
         return JsonResponse(health, status=200)
     else:
         return JsonResponse(health, status=503)
