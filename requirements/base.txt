@@ -3,7 +3,7 @@ django-celery==3.2.2
 django-filter==1.1
 django==1.11.15
 djangorestframework-gis==0.13.0
-djangorestframework==3.7.7
+djangorestframework==3.8.2
 logstash-formatter==0.5.9
 psycopg2-binary==2.7.5
 raven==5.2.0
