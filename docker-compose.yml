@@ -1,0 +1,35 @@
+version: '3.2'
+services:
+  start_services:
+    image: jwilder/dockerize
+    command: >
+      -wait tcp://db:5432 -timeout 30s
+      -wait tcp://rabbitmq:5672 -timeout 30s
+    depends_on:
+      - db
+      - rabbitmq
+
+  # services
+  db:
+    image: circleci/postgres:9.4-alpine-postgis
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: laalaa
+
+  rabbitmq:
+    image: rabbitmq:3.7-management-alpine
+    ports:
+      - target: 5672
+        published: 5672
+        protocol: tcp
+        mode: host
+      - target: 15672
+        published: 15672
+        protocol: tcp
+        mode: host
+  
