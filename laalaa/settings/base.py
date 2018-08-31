@@ -19,13 +19,16 @@ root = lambda *x: join(abspath(PROJECT_ROOT), *x)
 
 sys.path.insert(0, root('apps'))
 
+HEALTHCHECKS = []
+AUTODISCOVER_HEALTHCHECKS = True
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'DEV_KEY')
 
-DEBUG = False
+DEBUG = True
 
 TEMPLATE_DEBUG = False
 
