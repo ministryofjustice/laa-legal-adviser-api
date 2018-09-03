@@ -1,7 +1,5 @@
 from django.conf import settings
-
-from moj_irat.healthchecks import HealthcheckResponse, JsonUrlHealthcheck, \
-    UrlHealthcheck, registry
+from moj_irat.healthchecks import HealthcheckResponse, UrlHealthcheck, registry
 
 registry.register_healthcheck(UrlHealthcheck(
     name='postcodes.io',
