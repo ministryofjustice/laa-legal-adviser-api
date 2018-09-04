@@ -15,7 +15,7 @@ class CeleryWorkersHealthcheck(object):
                 return self.error_response('No running workers were found.')
             workers = stats.values()
             if len(workers) == 0:
-                return self.error_response('No workers running')
+                return self.error_response('No workers running.')
         except IOError as e:
             msg = str(e)
             msg += '. Check that the message broker is running.'
