@@ -19,6 +19,7 @@ root = lambda *x: join(abspath(PROJECT_ROOT), *x)
 
 sys.path.insert(0, root('apps'))
 
+# See https://github.com/ministryofjustice/django-moj-irat#usage for usage
 HEALTHCHECKS = ['moj_irat.healthchecks.database_healthcheck']
 AUTODISCOVER_HEALTHCHECKS = True
 
