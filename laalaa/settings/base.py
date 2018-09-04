@@ -28,7 +28,7 @@ AUTODISCOVER_HEALTHCHECKS = True
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'DEV_KEY')
 
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_DEBUG = False
 
@@ -45,12 +45,10 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-
     'kombu.transport.django',
     'djcelery',
     'rest_framework',
     'rest_framework_gis',
-
     'advisers',
 )
 

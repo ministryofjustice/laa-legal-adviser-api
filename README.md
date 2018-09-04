@@ -52,6 +52,12 @@ To populate the database with initial seed data, run:
 python manage.py seed
 ```
 
+Create a local.py settings file from the example file:
+
+```
+cp laalaa/settings/local.py.example laalaa/settings/local.py
+```
+
 ## Running the services
 
 | Service | Command |
