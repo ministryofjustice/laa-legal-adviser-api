@@ -35,7 +35,6 @@ registry.register_healthcheck(UrlHealthcheck(
     url='%(base_url)s/postcodes/SW1A1AA' % {
         'base_url': settings.POSTCODES_IO_URL,
     },
-    headers={'Content-Type': 'application/json'},
 ))
         
 registry.register_healthcheck(CeleryWorkersHealthcheck(
