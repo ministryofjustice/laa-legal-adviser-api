@@ -14,7 +14,7 @@ class CeleryWorkersHealthcheck(object):
             if not stats:
                 return self.error_response('No running workers were found.')
             workers = stats.values()
-            if len(workers) == 0:
+            if not workers:
                 return self.error_response('No workers running.')
         except IOError as e:
             msg = str(e)
