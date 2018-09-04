@@ -89,7 +89,14 @@ TEMPLATES = [
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
 DATABASES = {
-    'default': { 'ENGINE': 'django.contrib.gis.db.backends.postgis', 'NAME': os.environ.get('DB_USERNAME', 'laalaa'), 'USER': os.environ.get('DB_USERNAME', 'postgres'), 'PASSWORD': os.environ.get('DB_PASSWORD', ''), 'HOST': os.environ.get('DB_HOST', '127.0.0.1'), 'PORT': os.environ.get('DB_PORT', '5432'), }
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.environ.get('DB_USERNAME', 'laalaa'),
+        'USER': os.environ.get('DB_USERNAME', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+    }
 }
 
 # Internationalization
