@@ -21,6 +21,10 @@ near that point.
 
     docker run --detach --publish 5672:5672 --publish 15672:15672 rabbitmq:3.7-management-alpine
 
+As a convenience, a `docker-compose.yml` specifies these dependendencies and can be run with:
+
+    docker-compose run start_services
+
 ## Installation
 
 ```sh
