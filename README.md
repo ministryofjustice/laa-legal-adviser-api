@@ -82,8 +82,8 @@ Deployment can be triggered via https://ci.service.dsd.io/job/DEPLOY-laalaa.
     ```
 1. [Deploy `feature_branch.<sha>`](https://ci.service.dsd.io/view/LaaLaa/job/DEPLOY-laalaa/build?delay=0sec).
     * `ENVIRONMENT` is the target environment, select "staging".
-    * DEPLOY_BRANCH is the [deploy repo's](https://github.com/ministryofjustice/laalaa-deploy) default branch name, usually master.
-    * VERSION is the branch that needs to be released plus a specific 7-character prefix of the Git SHA. (`dependabot-pip-django-filter-2.0.0.7243223` for the above example).
+    * `DEPLOY_BRANCH` is the [deploy repo's](https://github.com/ministryofjustice/laalaa-deploy) default branch name, usually master.
+    * `VERSION` is the branch that needs to be released plus a specific 7-character prefix of the Git SHA. (`dependabot-pip-django-filter-2.0.0.7243223` for the above example).
 
 ### Releasing to production
 
