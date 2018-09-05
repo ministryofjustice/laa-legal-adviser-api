@@ -9,5 +9,5 @@ psycopg2-binary==2.7.5
 raven==5.2.0
 requests==2.19.1
 uwsgi==2.0.17.1
-xlrd==0.9.3
+xlrd==1.1.0
 django-moj-irat>=0.4
