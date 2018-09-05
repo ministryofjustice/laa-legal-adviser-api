@@ -6,7 +6,7 @@ djangorestframework-gis==0.13.0
 djangorestframework==3.7.7
 logstash-formatter==0.5.9
 psycopg2-binary==2.7.5
-raven==5.2.0
+raven==6.9.0
 requests==2.19.1
 uwsgi==2.0.17.1
 xlrd==0.9.3
