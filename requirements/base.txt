@@ -10,3 +10,4 @@ raven==5.2.0
 requests==2.19.1
 uwsgi==2.0.17.1
 xlrd==0.9.3
+django-moj-irat>=0.4

@@ -19,6 +19,10 @@ root = lambda *x: join(abspath(PROJECT_ROOT), *x)
 
 sys.path.insert(0, root('apps'))
 
+# See https://github.com/ministryofjustice/django-moj-irat#usage for usage
+HEALTHCHECKS = ['moj_irat.healthchecks.database_healthcheck']
+AUTODISCOVER_HEALTHCHECKS = True
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
@@ -42,12 +46,10 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-
     'kombu.transport.django',
     'djcelery',
     'rest_framework',
     'rest_framework_gis',
-
     'advisers',
 )
 
