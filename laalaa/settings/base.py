@@ -35,7 +35,6 @@ TEMPLATE_DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -53,7 +52,8 @@ INSTALLED_APPS = (
     'advisers',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
+    'advisers.middleware.PingMiddleware',
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
