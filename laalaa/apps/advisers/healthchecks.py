@@ -6,10 +6,16 @@ class CeleryWorkersHealthcheck(object):
         self.name = name
     
     def __call__(self, *args, **kwargs):
+        import os
         from celery import Celery
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'laalaa.settings')
+        from django.conf import settings
         
         try:
             app = Celery('laalaa')
+            app.config_from_object('django.conf:settings')
+            app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+
             stats = app.control.inspect().stats()
             if not stats:
                 return self.error_response('No running workers were found.')
