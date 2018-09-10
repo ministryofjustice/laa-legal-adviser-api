@@ -232,9 +232,9 @@ if 'SENTRY_DSN' in os.environ:
         'raven.contrib.django.raven_compat',
     )
 
-    MIDDLEWARE_CLASSES = (
+    MIDDLEWARE = (
         'raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',
-    ) + MIDDLEWARE_CLASSES
+    ) + MIDDLEWARE
 
 
 # .local.py overrides all the common settings.
