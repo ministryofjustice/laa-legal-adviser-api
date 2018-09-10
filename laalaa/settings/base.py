@@ -52,7 +52,7 @@ INSTALLED_APPS = (
     'advisers',
 )
 
-MIDDLEWARE = (
+MIDDLEWARE_CLASSES = (
     'advisers.middleware.PingMiddleware',
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
