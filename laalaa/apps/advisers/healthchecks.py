@@ -7,21 +7,28 @@ class CeleryWorkersHealthcheck(object):
     
     def __call__(self, *args, **kwargs):
         from celery import Celery
+        from django.conf import settings
         
         try:
             app = Celery('laalaa')
+            app.config_from_object('django.conf:settings')
             stats = app.control.inspect().stats()
+
             if not stats:
                 return self.error_response('No running workers were found.')
+            
             workers = stats.values()
             if not workers:
                 return self.error_response('No workers running.')
+
         except IOError as e:
             msg = str(e)
             msg += '. Check that the message broker is running.'
             return self.error_response(msg)
+
         except ImportError as e:
             return self.error_response(str(e))
+            
         return self.success_response()
         
     def error_response(self, error):

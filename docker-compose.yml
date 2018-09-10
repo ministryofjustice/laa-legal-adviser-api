@@ -9,6 +9,13 @@ services:
       - db
       - rabbitmq
 
+  start_app:
+    image: jwilder/dockerize
+    command: >
+      -wait tcp://laalaa:8000 --timeout 60s
+    depends_on:
+      - laalaa
+
   # services
   db:
     image: circleci/postgres:9.4-alpine-postgis
@@ -32,4 +39,21 @@ services:
         published: 15672
         protocol: tcp
         mode: host
-  
+
+  # application
+  laalaa:
+    build: .
+    ports:
+      - target: 8000
+        published: 8000
+        protocol: tcp
+        mode: host
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: 
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: laalaa
+      HOST_IP: rabbitmq
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
