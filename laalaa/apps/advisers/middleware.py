@@ -1,14 +1,11 @@
 from django.http import HttpResponse
 
-class PingMiddleware(object):
-  def __init__(self, get_response):
-    self.get_response = get_response
-
-  def __call__(self, request):
+class PingMiddleware():
+  def process_request(self, request):
     if request.method == "GET":
       if request.path == "/ping.json":
         return self.ping(request)
-    return self.get_response(request)
+    pass
 
   def ping(self, request):
     """
