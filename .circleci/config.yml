@@ -4,40 +4,40 @@ jobs:
     docker:
       - image: docker:17.03-git
     environment:
-      DOCKER_REGISTRY: "registry.service.dsd.io"
-      DOCKER_IMAGE: "laalaa"
+      DSD_DOCKER_REGISTRY: "registry.service.dsd.io"
+      DSD_DOCKER_IMAGE: "laalaa"
     steps:
       - checkout
       - setup_remote_docker:
           version: 17.03.0-ce
           docker_layer_caching: true
       - run:
-          name: Login to container registry
+          name: Login to the DSD Docker registry
           command: |
-            docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD --email "${DOCKER_USERNAME}@digital.justice.gov.uk" $DOCKER_REGISTRY
+            docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD --email "${DOCKER_USERNAME}@digital.justice.gov.uk" $DSD_DOCKER_REGISTRY
+      - run:
+          name: Login to the ECR Docker registry
+          command: |
+            apk add --no-cache --no-progress py2-pip
+            pip install awscli
+            ecr_login="$(aws ecr get-login --region eu-west-1 --no-include-email)"
+            ${ecr_login}
       - run:
           name: Build Docker image
           command: |
-            docker build --tag $DOCKER_REGISTRY/$DOCKER_IMAGE:$CIRCLE_SHA1 .
+            docker build --tag application:$CIRCLE_SHA1 \
+              --label build.git.sha=$CIRCLE_SHA1 \
+              --label build.git.branch=$CIRCLE_BRANCH \
+              --label build.url=$CIRCLE_BUILD_URL \
+              .
       - run:
           name: Validate Python version
-          command: |
-            docker run --rm --tty --interactive $DOCKER_REGISTRY/$DOCKER_IMAGE:$CIRCLE_SHA1 python --version | grep "2.7"
+          command: docker run --rm --tty --interactive application:$CIRCLE_SHA1 python --version | grep "2.7"
       - run:
           name: Tag and push Docker images
           command: |
-            export built_tag="$DOCKER_REGISTRY/$DOCKER_IMAGE:$CIRCLE_SHA1"
-            docker push $built_tag
-
-            export safe_git_branch=${CIRCLE_BRANCH//\//-}
-            export branch_shortsha_tag="$DOCKER_REGISTRY/$DOCKER_IMAGE:$safe_git_branch.$(git rev-parse --short=7 $CIRCLE_SHA1)"
-            export branch_latest_tag="$DOCKER_REGISTRY/$DOCKER_IMAGE:$safe_git_branch.latest"
-
-            for tag in "$branch_shortsha_tag" "$branch_latest_tag"; do
-              echo "Tagging and pushing $tag..."
-              docker tag $built_tag $tag
-              docker push $tag
-            done
+            .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 $DSD_DOCKER_REGISTRY/$DSD_DOCKER_IMAGE
+            .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 ${ECR_DOCKER_REPO_BASE}
 
   test:
     docker:
@@ -51,7 +51,6 @@ jobs:
             sudo apt-get update && sudo apt-get install python-gdal
             pip install virtualenv
             virtualenv env-ci
-
       - restore_cache:
           keys:
             - pip-v1-{{ checksum "requirements/base.txt" }}-{{ checksum "requirements/development.txt" }}
@@ -65,7 +64,6 @@ jobs:
           key: pip-v1-{{ checksum "requirements/base.txt" }}-{{ checksum "requirements/development.txt" }}
           paths:
             - "~/.cache/pip"
-
       - run:
           name: Run unit tests
           command: |
