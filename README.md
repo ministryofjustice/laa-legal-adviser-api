@@ -51,6 +51,16 @@ python manage.py migrate
 python manage.py createsuperuser --username=admin
 ```
 
+Postgres.app is a standalone PostgreSQL server that includes the PostGIS extension. You will also need to install gdal and libgeoip with Homebrew:
+```
+brew install postgis
+brew install gdal
+```
+After installing Postgres.app, run this to add the following to your .bash_profile so you can run the package’s programs from the command-line: 
+```
+echo export PATH="/Applications/Postgres.app/Contents/Versions/9.4/bin:$PATH" >>~/.bash_profile
+```
+
 To populate the database with initial seed data, run:
 ```
 python manage.py seed
