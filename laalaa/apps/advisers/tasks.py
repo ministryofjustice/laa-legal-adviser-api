@@ -20,17 +20,15 @@ from . import models
 from . import geocoder
 
 
-logging.basicConfig(filename='adviser_import.log', level=logging.WARNING)
+logging.basicConfig(filename="adviser_import.log", level=logging.WARNING)
 
 
 def to_key(postcode):
-    return re.sub('[^0-9A-Z]+', '', postcode)
+    return re.sub("[^0-9A-Z]+", "", postcode)
 
 
 def geocode(postcode):
-    loc = models.Location.objects.filter(
-        postcode=postcode,
-        point__isnull=False)
+    loc = models.Location.objects.filter(postcode=postcode, point__isnull=False)
     if len(loc):
         point = loc[0].point
     else:
@@ -41,14 +39,9 @@ def geocode(postcode):
 
 def clear_db():
     cursor = connection.cursor()
-    tables = (
-        'advisers_location',
-        'advisers_organisationtype',
-        'advisers_outreachtype',
-        'advisers_category')
+    tables = ("advisers_location", "advisers_organisationtype", "advisers_outreachtype", "advisers_category")
     for table in tables:
-        cursor.execute("TRUNCATE {table} RESTART IDENTITY CASCADE".format(
-            table=table))
+        cursor.execute("TRUNCATE {table} RESTART IDENTITY CASCADE".format(table=table))
 
 
 class StrippedDict(dict):
@@ -58,14 +51,11 @@ class StrippedDict(dict):
     """
 
     def __init__(self, iterable=None, **kwargs):
-        iterable = (
-            (k, v.strip() if isinstance(v, basestring) else v)
-            for k, v in iterable)
+        iterable = ((k, v.strip() if isinstance(v, basestring) else v) for k, v in iterable)
         super(StrippedDict, self).__init__(iterable, **kwargs)
 
 
 class GeocoderTask(Task):
-
     def __init__(self):
         self.errors = []
 
@@ -77,37 +67,29 @@ class GeocoderTask(Task):
             self.errors.append(err)
 
         for n, postcode in enumerate(postcodes):
-            pc = re.sub(' +', ' ', postcode[0]).encode('utf-8')
+            pc = re.sub(" +", " ", postcode[0]).encode("utf-8")
             try:
                 point = geocode(pc)
             except geocoder.PostcodeNotFound:
-                log_error('Failed geocoding postcode: %s' % postcode)
+                log_error("Failed geocoding postcode: %s" % postcode)
                 continue
             except geocoder.GeocoderError as e:
-                log_error('Failed postcode: "%s" .Error connecting to '
-                          'geocoder: %s' % (pc, e))
+                log_error('Failed postcode: "%s" .Error connecting to ' "geocoder: %s" % (pc, e))
                 continue
 
             if point:
                 locations = models.Location.objects.filter(postcode=pc)
                 locations.update(point=point)
-                self.update_state(
-                    state='RUNNING',
-                    meta={
-                        'count': n,
-                        'total': tot,
-                        'errors': self.errors,
-                    }
-                )
+                self.update_state(state="RUNNING", meta={"count": n, "total": tot, "errors": self.errors})
 
 
 class ProgressiveAdviserImport(Task):
     worksheet_names = (
-        'LOCAL ADVICE ORG',
-        'OFFICE LOCATION',
-        'CAT OF LAW CRIME',
-        'CAT OF LAW CIVIL',
-        'OUTREACH SERVICE',
+        "LOCAL ADVICE ORG",
+        "OFFICE LOCATION",
+        "CAT OF LAW CRIME",
+        "CAT OF LAW CIVIL",
+        "OUTREACH SERVICE",
     )
 
     def __init__(self):
@@ -115,14 +97,12 @@ class ProgressiveAdviserImport(Task):
         self.record = None
         self.sheets = {}
         self.temp_dir = tempfile.mkdtemp()
-        self.progress = {'task': 'initialising'}
+        self.progress = {"task": "initialising"}
 
     def run(self, xlsx_file, record=None, *args, **kwargs):
         self.record = record
 
-        self.update_state(
-            state='INITIALIZING',
-            meta=self.progress)
+        self.update_state(state="INITIALIZING", meta=self.progress)
 
         csv_metadata = self.convert_excel_to_csv(xlsx_file)
         for csv_filename, headers, types in csv_metadata:
@@ -136,15 +116,17 @@ class ProgressiveAdviserImport(Task):
             self.drop_csv_table(meta[0])
 
         cursor = connection.cursor()
-        cursor.execute("""
-            SELECT DISTINCT postcode FROM advisers_location""")
+        cursor.execute(
+            """
+            SELECT DISTINCT postcode FROM advisers_location"""
+        )
         postcodes = cursor.fetchall()
 
         self.total = len(postcodes)
 
         def chunks(n=1000):
             for i in xrange(0, len(postcodes), n):
-                yield postcodes[i:i + n]
+                yield postcodes[i : i + n]
 
         self.update_count()
 
@@ -159,8 +141,8 @@ class ProgressiveAdviserImport(Task):
         task_errors = {}
 
         def update_task_process(task_id, result):
-            task_counts[task_id] = result.get('count')
-            task_errors[task_id] = result.get('errors')
+            task_counts[task_id] = result.get("count")
+            task_errors[task_id] = result.get("errors")
 
         while res.completed_count() < len(tasks):
             [update_task_process(r.task_id, r.result) for r in res if r.result]
@@ -172,17 +154,10 @@ class ProgressiveAdviserImport(Task):
 
         cache.clear()
 
-    def update_count(self, count=0, errors=[], task='geocoding locations'):
-        self.progress = {
-            'task': task,
-            'count': count,
-            'total': self.total,
-            'errors': errors,
-        }
+    def update_count(self, count=0, errors=[], task="geocoding locations"):
+        self.progress = {"task": task, "count": count, "total": self.total, "errors": errors}
 
-        self.update_state(
-            state='RUNNING',
-            meta=self.progress)
+        self.update_state(state="RUNNING", meta=self.progress)
 
     def on_success(self, retval, task_id, args, kwargs):
         self.save_state(models.IMPORT_STATUSES.SUCCESS)
@@ -194,9 +169,7 @@ class ProgressiveAdviserImport(Task):
         import_object = models.Import.objects.get(task_id=self.request.id)
         import_object.status = status
         import_object.save()
-        self.update_state(
-            state=status.upper(),
-            meta=self.progress)
+        self.update_state(state=status.upper(), meta=self.progress)
 
     def convert_excel_to_csv(self, xlsx_file):
         workbook = xlrd.open_workbook(xlsx_file)
@@ -209,7 +182,7 @@ class ProgressiveAdviserImport(Task):
         return csv_metadata
 
     def write_to_csv(self, name, worksheet):
-        csv_filename = '{0}.csv'.format(slugify(unicode(name)))
+        csv_filename = "{0}.csv".format(slugify(unicode(name)))
         csv_filename = os.path.join(self.temp_dir, csv_filename)
         headers = [unicode(value) for value in worksheet.row_values(0)]
         types = worksheet.row_types(1)
@@ -217,28 +190,27 @@ class ProgressiveAdviserImport(Task):
         def value(cell):
             if cell.ctype == xlrd.XL_CELL_NUMBER:
                 return int(cell.value)
-            return cell.value.encode('utf-8', errors='ignore')
+            return cell.value.encode("utf-8", errors="ignore")
 
-        with open(csv_filename, 'wb') as csv_file:
+        with open(csv_filename, "wb") as csv_file:
             writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
             for row in xrange(worksheet.nrows):
-                writer.writerow([
-                    value(cell)
-                    for cell in worksheet.row(row)])
+                writer.writerow([value(cell) for cell in worksheet.row(row)])
         return csv_filename, headers, types
 
     def load_csv_into_db(self, csv_filename, headers, types):
-        table_name = os.path.basename(csv_filename)[:-4].replace('-', '_')
+        table_name = os.path.basename(csv_filename)[:-4].replace("-", "_")
         columns = [
-            '{header} {ctype}'.format(
-                header=slugify(header).replace('-', '_'),
-                ctype='integer' if type_ == xlrd.XL_CELL_NUMBER else 'varchar')
-            for header, type_ in zip(headers, types)]
+            "{header} {ctype}".format(
+                header=slugify(header).replace("-", "_"),
+                ctype="integer" if type_ == xlrd.XL_CELL_NUMBER else "varchar",
+            )
+            for header, type_ in zip(headers, types)
+        ]
         cursor = connection.cursor()
         cursor.execute(
-            "CREATE TABLE IF NOT EXISTS {table} ({columns})".format(
-                table=table_name,
-                columns=', '.join(columns)))
+            "CREATE TABLE IF NOT EXISTS {table} ({columns})".format(table=table_name, columns=", ".join(columns))
+        )
         cursor.execute("DELETE FROM {table}".format(table=table_name))
 
         psql_command = [
@@ -254,45 +226,54 @@ class ProgressiveAdviserImport(Task):
                 table=table_name, filename=csv_filename)
         ]
 
-        os.system(' '.join(psql_command))
+        os.system(" ".join(psql_command))
 
     def drop_csv_table(self, csv_filename):
-        table_name = os.path.basename(csv_filename)[:-4].replace('-', '_')
+        table_name = os.path.basename(csv_filename)[:-4].replace("-", "_")
         cursor = connection.cursor()
         cursor.execute("DROP TABLE {table}".format(table=table_name))
 
     def translate_data(self):
         cursor = connection.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_category (code, civil)
                 SELECT DISTINCT
                     civil_category_code, true
-                    FROM cat_of_law_civil""")
-        cursor.execute("""
+                    FROM cat_of_law_civil"""
+        )
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_category (code, civil)
                 SELECT DISTINCT
                     crime_category_code, false
-                    FROM cat_of_law_crime""")
-        cursor.execute("""
+                    FROM cat_of_law_crime"""
+        )
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_organisationtype (name)
                 SELECT
                     DISTINCT(type_of_organisation)
-                    FROM local_advice_org""")
+                    FROM local_advice_org"""
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_outreachtype (name)
                 SELECT DISTINCT
                     pt_or_outreach_indicator
-                    FROM outreach_service""")
+                    FROM outreach_service"""
+        )
 
         cursor.execute("DROP FUNCTION IF EXISTS count_office_relations(integer);")
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE OR REPLACE FUNCTION count_office_relations(
                 _id int
                 , OUT _count int)
@@ -306,11 +287,13 @@ class ProgressiveAdviserImport(Task):
                 RAISE NOTICE 'Location: % , Count: %', _id, _count;
 
                 END
-                $func$  LANGUAGE plpgsql""")
+                $func$  LANGUAGE plpgsql"""
+        )
 
         cursor.execute("DROP FUNCTION IF EXISTS count_outreachservice_relations(integer);")
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE OR REPLACE FUNCTION count_outreachservice_relations(
                 _id int
                 , OUT _count int)
@@ -322,11 +305,13 @@ class ProgressiveAdviserImport(Task):
                 SELECT INTO _count COUNT(*) FROM advisers_outreachservice o WHERE o.location_id=_id;
 
                 END
-                $func$  LANGUAGE plpgsql""")
+                $func$  LANGUAGE plpgsql"""
+        )
 
         cursor.execute("DROP FUNCTION IF EXISTS fetch_free_location(integer);")
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE OR REPLACE FUNCTION fetch_free_location(
                 _address_line_1 character varying
                 , _address_line_2 character varying
@@ -354,11 +339,13 @@ class ProgressiveAdviserImport(Task):
                     LIMIT 1;
 
                 END
-                $func$  LANGUAGE plpgsql""")
+                $func$  LANGUAGE plpgsql"""
+        )
 
         cursor.execute("DROP FUNCTION IF EXISTS load_offices(integer);")
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE OR REPLACE FUNCTION load_offices()
                 RETURNS void AS
                     $func$
@@ -384,11 +371,13 @@ class ProgressiveAdviserImport(Task):
                     END LOOP;
 
                 END
-                $func$  LANGUAGE plpgsql""")
+                $func$  LANGUAGE plpgsql"""
+        )
 
         cursor.execute("DROP FUNCTION IF EXISTS load_outreachservices(integer);")
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE OR REPLACE FUNCTION load_outreachservices()
                 RETURNS void AS
                     $func$
@@ -422,9 +411,11 @@ class ProgressiveAdviserImport(Task):
                     END LOOP;
 
                 END
-                $func$  LANGUAGE plpgsql""")
+                $func$  LANGUAGE plpgsql"""
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_organisation (
                     name, website, contracted, type_id, firm)
@@ -437,9 +428,11 @@ class ProgressiveAdviserImport(Task):
                         FROM advisers_organisationtype orgtype
                         WHERE orgtype.name LIKE type_of_organisation),
                     firm_number
-                    FROM local_advice_org""")
+                    FROM local_advice_org"""
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_location (address, city, postcode)
                 SELECT
@@ -451,9 +444,11 @@ class ProgressiveAdviserImport(Task):
                         E'\\n '),
                     city,
                     postcode
-                    FROM office_location""")
+                    FROM office_location"""
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_location (address, city, postcode)
                 SELECT
@@ -465,13 +460,15 @@ class ProgressiveAdviserImport(Task):
                         E'\\n '),
                     city_outreach,
                     pt_or_outreach_loc_postcode
-                    FROM outreach_service""")
+                    FROM outreach_service"""
+        )
 
         cursor.execute("""SELECT * FROM load_offices()""")
 
         cursor.execute("""SELECT * FROM load_outreachservices()""")
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_office_categories (office_id, category_id)
                 SELECT DISTINCT
@@ -486,8 +483,10 @@ class ProgressiveAdviserImport(Task):
                         org.firm = civ.firm_number AND
                         off.organisation_id = org.id AND
                         off.account_number = civ.account_number AND
-                        cat.code = civ.civil_category_code""")
-        cursor.execute("""
+                        cat.code = civ.civil_category_code"""
+        )
+        cursor.execute(
+            """
             INSERT
                 INTO advisers_office_categories (office_id, category_id)
                 SELECT DISTINCT
@@ -502,4 +501,5 @@ class ProgressiveAdviserImport(Task):
                         org.firm = cri.firm_number AND
                         off.organisation_id = org.id AND
                         off.account_number = cri.account_number AND
-                        cat.code = cri.crime_category_code""")
+                        cat.code = cri.crime_category_code"""
+        )
