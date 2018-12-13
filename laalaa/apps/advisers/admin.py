@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.db.models import Q
 from django.views.generic import TemplateView
 
-from .models import Location, Office
+from .models import Office
 from . import views
 
 

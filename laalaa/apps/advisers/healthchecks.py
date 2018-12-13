@@ -7,8 +7,7 @@ class CeleryWorkersHealthcheck(object):
     
     def __call__(self, *args, **kwargs):
         from celery import Celery
-        from django.conf import settings
-        
+
         try:
             app = Celery('laalaa')
             app.config_from_object('django.conf:settings')

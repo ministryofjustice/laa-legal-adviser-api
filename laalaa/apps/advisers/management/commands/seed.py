@@ -1,8 +1,9 @@
 import os
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.core import serializers
 from advisers import models
+
 
 class Command(BaseCommand):
     help = 'Seeds the initial set of data for adviser locations, offices, etc.'

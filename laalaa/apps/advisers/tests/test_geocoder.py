@@ -1,4 +1,3 @@
-import json
 import mock
 import unittest
 import django.test
@@ -9,7 +8,6 @@ from rest_framework.test import APIRequestFactory
 from advisers import geocoder
 from advisers import models
 from advisers.views import AdviserViewSet
-from django.contrib.gis import db
 
 
 class GeocoderTest(unittest.TestCase):
