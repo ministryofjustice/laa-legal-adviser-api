@@ -153,11 +153,11 @@ class GeocodeTestCase(TestCase):
         failed = []
         for pc in FAILING_POSTCODES:
             try:
-                point = geocoder.geocode(pc)
+                geocoder.geocode(pc)
                 passed.append(pc)
             except geocoder.PostcodeNotFound:
                 failed.append(pc)
-            except geocoder.GeocoderError as e:
+            except geocoder.GeocoderError:
                 failed.append(pc)
 
         if failed:
