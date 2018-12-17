@@ -128,7 +128,7 @@ class AdviserViewSetTest(django.test.TestCase):
                     "type": "Office",
                 },
                 "organisation": {"name": "Example Legal Aid Provider", "website": "http://example.org"},
-                "distance": 10.01863983643646,  # miles
+                "distance": 10.018639836433975,  # miles
                 "categories": ["CRM"],
             },
             response.data["results"][0],
