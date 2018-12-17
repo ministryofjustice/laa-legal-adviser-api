@@ -54,9 +54,9 @@ class MultipleCategoryFilter(filters.BaseFilterBackend):
         category_codes = request.query_params.getlist("categories")
         if category_codes:
             category_codes = [c.upper() for c in category_codes]
-            return queryset.filter(
-                Q(office__categories__code__in=category_codes) |
-                Q(outreachservice__categories__code__in=category_codes))
+            office_category_code_q = Q(office__categories__code__in=category_codes)
+            outreach_category_code_q = Q(outreachservice__categories__code__in=category_codes)
+            return queryset.filter(office_category_code_q | outreach_category_code_q)
 
         return queryset
 
@@ -65,11 +65,9 @@ class OrganisationTypeFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         organisation_type_names = request.query_params.getlist("organisation_types")
         if organisation_type_names:
-            return queryset.filter(
-                Q(office__organisation__type__name__in=
-                  organisation_type_names) |
-                Q(outreachservice__office__organisation__type__name__in=
-                  organisation_type_names))
+            office_org_match_q = Q(office__organisation__type__name__in=organisation_type_names)
+            outreach_org_match_q = Q(outreachservice__office__organisation__type__name__in=organisation_type_names)
+            return queryset.filter(office_org_match_q | outreach_org_match_q)
 
         return queryset
 
@@ -78,10 +76,9 @@ class OrganisationNameFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         organisation_name = request.query_params.get("organisation_name")
         if organisation_name:
-            return queryset.filter(
-                Q(office__organisation__name__icontains=organisation_name) |
-                Q(outreachservice__office__organisation__name__icontains=
-                  organisation_name))
+            office_org_name_q = Q(office__organisation__name__icontains=organisation_name)
+            outrech_org_name_q = Q(outreachservice__office__organisation__name__icontains=organisation_name)
+            return queryset.filter(office_org_name_q | outrech_org_name_q)
 
         return queryset
 
