@@ -215,7 +215,7 @@ except ImportError:
 def override_setting(arg):
     prefix = "--override-setting="
     if arg and arg.startswith(prefix):
-        exec(arg[len(prefix):])
+        exec(arg[len(prefix) :])
         return arg
 
 

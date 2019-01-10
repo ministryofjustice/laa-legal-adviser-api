@@ -7,104 +7,96 @@ import django.contrib.gis.db.models.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('code', models.CharField(max_length=48)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("code", models.CharField(max_length=48)),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='Location',
+            name="Location",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('address', models.CharField(max_length=255)),
-                ('city', models.CharField(max_length=48)),
-                ('postcode', models.CharField(max_length=16)),
-                ('point', django.contrib.gis.db.models.fields.PointField(srid=4326)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("address", models.CharField(max_length=255)),
+                ("city", models.CharField(max_length=48)),
+                ("postcode", models.CharField(max_length=16)),
+                ("point", django.contrib.gis.db.models.fields.PointField(srid=4326)),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='Office',
+            name="Office",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('telephone', models.CharField(max_length=48)),
-                ('account_number', models.CharField(unique=True, max_length=10)),
-                ('location', models.ForeignKey(to='advisers.Location')),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("telephone", models.CharField(max_length=48)),
+                ("account_number", models.CharField(unique=True, max_length=10)),
+                ("location", models.ForeignKey(to="advisers.Location")),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='Organisation',
+            name="Organisation",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(max_length=255)),
-                ('website', models.URLField(null=True, blank=True)),
-                ('contracted', models.BooleanField(default=True)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("name", models.CharField(max_length=255)),
+                ("website", models.URLField(null=True, blank=True)),
+                ("contracted", models.BooleanField(default=True)),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='OrganisationType',
+            name="OrganisationType",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(max_length=48)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("name", models.CharField(max_length=48)),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='OutreachService',
+            name="OutreachService",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('location', models.ForeignKey(to='advisers.Location')),
-                ('office', models.ForeignKey(to='advisers.Office')),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("location", models.ForeignKey(to="advisers.Location")),
+                ("office", models.ForeignKey(to="advisers.Office")),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='OutreachType',
+            name="OutreachType",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(max_length=48)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("name", models.CharField(max_length=48)),
             ],
-            options={
-            },
+            options={},
             bases=(models.Model,),
         ),
         migrations.AddField(
-            model_name='outreachservice',
-            name='type',
-            field=models.ForeignKey(to='advisers.OutreachType'),
+            model_name="outreachservice",
+            name="type",
+            field=models.ForeignKey(to="advisers.OutreachType"),
             preserve_default=True,
         ),
         migrations.AddField(
-            model_name='organisation',
-            name='type',
-            field=models.ForeignKey(to='advisers.OrganisationType'),
+            model_name="organisation",
+            name="type",
+            field=models.ForeignKey(to="advisers.OrganisationType"),
             preserve_default=True,
         ),
         migrations.AddField(
-            model_name='office',
-            name='organisation',
-            field=models.ForeignKey(to='advisers.Organisation'),
+            model_name="office",
+            name="organisation",
+            field=models.ForeignKey(to="advisers.Organisation"),
             preserve_default=True,
         ),
     ]

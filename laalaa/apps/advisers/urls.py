@@ -6,8 +6,6 @@ from . import views
 
 
 router = routers.DefaultRouter()
-router.register(r'legal-advisers', views.AdviserViewSet, base_name='legal-advisers')
+router.register(r"legal-advisers", views.AdviserViewSet, base_name="legal-advisers")
 
-urlpatterns = [
-    url(r'^', include(router.urls))
-]
+urlpatterns = [url(r"^", include(router.urls))]

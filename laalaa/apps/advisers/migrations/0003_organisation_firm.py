@@ -6,15 +6,10 @@ from django.db import models, migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('advisers', '0002_auto_20150330_1507'),
-    ]
+    dependencies = [("advisers", "0002_auto_20150330_1507")]
 
     operations = [
         migrations.AddField(
-            model_name='organisation',
-            name='firm',
-            field=models.IntegerField(null=True),
-            preserve_default=True,
-        ),
+            model_name="organisation", name="firm", field=models.IntegerField(null=True), preserve_default=True
+        )
     ]

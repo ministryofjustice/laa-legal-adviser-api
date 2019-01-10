@@ -22,7 +22,7 @@ class Organisation(models.Model):
     name = models.CharField(max_length=255)
     website = models.URLField(null=True, blank=True)
     contracted = models.BooleanField(default=True)
-    type = models.ForeignKey('OrganisationType')
+    type = models.ForeignKey("OrganisationType")
 
     def __unicode__(self):
         return unicode(self.name)
@@ -30,15 +30,17 @@ class Organisation(models.Model):
 
 class LocationManager(models.GeoManager):
     def get_queryset(self):
-        return super(LocationManager, self).get_queryset().select_related(
-            'office',
-            'office__organisation',
-            'outreachservice',
-            'outreachservice__type',
-            'outreachservice__office__organisation',
-        ).prefetch_related(
-            'office__categories',
-            'outreachservice__categories',
+        return (
+            super(LocationManager, self)
+            .get_queryset()
+            .select_related(
+                "office",
+                "office__organisation",
+                "outreachservice",
+                "outreachservice__type",
+                "outreachservice__office__organisation",
+            )
+            .prefetch_related("office__categories", "outreachservice__categories")
         )
 
 
@@ -51,10 +53,7 @@ class Location(models.Model):
     objects = LocationManager()
 
     def __unicode__(self):
-        return u', '.join([
-            unicode(self.address.replace('\n', ', ')),
-            unicode(self.city),
-            unicode(self.postcode)])
+        return u", ".join([unicode(self.address.replace("\n", ", ")), unicode(self.city), unicode(self.postcode)])
 
     def organisation(self):
         return self.place.organisation
@@ -87,8 +86,8 @@ class Location(models.Model):
 class Office(models.Model):
     telephone = models.CharField(max_length=48)
     account_number = models.CharField(max_length=10, unique=True)
-    organisation = models.ForeignKey('Organisation')
-    location = models.OneToOneField('Location', null=True)
+    organisation = models.ForeignKey("Organisation")
+    location = models.OneToOneField("Location", null=True)
     categories = models.ManyToManyField(Category)
 
 
@@ -100,9 +99,9 @@ class OutreachType(models.Model):
 
 
 class OutreachService(models.Model):
-    office = models.ForeignKey('Office')
-    location = models.OneToOneField('Location', null=True)
-    type = models.ForeignKey('OutreachType')
+    office = models.ForeignKey("Office")
+    location = models.OneToOneField("Location", null=True)
+    type = models.ForeignKey("OutreachType")
     categories = models.ManyToManyField(Category)
 
     @property
@@ -115,7 +114,6 @@ class OutreachService(models.Model):
 
 
 class Choices(object):
-
     def __init__(self, *pairs):
         self._choices = pairs
         self.__dict__.update(pairs)
@@ -125,14 +123,12 @@ class Choices(object):
 
 
 IMPORT_STATUSES = Choices(
-    ('RUNNING', 'running'),
-    ('SUCCESS', 'success'),
-    ('FAILURE', 'failure'),
-    ('ABORTED', 'aborted'))
+    ("RUNNING", "running"), ("SUCCESS", "success"), ("FAILURE", "failure"), ("ABORTED", "aborted")
+)
 
 
 class Import(models.Model):
-    task_id = models.CharField(max_length=50, default='')
+    task_id = models.CharField(max_length=50, default="")
     started = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=7, choices=list(IMPORT_STATUSES))
     filename = models.TextField()

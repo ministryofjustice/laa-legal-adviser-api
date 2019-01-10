@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 
 
-class PingMiddleware():
+class PingMiddleware:
     def process_request(self, request):
         if request.method == "GET":
             if request.path == "/ping.json":
