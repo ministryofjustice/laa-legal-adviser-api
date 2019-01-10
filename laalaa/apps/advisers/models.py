@@ -2,6 +2,13 @@ from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 
 
+# Python 3 compatibility
+try:
+    unicode("")  # Python 2
+except NameError:
+    unicode = str  # Python 3
+
+
 class Category(models.Model):
     code = models.CharField(max_length=8)
     civil = models.BooleanField(default=True)

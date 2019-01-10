@@ -23,6 +23,21 @@ from . import geocoder
 logging.basicConfig(filename="adviser_import.log", level=logging.WARNING)
 
 
+# Python 3 compatibility
+try:
+    unicode("")  # Python 2
+except NameError:
+    unicode = str  # Python 3
+try:
+    xrange  # Python 2
+except NameError:
+    xrange = range  # Python 3
+try:
+    basestring  # Python 2
+except NameError:
+    basestring = str  # Python 3
+
+
 def to_key(postcode):
     return re.sub("[^0-9A-Z]+", "", postcode)
 
