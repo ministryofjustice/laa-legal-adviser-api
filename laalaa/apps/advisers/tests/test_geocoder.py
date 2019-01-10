@@ -116,20 +116,18 @@ class AdviserViewSetTest(django.test.TestCase):
         self.create_test_location()
         lookup_mock.return_value = self.good_result
         response = self.view(self.request)
-
-        self.assertEqual(
-            {
-                "telephone": "0200 000 0000",
-                "location": {
-                    "address": "Test Address",
-                    "city": "Test Town",
-                    "postcode": "EX3 PL3",
-                    "point": {"type": "Point", "coordinates": [0.001, 51.005]},
-                    "type": "Office",
-                },
-                "organisation": {"name": "Example Legal Aid Provider", "website": "http://example.org"},
-                "distance": 10.018639836433975,  # miles
-                "categories": ["CRM"],
+        result = response.data["results"][0]
+        self.assertAlmostEqual(result.pop("distance"), 10.0186398)
+        expected_result_without_distance = {
+            "telephone": "0200 000 0000",
+            "location": {
+                "address": "Test Address",
+                "city": "Test Town",
+                "postcode": "EX3 PL3",
+                "point": {"type": "Point", "coordinates": [0.001, 51.005]},
+                "type": "Office",
             },
-            response.data["results"][0],
-        )
+            "organisation": {"name": "Example Legal Aid Provider", "website": "http://example.org"},
+            "categories": ["CRM"],
+        }
+        self.assertEqual(expected_result_without_distance, result)
