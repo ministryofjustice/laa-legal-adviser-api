@@ -73,6 +73,20 @@ There is a Django admin site which allows importing and editing the database of 
 
 Go to admin/ and sign in with the admin password you just set.
 
+## Lint and pre-commit hooks
+
+To lint with Black and flake8, install pre-commit hooks:
+```
+. env/bin/activate
+pip install -r requirements/development.txt
+pre-commit install
+```
+
+To run them manually:
+```
+pre-commit run --all-files
+```
+
 ## Building and deployment
 
 The repository unit tests and Docker images are built by CircleCI at https://circleci.com/gh/ministryofjustice/laa-legal-adviser-api.
