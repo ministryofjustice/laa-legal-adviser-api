@@ -34,10 +34,10 @@ pip install virtualenv
 
 # Create a virtualenv
 # In the directory in which the virtualenv directory should be created
-virtualenv -p python2 venv
+virtualenv -p python2 env
 
 # Start the virtualenv
-source venv/bin/activate
+source env/bin/activate
 
 # Install further requirements with pip, assuming you are in the
 # project directory
