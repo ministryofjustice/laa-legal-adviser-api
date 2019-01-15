@@ -1,2 +1,2 @@
--r development.txt
+-r dev.txt
 awscli

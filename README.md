@@ -41,7 +41,7 @@ source venv/bin/activate
 
 # Install further requirements with pip, assuming you are in the
 # project directory
-pip install -r requirements/development.txt
+pip install -r requirements/dev.txt
 
 # Create a database and install required PostgreSQL extensions
 PGHOST=localhost PGUSER=postgres ./setup_postgres.sh
@@ -78,7 +78,7 @@ Go to admin/ and sign in with the admin password you just set.
 To lint with Black and flake8, install pre-commit hooks:
 ```
 . env/bin/activate
-pip install -r requirements/development.txt
+pip install -r requirements/dev.txt
 pre-commit install
 ```
 
