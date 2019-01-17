@@ -34,14 +34,14 @@ pip install virtualenv
 
 # Create a virtualenv
 # In the directory in which the virtualenv directory should be created
-virtualenv -p python2 venv
+virtualenv -p python2 env
 
 # Start the virtualenv
-source venv/bin/activate
+source env/bin/activate
 
 # Install further requirements with pip, assuming you are in the
 # project directory
-pip install -r requirements/development.txt
+pip install -r requirements/dev.txt
 
 # Create a database and install required PostgreSQL extensions
 PGHOST=localhost PGUSER=postgres ./setup_postgres.sh
@@ -78,7 +78,7 @@ Go to admin/ and sign in with the admin password you just set.
 To lint with Black and flake8, install pre-commit hooks:
 ```
 . env/bin/activate
-pip install -r requirements/development.txt
+pip install -r requirements/dev.txt
 pre-commit install
 ```
 
