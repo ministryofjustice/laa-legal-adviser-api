@@ -39,7 +39,7 @@ class CeleryWorkersHealthcheck(object):
 
 
 registry.register_healthcheck(
-    UrlHealthcheck(name="postcodes.io", url="{}/postcodes/SW1A1AA".format(base_url=settings.POSTCODES_IO_URL))
+    UrlHealthcheck(name="postcodes.io", url="{}/postcodes/SW1A1AA".format(settings.POSTCODES_IO_URL))
 )
 
 registry.register_healthcheck(CeleryWorkersHealthcheck(name="workers"))
