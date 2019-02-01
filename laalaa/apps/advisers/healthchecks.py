@@ -1,24 +1,27 @@
 from django.conf import settings
 from moj_irat.healthchecks import HealthcheckResponse, UrlHealthcheck, registry
 
-
+def get_stats():
+    from celery import Celery
+    app = Celery("laalaa")
+    app.config_from_object("django.conf:settings")
+    return app.control.inspect().stats()
+        
 class CeleryWorkersHealthcheck(object):
     def __init__(self, name):
         self.name = name
 
     def __call__(self, *args, **kwargs):
-        from celery import Celery
 
         try:
-            app = Celery("laalaa")
-            app.config_from_object("django.conf:settings")
-            stats = app.control.inspect().stats()
+            stats = get_stats()
 
             if not stats:
                 return self.error_response("No running workers were found.")
 
             workers = stats.values()
             if not workers:
+                print("NO WORKERS")
                 return self.error_response("No workers running.")
 
         except IOError as e:
@@ -30,6 +33,8 @@ class CeleryWorkersHealthcheck(object):
             return self.error_response(str(e))
 
         return self.success_response()
+
+
 
     def error_response(self, error):
         return HealthcheckResponse(self.name, False, error=error)
