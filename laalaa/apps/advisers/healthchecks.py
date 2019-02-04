@@ -24,7 +24,6 @@ class CeleryWorkersHealthcheck(object):
 
             workers = stats.values()
             if not workers:
-                print("NO WORKERS")
                 return self.error_response("No workers running.")
 
         except IOError as e:
