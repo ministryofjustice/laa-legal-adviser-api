@@ -1,7 +1,8 @@
 import unittest
 import mock
+import requests
 from django.test import Client
-from mock import MagicMock, Mock
+from mock import MagicMock, Mock, patch
 
 
 class HealthcheckEndpointTest(unittest.TestCase):
@@ -10,9 +11,13 @@ class HealthcheckEndpointTest(unittest.TestCase):
         stats.values = MagicMock(return_value=True)
         return stats
 
+    @patch.object(requests, "get")
     @mock.patch("advisers.healthchecks.get_stats")
-    def test_healthcheck_returns_ok_if_all_checks_pass(self, get_stats):
-        mock_postcode_IO_response = {
+    def test_healthcheck_returns_ok_if_all_checks_pass(self, get_stats, mockget):
+        mockresponse = Mock()
+        mockget.return_value = mockresponse
+        mockresponse.status_code = 200
+        mockresponse.text = """{
             "status": 200,
             "result": [
                 {
@@ -54,9 +59,9 @@ class HealthcheckEndpointTest(unittest.TestCase):
                     },
                 }
             ],
-        }
+        }"""
 
         get_stats.side_effect = self.mock_celery_get_stats
         c = Client()
-        response = c.get("/healthcheck.json", mock_postcode_IO_response)
+        response = c.get("/healthcheck.json")
         self.assertEquals(200, response.status_code)
