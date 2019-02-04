@@ -1,12 +1,15 @@
 from django.conf import settings
 from moj_irat.healthchecks import HealthcheckResponse, UrlHealthcheck, registry
 
+
 def get_stats():
     from celery import Celery
+
     app = Celery("laalaa")
     app.config_from_object("django.conf:settings")
     return app.control.inspect().stats()
-        
+
+
 class CeleryWorkersHealthcheck(object):
     def __init__(self, name):
         self.name = name
@@ -33,8 +36,6 @@ class CeleryWorkersHealthcheck(object):
             return self.error_response(str(e))
 
         return self.success_response()
-
-
 
     def error_response(self, error):
         return HealthcheckResponse(self.name, False, error=error)
