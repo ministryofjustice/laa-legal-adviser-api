@@ -229,17 +229,17 @@ class ProgressiveAdviserImport(Task):
         cursor.execute("DELETE FROM {table}".format(table=table_name))
 
         psql_command = [
-            "export PGPASSWORD=%s &&" % settings.DATABASES["default"]["PASSWORD"],
-            "psql",
-            settings.DATABASES["default"]["NAME"],
-            "-U",
-            settings.DATABASES["default"]["USER"],
-            "-h",
-            settings.DATABASES["default"]["HOST"],
-            "-c",
-            r'"\copy {table} FROM {filename} DELIMITER \',\' CSV HEADER;"'.format(
+            'export PGPASSWORD=%s &&' % settings.DATABASES['default']['PASSWORD'],
+            'psql',
+            settings.DATABASES['default']['NAME'],
+            '-U',
+            settings.DATABASES['default']['USER'],
+            '-h',
+            settings.DATABASES['default']['HOST'],
+            '-c',
+            '"\copy {table} FROM {filename} DELIMITER \',\' CSV HEADER;"'.format(
                 table=table_name, filename=csv_filename
-            ),
+            ),  # noqa: W605
         ]
 
         os.system(" ".join(psql_command))
