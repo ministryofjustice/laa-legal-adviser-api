@@ -69,7 +69,7 @@ jobs:
           name: Check formatting with Black
           command: |
             source lint-env/bin/activate
-            black --check laalaa
+            black --check --skip-string-normalization laalaa
   test:
     docker:
       - image: circleci/python:2.7
