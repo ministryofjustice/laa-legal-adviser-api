@@ -239,7 +239,7 @@ class ProgressiveAdviserImport(Task):
             '-c',
             '"\copy {table} FROM {filename} DELIMITER \',\' CSV HEADER;"'.format(
                 table=table_name, filename=csv_filename
-            ),
+            ),  # noqa: W605
         ]
 
         os.system(" ".join(psql_command))
