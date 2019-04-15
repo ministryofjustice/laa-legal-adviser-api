@@ -1,0 +1,36 @@
+#!/bin/sh -eu
+
+ROOT=$(dirname "$0")
+NAMESPACE="$1"
+NAMESPACE_DIR="$ROOT/../kubernetes_deploy/$NAMESPACE"
+WEBAPP_REPO="$2"
+NGINX_REPO="$3"
+
+if ! [ $NAMESPACE ] ; then
+
+  echo "usage: deploy_to_kubernetes namespace\n"
+  echo "namespace is a directory in ../kubernetes_deploy/ directory"
+  exit 1;
+fi
+
+if ! [ -d $NAMESPACE_DIR ] ; then
+  echo "$NAMESPACE_DIR not found"
+  exit 1;
+fi
+
+source "$ROOT/define_build_environment_variables"
+ECR_WEBAPP_DEPLOY_IMAGE="$WEBAPP_REPO:$safe_git_branch.$short_sha"
+ECR_NGINX_DEPLOY_IMAGE="$NGINX_REPO:$safe_git_branch.$short_sha"
+
+echo "Deploying $ECR_WEBAPP_DEPLOY_IMAGE to $NAMESPACE..."
+echo "Deploying $ECR_NGINX_DEPLOY_IMAGE to $NAMESPACE..."
+
+kubectl set image --filename="$NAMESPACE_DIR/deployment.yml" --local --output=yaml \
+  webapp="$ECR_WEBAPP_DEPLOY_IMAGE" nginx="$ECR_NGINX_DEPLOY_IMAGE" | \
+  kubectl apply \
+    --filename=/dev/stdin \
+    --filename="$NAMESPACE_DIR/service.yml" \
+    --filename="$NAMESPACE_DIR/ingress.yml" \
+    --filename="$NAMESPACE_DIR/dashboard.yml" \
+    --filename="$NAMESPACE_DIR/certificate.yml"
+

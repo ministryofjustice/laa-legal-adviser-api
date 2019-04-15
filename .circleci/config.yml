@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  build_web:
     docker:
       - image: docker:17.03-git
     environment:
@@ -20,7 +20,7 @@ jobs:
           command: |
             apk add --no-cache --no-progress py2-pip
             pip install awscli
-            ecr_login="$(aws ecr get-login --region eu-west-1 --no-include-email)"
+            ecr_login="$(AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
             ${ecr_login}
       - run:
           name: Build Docker image
@@ -38,6 +38,34 @@ jobs:
           command: |
             .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 $DSD_DOCKER_REGISTRY/$DSD_DOCKER_IMAGE
             .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 ${ECR_DOCKER_REPO_BASE}
+  build_nginx:
+    docker:
+      - image: docker:18.05.0-git
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 18.05.0-ce
+          docker_layer_caching: true
+      - run:
+          name: Login to the ECR Docker registry
+          command: |
+            apk add --no-cache --no-progress py2-pip
+            pip install awscli
+            ecr_login="$(AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
+            ${ecr_login}
+      - run:
+          name: Build Docker image
+          command: |
+            docker build --file Dockerfile.nginx --tag nginx:$CIRCLE_SHA1 \
+              --label build.git.sha=$CIRCLE_SHA1 \
+              --label build.git.branch=$CIRCLE_BRANCH \
+              --label build.url=$CIRCLE_BUILD_URL \
+              .
+      - run:
+          name: Tag and push Docker images
+          command: .circleci/tag_and_push_docker_image \
+              nginx:$CIRCLE_SHA1 \
+              ${ECR_DOCKER_REPO_BASE}-nginx
   lint:
     docker:
       - image: circleci/python:3.7
@@ -102,13 +130,42 @@ jobs:
             source env/bin/activate
             python manage.py test
 
+  staging_deploy:
+    docker:
+      - image: ${ECR_ENDPOINT}/cloud-platform/tools:circleci
+    steps:
+      - checkout
+      - run:
+          name: Initialise Kubernetes staging context
+          command: |
+            setup-kube-auth
+            kubectl config use-context staging
+      - deploy:
+          name: Deploy laalaa to staging
+          command: |
+            .circleci/deploy_to_kubernetes staging ${ECR_DOCKER_REPO_BASE}-webapp ${ECR_DOCKER_REPO_BASE}-nginx 
+      - deploy:
+          name: Notify Slack channel
+          command: .circleci/notify_slack_channel staging
+
 workflows:
   version: 2
   build_and_test:
     jobs:
       - lint
       - test
-      - build:
+      - build_web:
           requires:
             - lint
             - test
+      - build_nginx:
+          requires:
+            - test
+      - staging_deploy_approval:
+          type: approval
+          requires:
+            - build_web
+            - build_nginx
+      - staging_deploy:
+          requires:
+            - staging_deploy_approval

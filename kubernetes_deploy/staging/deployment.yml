@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
+  name: laa-legal-adviser-api
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: laa-legal-adviser-api
+        env: staging
+        service_area: laa-get-access
+        service_team: cla-fala
+    spec:
+      containers:
+      - image: "<to be set by deploy_to_kubernetes>"
+        name: app
+        readinessProbe:
+          httpGet:
+            path: /ping.json
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /ping.json
+            port: 80
+          initialDelaySeconds: 10
+          timeoutSeconds: 1
+          periodSeconds: 10
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: LOG_LEVEL
+          value: INFO
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: secret-key
+              key: SECRET_KEY
