@@ -20,7 +20,7 @@ jobs:
           command: |
             apk add --no-cache --no-progress py2-pip
             pip install awscli
-            ecr_login="$(AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
+            ecr_login="$(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
             ${ecr_login}
       - run:
           name: Build Docker image
@@ -158,14 +158,10 @@ workflows:
           requires:
             - lint
             - test
-      - build_nginx:
-          requires:
-            - test
       - staging_deploy_approval:
           type: approval
           requires:
             - build_web
-            - build_nginx
       - staging_deploy:
           requires:
             - staging_deploy_approval
