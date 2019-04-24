@@ -115,7 +115,7 @@ jobs:
       - deploy:
           name: Deploy laalaa to staging
           command: |
-            .circleci/deploy_to_kubernetes staging ${ECR_DOCKER_REPO_BASE}
+            .circleci/deploy_to_kubernetes staging
       - deploy:
           name: Notify Slack channel
           command: .circleci/notify_slack_channel staging
