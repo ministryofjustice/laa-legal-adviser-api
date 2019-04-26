@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build_web:
+  build:
     docker:
       - image: docker:17.03-git
     environment:
@@ -126,14 +126,14 @@ workflows:
     jobs:
       - lint
       - test
-      - build_web:
+      - build:
           requires:
             - lint
             - test
       - staging_deploy_approval:
           type: approval
           requires:
-            - build_web
+            - build
       - staging_deploy:
           requires:
             - staging_deploy_approval
