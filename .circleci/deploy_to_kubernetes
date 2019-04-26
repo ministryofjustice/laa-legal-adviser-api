@@ -25,10 +25,6 @@ echo "Deploying $ECR_DEPLOY_IMAGE to $NAMESPACE..."
 # shellcheck disable=SC2002 # Useless cat, https://www.shellcheck.net/wiki/SC2002
 # Using a separate cat command here helps in separating the pipe of
 # "altering" kubectl commands which all take something from stdin and write to stdout.
-echo "NAMESPACE_DIR $NAMESPACE_DIR"
-echo "ECR_DEPLOY_IMAGE $ECR_DEPLOY_IMAGE"
-echo "CIRCLE_BUILD_URL $CIRCLE_BUILD_URL"
-
 cat "$NAMESPACE_DIR/deployment.yml" | \
   kubectl set image app="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
   kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
