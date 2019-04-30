@@ -17,23 +17,6 @@ spec:
       containers:
       - image: "<to be set by deploy_to_kubernetes>"
         name: app
-        readinessProbe:
-          httpGet:
-            path: /ping.json
-            port: 80
-          initialDelaySeconds: 5
-          timeoutSeconds: 1
-          periodSeconds: 10
-        livenessProbe:
-          httpGet:
-            path: /ping.json
-            port: 80
-          initialDelaySeconds: 10
-          timeoutSeconds: 1
-          periodSeconds: 10
-        ports:
-        - containerPort: 80
-          name: http
         env:
         - name: LOG_LEVEL
           value: INFO
