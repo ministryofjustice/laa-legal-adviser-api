@@ -20,7 +20,7 @@ jobs:
           command: |
             apk add --no-cache --no-progress py2-pip
             pip install awscli
-            ecr_login="$(aws ecr get-login --region eu-west-1 --no-include-email)"
+            ecr_login="$(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
             ${ecr_login}
       - run:
           name: Build Docker image
@@ -102,6 +102,24 @@ jobs:
             source env/bin/activate
             python manage.py test
 
+  staging_deploy:
+    docker:
+      - image: ${ECR_ENDPOINT}/cloud-platform/tools:circleci
+    steps:
+      - checkout
+      - run:
+          name: Initialise Kubernetes staging context
+          command: |
+            setup-kube-auth
+            kubectl config use-context staging
+      - deploy:
+          name: Deploy laalaa to staging
+          command: |
+            .circleci/deploy_to_kubernetes staging
+      - deploy:
+          name: Notify Slack channel
+          command: .circleci/notify_slack_channel staging
+
 workflows:
   version: 2
   build_and_test:
@@ -112,3 +130,10 @@ workflows:
           requires:
             - lint
             - test
+      - staging_deploy_approval:
+          type: approval
+          requires:
+            - build
+      - staging_deploy:
+          requires:
+            - staging_deploy_approval
