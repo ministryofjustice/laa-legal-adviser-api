@@ -25,3 +25,28 @@ spec:
             secretKeyRef:
               name: secret-key
               key: SECRET_KEY
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: sentry
+              key: dsn
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: password
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: host
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: port
