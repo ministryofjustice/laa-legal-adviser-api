@@ -34,24 +34,24 @@ spec:
           valueFrom:
             secretKeyRef:
               name: rds
-              key: database_username
+              key: user
         - name: DB_NAME
           valueFrom:
             secretKeyRef:
               name: rds
-              key: database_name
+              key: name
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: rds
-              key: database_password
+              key: password
         - name: DB_HOST
           valueFrom:
             secretKeyRef:
               name: rds
-              key: rds_instance_address
+              key: host
         - name: DB_PORT
           valueFrom:
             secretKeyRef:
               name: rds
-              key: rds_instance_port
+              key: port
