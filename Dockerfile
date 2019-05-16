@@ -40,7 +40,7 @@ RUN  chown -R app: /home/app
 ENV HOME /home/app
 WORKDIR /home/app
 ENV APP_HOME /home/app
-USER app
+USER 1000
 EXPOSE 8000
 
 CMD ["/home/app/docker/run.sh"]
