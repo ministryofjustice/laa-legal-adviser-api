@@ -6,7 +6,7 @@ FROM phusion/baseimage:0.9.16
 MAINTAINER Stuart Munro <stuart.munro@digital.justice.gov.uk>
 
 # Runtime User
-RUN useradd -m -d /home/app app
+RUN useradd --uid 1000 --user-group -m -d /home/app app
 
 # Set timezone
 RUN echo "Europe/London" > /etc/timezone  &&  dpkg-reconfigure -f noninteractive tzdata
