@@ -78,6 +78,7 @@ spec:
       containers:
       - image: "<to be set by deploy_to_kubernetes>"
         name: app
+        args: ["/usr/local/bin/python", "/home/app/manage.py", "celery", "worker", "-A laalaa", "--concurrency=1", "--loglevel=INFO"]
         env:
         - name: LOG_LEVEL
           value: INFO
