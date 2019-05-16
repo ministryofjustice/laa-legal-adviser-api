@@ -1,4 +1,6 @@
-version: 2
+version: 2.1
+orbs:
+  slack: circleci/slack@2.5.0
 jobs:
   build:
     docker:
@@ -116,9 +118,7 @@ jobs:
           name: Deploy laalaa to staging
           command: |
             .circleci/deploy_to_kubernetes staging
-      - deploy:
-          name: Notify Slack channel
-          command: .circleci/notify_slack_channel staging
+      - slack/status
 
 workflows:
   version: 2
