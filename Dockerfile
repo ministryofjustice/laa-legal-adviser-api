@@ -6,7 +6,7 @@ FROM phusion/baseimage:0.9.16
 MAINTAINER Stuart Munro <stuart.munro@digital.justice.gov.uk>
 
 # Runtime User
-RUN useradd -m -d /home/app app
+RUN useradd --uid 1000 --user-group -m -d /home/app app
 
 # Set timezone
 RUN echo "Europe/London" > /etc/timezone  &&  dpkg-reconfigure -f noninteractive tzdata
@@ -40,7 +40,8 @@ RUN  chown -R app: /home/app
 ENV HOME /home/app
 WORKDIR /home/app
 ENV APP_HOME /home/app
-USER app
+# Specify the user by numeric ID, for environments which use the ID to determine that the user is non-root
+USER 1000
 EXPOSE 8000
 
 CMD ["/home/app/docker/run.sh"]
