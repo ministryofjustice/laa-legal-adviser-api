@@ -22,8 +22,6 @@ RUN apt-get clean
 
 # Add project to container
 ADD . /home/app
-# Project permissions
-RUN  chown -R app: /home/app
 
 # Set correct environment variables.
 ENV HOME /home/app
@@ -37,6 +35,9 @@ RUN docker/install_python.sh
 
 RUN pip install -r requirements.txt
 RUN docker/collectstatic.sh
+
+# Project permissions
+RUN  chown -R app: /home/app
 
 # Specify the user by numeric ID, for environments which use the ID to determine that the user is non-root
 USER 1000
