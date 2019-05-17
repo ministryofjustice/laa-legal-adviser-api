@@ -20,26 +20,26 @@ RUN DEBIAN_FRONTEND='noninteractive' \
 
 RUN apt-get clean
 
-# Install latest python
-ADD ./docker/install_python.sh /install_python.sh
-RUN chmod 755 /install_python.sh
-RUN /install_python.sh
-
-# Add requirements to docker
-ADD ./requirements/base.txt /requirements.txt
-RUN pip install -r /requirements.txt
-
-# Add project directory to docker
+# Add project to container
 ADD . /home/app
-RUN rm -rf /home/app/.git
-RUN chmod 755 /home/app/docker/collectstatic.sh
-RUN /home/app/docker/collectstatic.sh
-RUN  chown -R app: /home/app
 
 # Set correct environment variables.
 ENV HOME /home/app
 WORKDIR /home/app
 ENV APP_HOME /home/app
+
+RUN rm -rf /home/app/.git
+
+# Project permissions
+RUN chmod 755 /home/app/docker
+RUN  chown -R app: /home/app
+
+# Install latest python
+RUN docker/install_python.sh
+
+RUN pip install -r /requirements.txt
+RUN docker/collectstatic.sh
+
 # Specify the user by numeric ID, for environments which use the ID to determine that the user is non-root
 USER 1000
 EXPOSE 8000
