@@ -70,7 +70,7 @@ spec:
   template:
     metadata:
       labels:
-        app: laa-legal-adviser-api-queue-worker
+        worker: laa-legal-adviser-api-queue-worker
         env: staging
         service_area: laa-get-access
         service_team: cla-fala
