@@ -41,5 +41,5 @@ spec:
           value: postgres
         - name: POSTGRES_DB
           value: laalaa
-      - image: rabbitmq:3
+      - image: rabbitmq:3.6-management-alpine
         name: mq
