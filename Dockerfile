@@ -20,6 +20,10 @@ RUN DEBIAN_FRONTEND='noninteractive' \
 
 RUN apt-get clean
 
+# Install latest python
+ADD ./docker/install_python.sh /install_python.sh
+RUN /install_python.sh
+
 # Add project to container
 ADD . /home/app
 
@@ -27,9 +31,6 @@ ADD . /home/app
 ENV HOME /home/app
 ENV APP_HOME /home/app
 WORKDIR /home/app
-
-# Install latest python
-RUN docker/install_python.sh
 
 RUN pip install -r requirements.txt
 RUN docker/collectstatic.sh
