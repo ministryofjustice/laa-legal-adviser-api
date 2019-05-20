@@ -20,7 +20,7 @@ spec:
         args: ["docker/run_worker"]
         env:
         - name: WORKER_APP_CONCURRENCY
-          value: 2
+          value: "2"
         - name: LOG_LEVEL
           value: INFO
         - name: SECRET_KEY
