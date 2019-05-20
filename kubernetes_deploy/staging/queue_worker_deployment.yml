@@ -3,13 +3,13 @@ kind: Deployment
 metadata:
   annotations:
     kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
-  name: laa-legal-adviser-api-queue-worker
+  name: laa-legal-adviser-api-worker
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        worker: laa-legal-adviser-api-queue-worker
+        worker: laa-legal-adviser-api-worker
         env: staging
         service_area: laa-get-access
         service_team: cla-fala
@@ -17,7 +17,6 @@ spec:
       containers:
       - image: "<to be set by deploy_to_kubernetes>"
         name: worker
-        args: ["run_worker"]
         env:
         - name: UWSGI_CONFIG_FILE
           value: "/home/app/conf/uwsgi.ini:workerapp"
