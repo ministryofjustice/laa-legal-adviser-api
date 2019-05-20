@@ -17,9 +17,8 @@ spec:
       containers:
       - image: "<to be set by deploy_to_kubernetes>"
         name: worker
+        args: ["docker/run_worker"]
         env:
-        - name: UWSGI_CONFIG_FILE
-          value: "/home/app/conf/uwsgi.ini:workerapp"
         - name: WORKER_APP_CONCURRENCY
           value: 2
         - name: LOG_LEVEL
