@@ -28,8 +28,6 @@ ENV HOME /home/app
 ENV APP_HOME /home/app
 WORKDIR /home/app
 
-RUN rm -rf /home/app/.git
-
 # Install latest python
 RUN docker/install_python.sh
 
