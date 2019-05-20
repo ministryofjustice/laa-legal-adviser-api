@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
+  name: laa-legal-adviser-api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: laa-legal-adviser-api
+        env: staging
+        service_area: laa-get-access
+        service_team: cla-fala
+    spec:
+      containers:
+      - image: "<to be set by deploy_to_kubernetes>"
+        imagePullPolicy: Never
+        name: app
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: LOG_LEVEL
+          value: INFO
+        - name: SECRET_KEY
+          value: secret
+        - name: DB_USERNAME
+          value: postgres
+        - name: DB_NAME
+          value: laalaa
+        - name: DB_HOST
+          value: 127.0.0.1
+        - name: DB_PORT
+          value: "5432"
+      - image: circleci/postgres:9.4-alpine-postgis
+        name: db
+        env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_DB
+          value: laalaa
+      - image: rabbitmq:3.6-management-alpine
+        name: mq
