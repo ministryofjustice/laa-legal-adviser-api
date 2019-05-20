@@ -24,6 +24,10 @@ RUN apt-get clean
 ADD ./docker/install_python.sh /install_python.sh
 RUN /install_python.sh
 
+# Add requirements to docker
+ADD ./requirements/base.txt /requirements.txt
+RUN pip install -r /requirements.txt
+
 # Add project to container
 ADD . /home/app
 
@@ -32,7 +36,6 @@ ENV HOME /home/app
 ENV APP_HOME /home/app
 WORKDIR /home/app
 
-RUN pip install -r requirements.txt
 RUN docker/collectstatic.sh
 
 # Project permissions
