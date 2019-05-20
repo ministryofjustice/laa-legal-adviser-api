@@ -24,10 +24,6 @@ RUN apt-get clean
 ADD ./docker/install_python.sh /install_python.sh
 RUN /install_python.sh
 
-# Add the worker runner
-ADD ./docker/run_worker.sh /run_worker.sh
-RUN chmod 755 /run_worker.sh
-
 # Add requirements to docker
 ADD ./requirements/base.txt /requirements.txt
 RUN pip install -r /requirements.txt
