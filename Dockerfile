@@ -40,6 +40,11 @@ RUN  chown -R app: /home/app
 ENV HOME /home/app
 WORKDIR /home/app
 ENV APP_HOME /home/app
+
+# Until we're migrated off template deploy
+ENV DB_NAME $DB_USERNAME
+ENV DATABASE_URL postgis://$DB_USERNAME:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME
+
 # Specify the user by numeric ID, for environments which use the ID to determine that the user is non-root
 USER 1000
 EXPOSE 8000
