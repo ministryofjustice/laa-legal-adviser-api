@@ -118,6 +118,11 @@ jobs:
           name: Deploy laalaa to staging
           command: |
             .circleci/deploy_to_kubernetes staging
+      - deploy:
+          name: Wait for deployment to finish
+          command: |
+            kubectl rollout status deployment.apps/laa-legal-adviser-api --timeout=5m
+            kubectl rollout status deployment.apps/laa-legal-adviser-api-worker --timeout=5m
       - slack/status
 
 workflows:
