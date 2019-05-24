@@ -36,5 +36,5 @@ spec:
           value: 127.0.0.1
         - name: DB_PORT
           value: "5432"
-        - name: RABBITMQ_HOST
-          value: laa-legal-adviser-api-mq
+        - name: AMQP_BROKER_URL
+          value: value: "amqp://guest:guest@laa-legal-adviser-api-mq:5672//"
