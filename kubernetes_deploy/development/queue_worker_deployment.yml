@@ -58,8 +58,5 @@ spec:
             secretKeyRef:
               name: db
               key: port
-        - name: AMQP_BROKER_URL
-          valueFrom:
-            secretKeyRef:
-              name: amqp
-              key: url
+        - name: RABBITMQ_HOST
+          value: mq
