@@ -9,4 +9,4 @@ spec:
     name: http
     targetPort: 80
   selector:
-    app: laa-legal-adviser-api-app
+    app: laa-legal-adviser-api
