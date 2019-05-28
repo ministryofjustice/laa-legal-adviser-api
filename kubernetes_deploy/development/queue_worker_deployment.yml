@@ -37,4 +37,4 @@ spec:
         - name: DB_PORT
           value: "5432"
         - name: AMQP_BROKER_URL
-          value: value: "amqp://guest:guest@laa-legal-adviser-api-mq:5672//"
+          value: "amqp://guest:guest@laa-legal-adviser-api-mq:5672//"

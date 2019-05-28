@@ -21,9 +21,9 @@ spec:
     app: laa-legal-adviser-api
   ports:
     - protocol: TCP
-      name: mq-5671
-      port: 5671
-      targetPort: 5671
+      name: mq-5432
+      port: 5432
+      targetPort: 5432
     - protocol: TCP
       name: mq-5672
       port: 5672
