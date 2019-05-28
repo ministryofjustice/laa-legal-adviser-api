@@ -114,11 +114,7 @@ class ProgressiveAdviserImport(Task):
         self.temp_dir = tempfile.mkdtemp()
         self.progress = {"task": "initialising"}
 
-    def run(self, xlsx_file, record=None, *args, **kwargs):
-        self.record = record
-
-        self.update_state(state="INITIALIZING", meta=self.progress)
-
+    def prepare_tables(self, xlsx_file, *args, **kwargs):
         csv_metadata = self.convert_excel_to_csv(xlsx_file)
         for csv_filename, headers, types in csv_metadata:
             self.load_csv_into_db(csv_filename, headers, types)
@@ -130,6 +126,8 @@ class ProgressiveAdviserImport(Task):
         for meta in csv_metadata:
             self.drop_csv_table(meta[0])
 
+    def run(self, xlsx_file, record=None, *args, **kwargs):
+        self.record = record
         cursor = connection.cursor()
         cursor.execute(
             """
@@ -229,15 +227,15 @@ class ProgressiveAdviserImport(Task):
         cursor.execute("DELETE FROM {table}".format(table=table_name))
 
         psql_command = [
-            'export PGPASSWORD=%s &&' % settings.DATABASES['default']['PASSWORD'],
-            'psql',
-            settings.DATABASES['default']['NAME'],
-            '-U',
-            settings.DATABASES['default']['USER'],
-            '-h',
-            settings.DATABASES['default']['HOST'],
-            '-c',
-            '"\copy {table} FROM {filename} DELIMITER \',\' CSV HEADER;"'.format(
+            "export PGPASSWORD=%s &&" % settings.DATABASES["default"]["PASSWORD"],
+            "psql",
+            settings.DATABASES["default"]["NAME"],
+            "-U",
+            settings.DATABASES["default"]["USER"],
+            "-h",
+            settings.DATABASES["default"]["HOST"],
+            "-c",
+            "\"\\copy {table} FROM {filename} DELIMITER ',' CSV HEADER;\"".format(
                 table=table_name, filename=csv_filename
             ),  # noqa: W605
         ]

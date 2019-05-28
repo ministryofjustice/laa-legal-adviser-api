@@ -33,7 +33,7 @@ spec:
         - name: DB_NAME
           value: laalaa
         - name: DB_HOST
-          value: 127.0.0.1
+          value: laa-legal-adviser-api-mq
         - name: DB_PORT
           value: "5432"
         - name: AMQP_BROKER_URL
