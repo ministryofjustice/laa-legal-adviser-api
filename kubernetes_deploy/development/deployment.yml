@@ -5,6 +5,8 @@ metadata:
     kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
   name: laa-legal-adviser-api
 spec:
+  # This pod contains the app, database and rabbitmq containers. Keep this count to 1 otherwise you will have
+  # multiple rabbitmq instances, alternatively you can create a pod for each of these containers
   replicas: 1
   template:
     metadata:
