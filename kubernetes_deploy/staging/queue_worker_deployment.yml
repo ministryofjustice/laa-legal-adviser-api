@@ -17,7 +17,7 @@ spec:
       containers:
       - image: "<to be set by deploy_to_kubernetes>"
         name: worker
-        args: ["/home/app/docker/run_worker.sh"]
+        args: ["docker/run_worker.sh"]
         env:
         - name: WORKER_APP_CONCURRENCY
           value: "2"
