@@ -39,4 +39,3 @@ cat "$NAMESPACE_DIR/queue_worker_deployment.yml" | \
   kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
   kubectl apply --record=false \
     --filename=/dev/stdin
-

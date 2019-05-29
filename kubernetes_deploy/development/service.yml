@@ -15,10 +15,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: laa-legal-adviser-api-mq
+  name: laa-legal-adviser-api-shared-services
 spec:
   selector:
-    app: laa-legal-adviser-api
+    app: laa-legal-adviser-api-shared-services
   ports:
     - protocol: TCP
       name: mq-5432

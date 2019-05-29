@@ -33,15 +33,8 @@ spec:
         - name: DB_NAME
           value: laalaa
         - name: DB_HOST
-          value: 127.0.0.1
+          value: laa-legal-adviser-api-shared-services
         - name: DB_PORT
           value: "5432"
-      - image: circleci/postgres:9.4-alpine-postgis
-        name: db
-        env:
-        - name: POSTGRES_USER
-          value: postgres
-        - name: POSTGRES_DB
-          value: laalaa
-      - image: rabbitmq:3.6-management-alpine
-        name: mq
+        - name: AMQP_BROKER_URL
+          value: "amqp://guest:guest@laa-legal-adviser-api-shared-services:5672//"
