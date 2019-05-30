@@ -114,7 +114,7 @@ class ProgressiveAdviserImport(Task):
         self.temp_dir = tempfile.mkdtemp()
         self.progress = {"task": "initialising"}
 
-    def prepare_tables(self, xlsx_file, *args, **kwargs):
+    def truncate_and_upload_data_tables_from_xlsx(self, xlsx_file, *args, **kwargs):
         csv_metadata = self.convert_excel_to_csv(xlsx_file)
         for csv_filename, headers, types in csv_metadata:
             self.load_csv_into_db(csv_filename, headers, types)
