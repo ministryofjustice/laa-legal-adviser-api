@@ -3,13 +3,13 @@ kind: Deployment
 metadata:
   annotations:
     kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
-  name: laa-legal-adviser-api
+  name: laa-legal-adviser-api-worker
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: laa-legal-adviser-api
+        worker: laa-legal-adviser-api-worker
         env: staging
         service_area: laa-get-access
         service_team: cla-fala
@@ -17,11 +17,13 @@ spec:
       containers:
       - image: "<to be set by deploy_to_kubernetes>"
         imagePullPolicy: Never
-        name: app
-        ports:
-        - containerPort: 80
-          name: http
+        name: worker
+        args: ["docker/run_worker.sh"]
         env:
+        - name: WORKER_APP_CONCURRENCY
+          value: "2"
+        - name: LOG_LEVEL
+          value: INFO
         - name: LOG_LEVEL
           value: INFO
         - name: SECRET_KEY

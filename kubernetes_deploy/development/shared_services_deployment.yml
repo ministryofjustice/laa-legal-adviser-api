@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+  name: laa-legal-adviser-api-shared-services
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: laa-legal-adviser-api-shared-services
+        env: staging
+        service_area: laa-get-access
+        service_team: cla-fala
+    spec:
+      containers:
+      - image: circleci/postgres:9.4-alpine-postgis
+        name: db
+        env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_DB
+          value: laalaa
+      - image: rabbitmq:3.6-management-alpine
+        name: amq
