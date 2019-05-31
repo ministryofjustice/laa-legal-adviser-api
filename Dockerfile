@@ -36,8 +36,6 @@ ENV HOME /home/app
 ENV APP_HOME /home/app
 WORKDIR /home/app
 
-RUN docker/collectstatic.sh
-
 # Project permissions
 RUN  chown -R app: /home/app
 
