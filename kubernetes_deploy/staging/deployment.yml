@@ -74,3 +74,8 @@ spec:
             secretKeyRef:
               name: s3
               key: secret_access_key
+        - name: AWS_S3_REGION_NAME
+          valueFrom:
+            secretKeyRef:
+              name: s3
+              key: region
