@@ -4,6 +4,7 @@ set -o pipefail
 ROOT=$(dirname "$0")
 NAMESPACE="$1"
 NAMESPACE_DIR="$ROOT/../kubernetes_deploy/$NAMESPACE"
+JOBS_RESOURCE="$NAMESPACE_DIR/jobs.yml"
 
 if [ -z "$NAMESPACE" ] ; then
   printf "usage: deploy_to_kubernetes namespace\n"
@@ -21,7 +22,18 @@ if [ -z "$ECR_DEPLOY_IMAGE" ] ; then
 fi
 
 echo "Deploying $ECR_DEPLOY_IMAGE to $NAMESPACE..."
+echo "Deleting old jobs"
+kubectl delete -f $JOBS_RESOURCE
 
+echo "Running jobs"
+cat $JOBS_RESOURCE| \
+  kubectl set image app="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
+  kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
+  kubectl apply --record=false \
+    --filename=/dev/stdin
+kubectl wait --for=condition=complete -f $JOBS_RESOURCE --timeout=180s
+
+echo "Deploying app"
 # shellcheck disable=SC2002 # Useless cat, https://www.shellcheck.net/wiki/SC2002
 # Using a separate cat command here helps in separating the pipe of
 # "altering" kubectl commands which all take something from stdin and write to stdout.
