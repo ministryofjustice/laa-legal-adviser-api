@@ -5,6 +5,7 @@ metadata:
     kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
   name: laa-legal-adviser-api-collect-static
 spec:
+  ttlSecondsAfterFinished: 120
   template:
     metadata:
       name: laa-legal-adviser-collect-static
