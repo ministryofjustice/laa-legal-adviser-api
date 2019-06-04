@@ -22,6 +22,9 @@ if [ -z "$ECR_DEPLOY_IMAGE" ] ; then
 fi
 
 echo "Deploying $ECR_DEPLOY_IMAGE to $NAMESPACE..."
+echo "Deleting old jobs"
+kubectl delete -f $JOBS_RESOURCE
+
 echo "Running jobs"
 cat $JOBS_RESOURCE| \
   kubectl set image app="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
