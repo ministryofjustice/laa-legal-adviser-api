@@ -23,7 +23,7 @@ fi
 
 echo "Deploying $ECR_DEPLOY_IMAGE to $NAMESPACE..."
 echo "Deleting old jobs"
-kubectl delete -f $JOBS_RESOURCE
+kubectl delete -f $JOBS_RESOURCE --ignore-not-found
 
 echo "Running jobs"
 cat $JOBS_RESOURCE| \
