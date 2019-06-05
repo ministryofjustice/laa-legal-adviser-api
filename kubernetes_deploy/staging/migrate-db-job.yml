@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
+  name: laa-legal-adviser-api-migrate-db
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    metadata:
+      name: laa-legal-adviser-api-migrate-db
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: app
+        image: "<to be set by deploy_to_kubernetes>"
+        command: ["python", "manage.py", "migrate", "--noinput"]
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: secret-key
+              key: SECRET_KEY
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: user
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: name
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: password
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: host
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: db
+              key: port
