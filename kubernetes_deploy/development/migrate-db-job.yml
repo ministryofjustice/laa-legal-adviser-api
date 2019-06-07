@@ -16,8 +16,6 @@ spec:
         imagePullPolicy: Never
         command: ["python", "manage.py", "migrate", "--noinput"]
         env:
-          - name: SECRET_KEY
-            value: secret
           - name: DB_USERNAME
             value: postgres
           - name: DB_NAME
