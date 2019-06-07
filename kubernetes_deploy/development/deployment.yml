@@ -24,8 +24,6 @@ spec:
         env:
         - name: LOG_LEVEL
           value: INFO
-        - name: SECRET_KEY
-          value: secret
         - name: DB_USERNAME
           value: postgres
         - name: DB_NAME

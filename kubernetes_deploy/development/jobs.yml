@@ -15,6 +15,3 @@ spec:
         image: "<to be set by deploy_to_kubernetes>"
         imagePullPolicy: Never
         command: ["python", "manage.py", "collectstatic", "--noinput"]
-        env:
-          - name: SECRET_KEY
-            value: secret
