@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: laa-legal-adviser-api
+  namespace: laa-legal-adviser-api-production
+spec:
+  tls:
+  - hosts:
+    - laa-legal-adviser-api-production.apps.live-1.cloud-platform.service.justice.gov.uk
+  - hosts:
+      - laa-legal-adviser-api-production.cloud-platform.service.justice.gov.uk
+  rules:
+  - host: laa-legal-adviser-api-production.apps.live-1.cloud-platform.service.justice.gov.uk
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: laa-legal-adviser-api
+          servicePort: 80
+  - host: laa-legal-adviser-api-production.cloud-platform.service.justice.gov.uk
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: laa-legal-adviser-api
+          servicePort: 80
