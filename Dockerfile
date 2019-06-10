@@ -36,6 +36,8 @@ ENV HOME /home/app
 ENV APP_HOME /home/app
 WORKDIR /home/app
 
+# Collect static files for template deploy to upload to s3
+# Kubernetes deploy does not need this as it runs it in a Job with the s3 storage backend set
 RUN docker/collectstatic.sh
 
 # Project permissions
