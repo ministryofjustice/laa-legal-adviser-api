@@ -10,7 +10,7 @@ spec:
     metadata:
       labels:
         app: laa-legal-adviser-api
-        env: prod
+        env: production
         service_area: laa-get-access
         service_team: cla-fala
     spec:
@@ -18,6 +18,8 @@ spec:
       - image: "<to be set by deploy_to_kubernetes>"
         name: app
         env:
+        - name: ENV
+          value: prod
         - name: UWSGI_CONFIG_FILE
           value: "/home/app/conf/uwsgi.ini:webapp"
         - name: LOG_LEVEL
