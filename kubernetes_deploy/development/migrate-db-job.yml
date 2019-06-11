@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
+  name: laa-legal-adviser-api-migrate-db
+spec:
+  template:
+    metadata:
+      name: laa-legal-adviser-api-migrate-db
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: app
+        image: "<to be set by deploy_to_kubernetes>"
+        imagePullPolicy: Never
+        command: ["python", "manage.py", "migrate", "--noinput"]
+        env:
+          - name: DB_USERNAME
+            value: postgres
+          - name: DB_NAME
+            value: laalaa
+          - name: DB_HOST
+            value: laa-legal-adviser-api-shared-services
+

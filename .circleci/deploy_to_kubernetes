@@ -4,7 +4,6 @@ set -o pipefail
 ROOT=$(dirname "$0")
 NAMESPACE="$1"
 NAMESPACE_DIR="$ROOT/../kubernetes_deploy/$NAMESPACE"
-JOBS_RESOURCE="$NAMESPACE_DIR/jobs.yml"
 
 if [ -z "$NAMESPACE" ] ; then
   printf "usage: deploy_to_kubernetes namespace\n"
@@ -22,16 +21,31 @@ if [ -z "$ECR_DEPLOY_IMAGE" ] ; then
 fi
 
 echo "Deploying $ECR_DEPLOY_IMAGE to $NAMESPACE..."
-echo "Deleting old jobs"
-kubectl delete -f $JOBS_RESOURCE --ignore-not-found
 
 echo "Running jobs"
-cat $JOBS_RESOURCE| \
-  kubectl set image app="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
-  kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
-  kubectl apply --record=false \
-    --filename=/dev/stdin
-kubectl wait --for=condition=complete -f $JOBS_RESOURCE --timeout=180s
+COLLECT_STATIC=$NAMESPACE_DIR/collect-static-job.yml 
+MIGRATE_DB=$NAMESPACE_DIR/migrate-db-job.yml 
+
+for JOB in $COLLECT_STATIC $MIGRATE_DB
+do
+  echo "Running $JOB"
+  kubectl delete -f $JOB --ignore-not-found
+  cat $JOB| \
+    kubectl set image app="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
+    kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
+    kubectl apply --record=false --filename=/dev/stdin
+done
+
+echo "Waiting for jobs"
+if ! kubectl wait --for=condition=complete -f $COLLECT_STATIC -f $MIGRATE_DB --timeout=180s ; then
+  echo "Failed pods:"
+  kubectl get pods --field-selector=status.phase=Failed
+  FIRST_POD=$(kubectl get pods --field-selector=status.phase=Failed -o=name | head -n 1)
+  echo "
+Logs for failed pod $FIRST_POD:"
+    kubectl logs $FIRST_POD
+  exit 1
+fi
 
 echo "Deploying app"
 # shellcheck disable=SC2002 # Useless cat, https://www.shellcheck.net/wiki/SC2002

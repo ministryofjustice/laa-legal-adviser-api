@@ -8,7 +8,7 @@ spec:
   ttlSecondsAfterFinished: 120
   template:
     metadata:
-      name: laa-legal-adviser-collect-static
+      name: laa-legal-adviser-api-collect-static
     spec:
       restartPolicy: Never
       containers:
