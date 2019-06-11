@@ -36,7 +36,10 @@ ENV HOME /home/app
 ENV APP_HOME /home/app
 WORKDIR /home/app
 
-RUN docker/collectstatic.sh
+# Collect static files for template deploy to upload to s3
+# Kubernetes deploy does not need this as it runs it in a Job with the s3 storage backend set,
+# so it can be removed once we're fully migrated
+RUN python manage.py collectstatic --noinput
 
 # Project permissions
 RUN  chown -R app: /home/app

@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
+  name: laa-legal-adviser-api-collect-static
+spec:
+  template:
+    metadata:
+      name: laa-legal-adviser-collect-static
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: app
+        image: "<to be set by deploy_to_kubernetes>"
+        imagePullPolicy: Never
+        command: ["python", "manage.py", "collectstatic", "--noinput"]
