@@ -6,7 +6,7 @@ django==1.11.20
 django-storages==1.7.1
 djangorestframework-gis==0.14.0
 djangorestframework==3.9.3
-logstash-formatter==0.5.9
+logstash-formatter==0.5.17
 psycopg2-binary==2.7.5
 raven==5.2.0
 requests==2.19.1
