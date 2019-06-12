@@ -22,4 +22,3 @@ spec:
             value: laalaa
           - name: DB_HOST
             value: laa-legal-adviser-api-shared-services
-
