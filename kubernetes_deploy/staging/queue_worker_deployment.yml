@@ -6,6 +6,10 @@ metadata:
   name: laa-legal-adviser-api-worker
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: laa-legal-adviser-api-worker
+      env: staging
   template:
     metadata:
       labels:
