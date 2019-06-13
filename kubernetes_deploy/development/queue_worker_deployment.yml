@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       labels:
-        worker: laa-legal-adviser-api-worker
+        app: laa-legal-adviser-api-worker
         env: development
         service_area: laa-get-access
         service_team: cla-fala
