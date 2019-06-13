@@ -10,3 +10,4 @@ spec:
     targetPort: 8000
   selector:
     app: laa-legal-adviser-api
+    tier: api

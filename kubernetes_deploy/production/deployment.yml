@@ -9,11 +9,13 @@ spec:
   selector:
     matchLabels:
       app: laa-legal-adviser-api
+      tier: api
       env: production
   template:
     metadata:
       labels:
         app: laa-legal-adviser-api
+        tier: api
         env: production
         service_area: laa-get-access
         service_team: cla-fala

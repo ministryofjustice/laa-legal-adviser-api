@@ -8,12 +8,14 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: laa-legal-adviser-api-worker
+      app: laa-legal-adviser-api
+      tier: worker
       env: production
   template:
     metadata:
       labels:
-        app: laa-legal-adviser-api-worker
+        app: laa-legal-adviser-api
+        tier: worker
         env: production
         service_area: laa-get-access
         service_team: cla-fala

@@ -11,6 +11,7 @@ spec:
     nodePort: 31000
   selector:
     app: laa-legal-adviser-api
+    tier: api
 ---
 apiVersion: v1
 kind: Service
@@ -18,7 +19,8 @@ metadata:
   name: laa-legal-adviser-api-shared-services
 spec:
   selector:
-    app: laa-legal-adviser-api-shared-services
+    app: laa-legal-adviser-api
+    tier: shared-services
   ports:
     - protocol: TCP
       name: mq-5432
