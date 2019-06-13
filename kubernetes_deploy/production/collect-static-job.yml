@@ -8,6 +8,11 @@ spec:
   template:
     metadata:
       name: laa-legal-adviser-api-collect-static
+      labels:
+        app: laa-legal-adviser-api
+        tier: collect-static
+        type: job
+        env: production
     spec:
       restartPolicy: Never
       containers:

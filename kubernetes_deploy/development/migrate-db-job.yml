@@ -8,6 +8,11 @@ spec:
   template:
     metadata:
       name: laa-legal-adviser-api-migrate-db
+      labels:
+        app: laa-legal-adviser-api
+        tier: migrate-db
+        type: job
+        env: development
     spec:
       restartPolicy: Never
       containers:
