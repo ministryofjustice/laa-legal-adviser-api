@@ -1,35 +1,27 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   annotations:
     kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
-  name: laa-legal-adviser-api
+  name: laa-legal-adviser-api-collect-static
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: laa-legal-adviser-api
-      tier: api
-      env: production
   template:
     metadata:
+      name: laa-legal-adviser-api-collect-static
       labels:
         app: laa-legal-adviser-api
-        tier: api
+        tier: collect-static
+        type: job
         env: production
-        service_area: laa-get-access
-        service_team: cla-fala
     spec:
+      restartPolicy: Never
       containers:
-      - image: "<to be set by deploy_to_kubernetes>"
-        name: app
+      - name: app
+        image: "<to be set by deploy_to_kubernetes>"
+        command: ["python", "manage.py", "collectstatic", "--noinput"]
         env:
         - name: ENV
           value: prod
-        - name: UWSGI_CONFIG_FILE
-          value: "/home/app/conf/uwsgi.ini:webapp"
-        - name: LOG_LEVEL
-          value: INFO
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
@@ -40,31 +32,6 @@ spec:
             secretKeyRef:
               name: sentry
               key: dsn
-        - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: db
-              key: user
-        - name: DB_NAME
-          valueFrom:
-            secretKeyRef:
-              name: db
-              key: name
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: db
-              key: password
-        - name: DB_HOST
-          valueFrom:
-            secretKeyRef:
-              name: db
-              key: host
-        - name: DB_PORT
-          valueFrom:
-            secretKeyRef:
-              name: db
-              key: port
         - name: STATIC_FILES_BACKEND
           value: s3
         - name: AWS_STORAGE_BUCKET_NAME

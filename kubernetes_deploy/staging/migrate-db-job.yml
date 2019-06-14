@@ -5,10 +5,14 @@ metadata:
     kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
   name: laa-legal-adviser-api-migrate-db
 spec:
-  ttlSecondsAfterFinished: 120
   template:
     metadata:
       name: laa-legal-adviser-api-migrate-db
+      labels:
+        app: laa-legal-adviser-api
+        tier: migrate-db
+        type: job
+        env: staging
     spec:
       restartPolicy: Never
       containers:
