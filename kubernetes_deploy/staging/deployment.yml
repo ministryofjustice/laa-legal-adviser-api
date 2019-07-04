@@ -23,6 +23,20 @@ spec:
       containers:
       - image: "<to be set by deploy_to_kubernetes>"
         name: app
+        readinessProbe:
+          httpGet:
+            path: /ping.json
+            port: 8000
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /ping.json
+            port: 8000
+          initialDelaySeconds: 10
+          timeoutSeconds: 1
+          periodSeconds: 10
         env:
         - name: UWSGI_CONFIG_FILE
           value: "/home/app/conf/uwsgi.ini:webapp"
