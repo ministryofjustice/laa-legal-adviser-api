@@ -33,7 +33,7 @@ spec:
           periodSeconds: 10
         livenessProbe:
           exec:
-            command: ["docker/ping_services.sh"]
+            command: ["docker/ping_worker_services.sh"]
           initialDelaySeconds: 10
           timeoutSeconds: 1
           periodSeconds: 10
