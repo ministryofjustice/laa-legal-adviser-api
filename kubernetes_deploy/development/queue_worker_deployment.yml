@@ -27,7 +27,7 @@ spec:
         args: ["docker/run_worker.sh"]
         readinessProbe:
           exec:
-            command: ["docker/ping_services.sh"]
+            command: ["docker/ping_worker_services.sh"]
           initialDelaySeconds: 5
           timeoutSeconds: 1
           periodSeconds: 10
