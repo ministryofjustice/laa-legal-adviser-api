@@ -8,13 +8,13 @@ import time
 import tempfile
 import xlrd
 
+from celery import Celery, Task
 from celery.task import TaskSet
-from django.utils.text import slugify
-from celery import Task
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.db import connection
+from django.utils.text import slugify
 
 from . import models
 from . import geocoder
@@ -36,6 +36,46 @@ try:
     basestring  # Python 2
 except NameError:
     basestring = str  # Python 3
+
+
+def get_stats():
+    app = Celery("laalaa")
+    app.config_from_object("django.conf:settings")
+    return app.control.inspect().stats()
+
+
+class NoWorkersException(Exception):
+    pass
+
+
+class BrokerConnectionException(Exception):
+    pass
+
+
+def check_workers():
+    try:
+        stats = get_stats()
+        if not stats:
+            raise NoWorkersException()
+
+        workers = stats.values()
+        if not workers:
+            raise NoWorkersException()
+
+    except IOError as e:
+        raise BrokerConnectionException(e)
+
+    except ImportError as e:
+        raise e
+
+
+def get_worker_health():
+    try:
+        check_workers()
+    except Exception:
+        return False
+    else:
+        return True
 
 
 def to_key(postcode):

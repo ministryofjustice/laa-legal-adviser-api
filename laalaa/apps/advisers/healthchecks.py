@@ -1,13 +1,7 @@
 from django.conf import settings
 from moj_irat.healthchecks import HealthcheckResponse, UrlHealthcheck, registry
 
-
-def get_stats():
-    from celery import Celery
-
-    app = Celery("laalaa")
-    app.config_from_object("django.conf:settings")
-    return app.control.inspect().stats()
+from tasks import BrokerConnectionException, NoWorkersException, check_workers
 
 
 class CeleryWorkersHealthcheck(object):
@@ -15,26 +9,18 @@ class CeleryWorkersHealthcheck(object):
         self.name = name
 
     def __call__(self, *args, **kwargs):
-
         try:
-            stats = get_stats()
-
-            if not stats:
-                return self.error_response("No running workers were found.")
-
-            workers = stats.values()
-            if not workers:
-                return self.error_response("No workers running.")
-
-        except IOError as e:
+            check_workers()
+        except NoWorkersException:
+            return self.error_response("No running workers were found.")
+        except BrokerConnectionException as e:
             msg = str(e)
             msg += ". Check that the message broker is running."
             return self.error_response(msg)
-
         except ImportError as e:
             return self.error_response(str(e))
-
-        return self.success_response()
+        else:
+            return self.success_response()
 
     def error_response(self, error):
         return HealthcheckResponse(self.name, False, error=error)
