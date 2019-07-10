@@ -12,7 +12,7 @@ class HealthcheckEndpointTest(unittest.TestCase):
         return stats
 
     @patch.object(requests, "get")
-    @mock.patch("advisers.healthchecks.get_stats")
+    @mock.patch("advisers.tasks.get_stats")
     def test_healthcheck_returns_ok_if_all_checks_pass(self, get_stats, mockget):
         mockresponse = Mock()
         mockget.return_value = mockresponse
