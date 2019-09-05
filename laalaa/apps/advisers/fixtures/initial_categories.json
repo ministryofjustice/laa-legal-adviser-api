@@ -105,22 +105,6 @@
   },
   {
     "fields": {
-      "civil": true,
-      "code": "DISC"
-    },
-    "model": "advisers.category",
-    "pk": 14
-  },
-  {
-    "fields": {
-      "civil": true,
-      "code": "EDU"
-    },
-    "model": "advisers.category",
-    "pk": 15
-  },
-  {
-    "fields": {
       "name": "Charity or Voluntary Org"
     },
     "model": "advisers.organisationtype",
