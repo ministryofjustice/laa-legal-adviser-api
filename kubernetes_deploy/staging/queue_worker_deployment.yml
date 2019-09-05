@@ -79,5 +79,5 @@ spec:
         - name: AMQP_BROKER_URL
           valueFrom:
             secretKeyRef:
-              name: amqp
+              name: celery-broker
               key: url
