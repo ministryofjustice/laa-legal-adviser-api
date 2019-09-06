@@ -52,5 +52,5 @@ spec:
           value: laa-legal-adviser-api-shared-services
         - name: DB_PORT
           value: "5432"
-        - name: AMQP_BROKER_URL
+        - name: BROKER_URL
           value: "amqp://guest:guest@laa-legal-adviser-api-shared-services:5672//"

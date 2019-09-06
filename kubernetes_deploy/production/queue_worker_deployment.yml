@@ -76,7 +76,7 @@ spec:
             secretKeyRef:
               name: db
               key: port
-        - name: AMQP_BROKER_URL
+        - name: BROKER_URL
           valueFrom:
             secretKeyRef:
               name: amqp
