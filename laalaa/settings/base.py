@@ -197,27 +197,6 @@ LOGGING = {
     "loggers": {"django.request": {"handlers": ["mail_admins"], "level": "ERROR", "propagate": True}},
 }
 
-# APP LOGGING CONFIG
-LOGGING["handlers"]["production_file"] = {
-    "level": "INFO",
-    "class": "logging.handlers.RotatingFileHandler",
-    "filename": "app.log",
-    "maxBytes": 1024 * 1024 * 5,  # 5 MB
-    "backupCount": 7,
-    "formatter": "logstash",
-    "filters": ["require_debug_false"],
-}
-
-LOGGING["handlers"]["debug_file"] = {
-    "level": "DEBUG",
-    "class": "logging.handlers.RotatingFileHandler",
-    "filename": "debug.log",
-    "maxBytes": 1024 * 1024 * 5,  # 5 MB
-    "backupCount": 7,
-    "formatter": "logstash",
-    "filters": ["require_debug_true"],
-}
-
 LOGGING["handlers"]["console"] = {"level": "DEBUG", "class": "logging.StreamHandler", "stream": sys.stdout}
 
 LOGGING["loggers"][""] = {"handlers": ["console"], "level": "DEBUG"}
