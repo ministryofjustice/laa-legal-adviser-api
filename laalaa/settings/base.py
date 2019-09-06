@@ -53,8 +53,6 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.gis",
-    "kombu.transport.django",
-    "djcelery",
     "rest_framework",
     "rest_framework_gis",
     "advisers",
@@ -152,7 +150,7 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"
 CACHE_MIDDLEWARE_SECONDS = 3600
 
 CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]
-CELERY_RESULT_BACKEND = "djcelery.backends.database:DatabaseBackend"
+CELERY_RESULT_BACKEND = "celery.backends.database:DatabaseBackend"
 BROKER_URL = os.environ.get("BROKER_URL")
 if not BROKER_URL:
     BROKER_URL = "amqp://%s:%s@%s//" % (
