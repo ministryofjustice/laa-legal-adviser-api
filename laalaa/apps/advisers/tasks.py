@@ -8,7 +8,7 @@ import time
 import tempfile
 import xlrd
 
-from celery.task import TaskSet
+from celery import group
 from django.utils.text import slugify
 from celery import Task
 from django.core.cache import cache
@@ -147,8 +147,8 @@ class ProgressiveAdviserImport(Task):
         for chunk in chunks():
             t = GeocoderTask().subtask(args=(chunk,))
             tasks.append(t)
-        ts = TaskSet(tasks=tasks)
-        res = ts.apply_async()
+        ts = group(tasks)
+        res = ts()
 
         task_counts = {}
         task_errors = {}
