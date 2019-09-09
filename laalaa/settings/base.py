@@ -151,9 +151,9 @@ CACHE_MIDDLEWARE_SECONDS = 3600
 
 CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]
 CELERY_RESULT_BACKEND = "celery.backends.database:DatabaseBackend"
-BROKER_URL = os.environ.get("BROKER_URL")
-if not BROKER_URL:
-    BROKER_URL = "amqp://%s:%s@%s//" % (
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+if not CELERY_BROKER_URL:
+    CELERY_BROKER_URL = "amqp://%s:%s@%s//" % (
         os.environ.get("RABBITMQ_USER", "guest"),
         os.environ.get("RABBITMQ_PASS", "guest"),
         os.environ.get("RABBITMQ_HOST", os.environ.get("HOST_IP", "127.0.0.1")),

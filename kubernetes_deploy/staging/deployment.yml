@@ -99,7 +99,7 @@ spec:
             secretKeyRef:
               name: s3
               key: region
-        - name: BROKER_URL
+        - name: CELERY_BROKER_URL
           valueFrom:
             secretKeyRef:
               name: celery-broker
