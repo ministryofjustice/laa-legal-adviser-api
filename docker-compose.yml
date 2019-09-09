@@ -4,10 +4,10 @@ services:
     image: jwilder/dockerize
     command: >
       -wait tcp://db:5432 -timeout 30s
-      -wait tcp://rabbitmq:5672 -timeout 30s
+      -wait tcp://redis:6379 -timeout 30s
     depends_on:
       - db
-      - rabbitmq
+      - redis
 
   start_app:
     image: jwilder/dockerize
@@ -28,15 +28,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: laalaa
 
-  rabbitmq:
-    image: rabbitmq:3.7-management-alpine
+  redis:
+    image: redis:4-alpine
     ports:
-      - target: 5672
-        published: 5672
-        protocol: tcp
-        mode: host
-      - target: 15672
-        published: 15672
+      - target: 6379
+        published: 6379
         protocol: tcp
         mode: host
 
@@ -50,10 +46,9 @@ services:
         mode: host
     environment:
       DB_USERNAME: postgres
-      DB_PASSWORD: 
+      DB_PASSWORD:
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: laalaa
-      HOST_IP: rabbitmq
-      RABBITMQ_USER: guest
-      RABBITMQ_PASS: guest
+      HOST_IP: redis
+      CELERY_BROKER_URL: redis://redis:6379

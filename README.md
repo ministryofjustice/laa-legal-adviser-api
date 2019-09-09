@@ -19,7 +19,7 @@ near that point.
 
 :memo: If you are using Docker to provide RabbitMQ, it's preferable to use one with management interface enabled:
 
-    docker run --detach --publish 5672:5672 --publish 15672:15672 rabbitmq:3.7-management-alpine
+    docker run --detach --publish 6379:6379 redis:4-alpine
 
 As a convenience, a `docker-compose.yml` specifies these dependendencies and can be run with:
 

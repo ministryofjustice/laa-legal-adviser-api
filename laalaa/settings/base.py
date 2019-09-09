@@ -154,13 +154,7 @@ CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]
 
 CELERY_RESULT_BACKEND = "django-db"
 
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
-if not CELERY_BROKER_URL:
-    CELERY_BROKER_URL = "amqp://%s:%s@%s//" % (
-        os.environ.get("RABBITMQ_USER", "guest"),
-        os.environ.get("RABBITMQ_PASS", "guest"),
-        os.environ.get("RABBITMQ_HOST", os.environ.get("HOST_IP", "127.0.0.1")),
-    )
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
 
 TEMP_DIRECTORY = root("tmp")
 

@@ -50,4 +50,4 @@ spec:
         - name: DB_PORT
           value: "5432"
         - name: CELERY_BROKER_URL
-          value: "amqp://guest:guest@laa-legal-adviser-api-shared-services:5672//"
+          value: "redis://laa-legal-adviser-api-shared-services:6379"
