@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 from os.path import join, abspath, dirname
 import sys
+import ssl
 
 
 def here(*x):
@@ -155,6 +156,10 @@ CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]
 CELERY_RESULT_BACKEND = "django-db"
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
+
+CELERY_BROKER_USE_SSL = os.environ.get("CELERY_BROKER_USE_SSL", None)
+if CELERY_BROKER_USE_SSL:
+    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 TEMP_DIRECTORY = root("tmp")
 

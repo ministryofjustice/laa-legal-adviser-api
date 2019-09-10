@@ -104,3 +104,5 @@ spec:
             secretKeyRef:
               name: celery-broker
               key: url
+        - name: CELERY_BROKER_USE_SSL
+          value: "true"
