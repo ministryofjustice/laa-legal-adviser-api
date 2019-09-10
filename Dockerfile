@@ -27,6 +27,7 @@ RUN pip install -r ./requirements/base.txt
 
 COPY . .
 
+RUN chown -R app:app laalaa/tmp
 RUN python manage.py collectstatic --noinput
 
 USER 1000
