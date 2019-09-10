@@ -76,8 +76,8 @@ cp laalaa/settings/local.py.example laalaa/settings/local.py
 
 | Service | Command |
 | --- | --- |
-| API | `python manage.py runserver` |
-| Worker | `python manage.py celery worker` |
+| API | `./manage.py runserver` |
+| Worker | `celery worker` |
 
 There is a Django admin site which allows importing and editing the database of legal advisers.
 
