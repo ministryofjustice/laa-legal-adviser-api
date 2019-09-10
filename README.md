@@ -72,6 +72,11 @@ Create a local.py settings file from the example file:
 cp laalaa/settings/local.py.example laalaa/settings/local.py
 ```
 
+## Categories
+Although there is a category Django model, categories should not be managed / added by code.
+Categories are remove and added as part of the providers spreadsheet upload which is done by
+users. See https://github.com/ministryofjustice/laa-legal-adviser-api/pull/133
+
 ## Running the services
 
 | Service | Command |
