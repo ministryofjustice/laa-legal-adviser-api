@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     "rest_framework",
     "rest_framework_gis",
     "advisers",
+    "categories",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -129,8 +130,8 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
-if os.environ.get("STATIC_FILES_BACKEND") == 's3':
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+if os.environ.get("STATIC_FILES_BACKEND") == "s3":
+    STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")

@@ -8,6 +8,24 @@ try:
 except NameError:
     unicode = str  # Python 3
 
+PROVIDER_CATEGORIES = {
+    "aap": "Claims Against Public Authorities",
+    "med": "Clinical negligence",
+    "com": "Community care",
+    "crm": "Crime",
+    "deb": "Debt",
+    "disc": "Discrimination",
+    "edu": "Education",
+    "mat": "Family",
+    "fmed": "Family mediation",
+    "hou": "Housing",
+    "immas": "Immigration or asylum",
+    "mhe": "Mental health",
+    "pl": "Prison law",
+    "pub": "Public law",
+    "wb": "Welfare benefits",
+}
+
 
 class Category(models.Model):
     code = models.CharField(max_length=8)
@@ -15,6 +33,10 @@ class Category(models.Model):
 
     def __unicode__(self):
         return unicode(self.code)
+
+    @property
+    def name(self):
+        return PROVIDER_CATEGORIES.get(self.code.lower())
 
 
 class OrganisationType(models.Model):
