@@ -38,7 +38,7 @@ spec:
           periodSeconds: 10
         env:
         - name: WORKER_APP_CONCURRENCY
-          value: "2"
+          value: "8"
         - name: LOG_LEVEL
           value: INFO
         - name: SECRET_KEY
