@@ -1,13 +1,10 @@
-FROM alpine:3.10
+FROM osgeo/gdal:alpine-normal-v2.4.1
 
 RUN apk add --no-cache \
       bash \
       postgresql-client \
       py2-pip \
-      tzdata && \
-    apk add --no-cache \
-      gdal \
-      --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+      tzdata
 
 RUN adduser -D app && \
     cp /usr/share/zoneinfo/Europe/London /etc/localtime
