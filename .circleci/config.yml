@@ -4,21 +4,14 @@ orbs:
 jobs:
   build:
     docker:
-      - image: docker:17.03-git
-    environment:
-      DSD_DOCKER_REGISTRY: "registry.service.dsd.io"
-      DSD_DOCKER_IMAGE: "laalaa"
+      - image: docker:18.09.3-git
     steps:
       - checkout
       - setup_remote_docker:
-          version: 17.03.0-ce
+          version: "18.09.3"
           docker_layer_caching: true
       - run:
-          name: Login to the DSD Docker registry
-          command: |
-            docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD --email "${DOCKER_USERNAME}@digital.justice.gov.uk" $DSD_DOCKER_REGISTRY
-      - run:
-          name: Login to the ECR Docker registry
+          name: Login to the Docker registry
           command: |
             apk add --no-cache --no-progress py2-pip
             pip install awscli
@@ -37,9 +30,7 @@ jobs:
           command: docker run --rm --tty --interactive application:$CIRCLE_SHA1 python --version | grep "2.7"
       - run:
           name: Tag and push Docker images
-          command: |
-            .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 $DSD_DOCKER_REGISTRY/$DSD_DOCKER_IMAGE
-            .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 ${ECR_DOCKER_REPO_BASE}
+          command: .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 ${ECR_DOCKER_REPO_BASE}
   lint:
     docker:
       - image: circleci/python:3.7
