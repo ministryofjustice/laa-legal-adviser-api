@@ -25,6 +25,9 @@ RUN pip install -r ./requirements/base.txt
 COPY . .
 
 RUN chown -R app:app laalaa/tmp
+
+# Kubernetes deploy does not need this as it runs it in a Job with the s3 storage backend set,
+# so it can be removed once we're fully migrated
 RUN python manage.py collectstatic --noinput
 
 USER 1000
