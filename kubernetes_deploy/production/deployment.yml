@@ -40,8 +40,6 @@ spec:
         env:
         - name: ENV
           value: prod
-        - name: UWSGI_CONFIG_FILE
-          value: "/home/app/conf/uwsgi.ini:webapp"
         - name: LOG_LEVEL
           value: INFO
         - name: SECRET_KEY
