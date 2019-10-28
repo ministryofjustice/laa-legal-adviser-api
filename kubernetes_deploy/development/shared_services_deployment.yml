@@ -27,5 +27,5 @@ spec:
           value: postgres
         - name: POSTGRES_DB
           value: laalaa
-      - image: rabbitmq:3.6-management-alpine
-        name: amq
+      - image: redis:4-alpine
+        name: redis

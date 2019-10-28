@@ -49,5 +49,5 @@ spec:
           value: laa-legal-adviser-api-shared-services
         - name: DB_PORT
           value: "5432"
-        - name: AMQP_BROKER_URL
-          value: "amqp://guest:guest@laa-legal-adviser-api-shared-services:5672//"
+        - name: CELERY_BROKER_URL
+          value: "redis://laa-legal-adviser-api-shared-services:6379"

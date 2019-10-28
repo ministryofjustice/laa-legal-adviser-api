@@ -8,7 +8,7 @@ import time
 import tempfile
 import xlrd
 
-from celery.task import TaskSet
+from celery import group
 from django.utils.text import slugify
 from celery import Task
 from django.core.cache import cache
@@ -18,6 +18,7 @@ from django.db import connection
 
 from . import models
 from . import geocoder
+from laalaa.celery import app
 
 
 logging.basicConfig(filename="adviser_import.log", level=logging.WARNING)
@@ -71,6 +72,8 @@ class StrippedDict(dict):
 
 
 class GeocoderTask(Task):
+    name = 'advisers.tasks.GeocoderTask'
+
     def __init__(self):
         self.errors = []
 
@@ -99,6 +102,8 @@ class GeocoderTask(Task):
 
 
 class ProgressiveAdviserImport(Task):
+    name = 'advisers.tasks.ProgressiveAdviserImport'
+
     worksheet_names = (
         "LOCAL ADVICE ORG",
         "OFFICE LOCATION",
@@ -147,8 +152,8 @@ class ProgressiveAdviserImport(Task):
         for chunk in chunks():
             t = GeocoderTask().subtask(args=(chunk,))
             tasks.append(t)
-        ts = TaskSet(tasks=tasks)
-        res = ts.apply_async()
+        ts = group(tasks)
+        res = ts()
 
         task_counts = {}
         task_errors = {}
@@ -517,3 +522,7 @@ class ProgressiveAdviserImport(Task):
                         off.account_number = cri.account_number AND
                         cat.code = cri.crime_category_code"""
         )
+
+
+app.register_task(GeocoderTask())
+app.register_task(ProgressiveAdviserImport())

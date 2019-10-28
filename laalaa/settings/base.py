@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 from os.path import join, abspath, dirname
 import sys
+import ssl
 
 
 def here(*x):
@@ -53,8 +54,7 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.gis",
-    "kombu.transport.django",
-    "djcelery",
+    "django_celery_results",
     "rest_framework",
     "rest_framework_gis",
     "advisers",
@@ -129,8 +129,8 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 0
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
-if os.environ.get("STATIC_FILES_BACKEND") == 's3':
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+if os.environ.get("STATIC_FILES_BACKEND") == "s3":
+    STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
@@ -152,14 +152,23 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"
 CACHE_MIDDLEWARE_SECONDS = 3600
 
 CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]
-CELERY_RESULT_BACKEND = "djcelery.backends.database:DatabaseBackend"
-BROKER_URL = os.environ.get("AMQP_BROKER_URL")
-if not BROKER_URL:
-    BROKER_URL = "amqp://%s:%s@%s//" % (
+
+CELERY_RESULT_BACKEND = "django-db"
+
+if "RABBITMQ_USER" in os.environ:
+    # Remove entire block when migration to Kubernetes is done
+    CELERY_BROKER_URL = "amqp://%s:%s@%s//" % (
         os.environ.get("RABBITMQ_USER", "guest"),
         os.environ.get("RABBITMQ_PASS", "guest"),
         os.environ.get("RABBITMQ_HOST", os.environ.get("HOST_IP", "127.0.0.1")),
     )
+else:
+
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
+
+    CELERY_BROKER_USE_SSL = os.environ.get("CELERY_BROKER_USE_SSL", None)
+    if CELERY_BROKER_USE_SSL:
+        CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 TEMP_DIRECTORY = root("tmp")
 
