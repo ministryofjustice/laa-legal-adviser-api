@@ -38,7 +38,7 @@ spec:
           periodSeconds: 10
         env:
         - name: WORKER_APP_CONCURRENCY
-          value: "2"
+          value: "8"
         - name: LOG_LEVEL
           value: INFO
         - name: SECRET_KEY
@@ -79,5 +79,7 @@ spec:
         - name: CELERY_BROKER_URL
           valueFrom:
             secretKeyRef:
-              name: amqp
+              name: celery-broker
               key: url
+        - name: CELERY_BROKER_USE_SSL
+          value: "true"
