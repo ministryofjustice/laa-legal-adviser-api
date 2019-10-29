@@ -104,5 +104,7 @@ spec:
         - name: CELERY_BROKER_URL
           valueFrom:
             secretKeyRef:
-              name: amqp
+              name: celery-broker
               key: url
+        - name: CELERY_BROKER_USE_SSL
+          value: "true"
