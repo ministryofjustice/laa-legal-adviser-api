@@ -6,7 +6,7 @@ def get_stats():
     from celery import Celery
 
     app = Celery("laalaa")
-    app.config_from_object("django.conf:settings")
+    app.config_from_object("django.conf:settings", namespace="CELERY")
     return app.control.inspect().stats()
 
 
