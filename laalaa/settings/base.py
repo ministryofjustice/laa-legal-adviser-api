@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     "rest_framework",
     "rest_framework_gis",
     "advisers",
+    "categories",
 )
 
 MIDDLEWARE_CLASSES = (
