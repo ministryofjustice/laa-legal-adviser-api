@@ -156,20 +156,12 @@ CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]
 
 CELERY_RESULT_BACKEND = "django-db"
 
-if "RABBITMQ_USER" in os.environ:
-    # Remove entire block when migration to Kubernetes is done
-    CELERY_BROKER_URL = "amqp://%s:%s@%s//" % (
-        os.environ.get("RABBITMQ_USER", "guest"),
-        os.environ.get("RABBITMQ_PASS", "guest"),
-        os.environ.get("RABBITMQ_HOST", os.environ.get("HOST_IP", "127.0.0.1")),
-    )
-else:
 
-    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
 
-    CELERY_BROKER_USE_SSL = os.environ.get("CELERY_BROKER_USE_SSL", None)
-    if CELERY_BROKER_USE_SSL:
-        CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
+CELERY_BROKER_USE_SSL = os.environ.get("CELERY_BROKER_USE_SSL", None)
+if CELERY_BROKER_USE_SSL:
+    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 TEMP_DIRECTORY = root("tmp")
 
