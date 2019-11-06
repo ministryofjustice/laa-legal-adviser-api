@@ -1,51 +1,36 @@
-#
-# LAALAA Dockerfile all environments
-#
-FROM phusion/baseimage:0.9.16
+FROM osgeo/gdal:alpine-normal-v2.4.1
 
-MAINTAINER Stuart Munro <stuart.munro@digital.justice.gov.uk>
+RUN apk add --no-cache \
+      bash \
+      postgresql-client \
+      py2-pip \
+      tzdata
 
-# Runtime User
-RUN useradd --uid 1000 --user-group -m -d /home/app app
+RUN adduser -D app && \
+    cp /usr/share/zoneinfo/Europe/London /etc/localtime
 
-# Set timezone
-RUN echo "Europe/London" > /etc/timezone  &&  dpkg-reconfigure -f noninteractive tzdata
+# To install pip dependencies
+RUN apk add --no-cache \
+      build-base \
+      linux-headers \
+      postgresql-dev \
+      python2-dev && \
+    pip install -U setuptools pip==18.1 wheel
 
-# Dependencies
-RUN DEBIAN_FRONTEND='noninteractive' \
-  apt-get update && \
-  apt-get -y --force-yes install bash apt-utils build-essential git software-properties-common libpq-dev g++ make \
-  libpcre3 libpcre3-dev libxslt-dev libxml2-dev wget libffi-dev postgis postgresql-9.3-postgis-scripts \
-  ntp libproj-dev binutils gdal-bin
-
-RUN apt-get clean
-
-# Install latest python
-ADD ./docker/install_python.sh /install_python.sh
-RUN /install_python.sh
-
-# Add requirements to docker
-ADD ./requirements/base.txt /requirements.txt
-RUN pip install -r /requirements.txt
-
-# Add project to container
-ADD . /home/app
-
-# Set correct environment variables.
-ENV HOME /home/app
-ENV APP_HOME /home/app
 WORKDIR /home/app
 
-# Collect static files for template deploy to upload to s3
+COPY requirements/base.txt requirements/base.txt
+RUN pip install -r ./requirements/base.txt
+
+COPY . .
+
+RUN chown -R app:app laalaa/tmp
+
 # Kubernetes deploy does not need this as it runs it in a Job with the s3 storage backend set,
 # so it can be removed once we're fully migrated
 RUN python manage.py collectstatic --noinput
 
-# Project permissions
-RUN  chown -R app: /home/app
-
-# Specify the user by numeric ID, for environments which use the ID to determine that the user is non-root
 USER 1000
 EXPOSE 8000
 
-CMD ["/home/app/docker/run.sh"]
+CMD ["docker/run.sh"]

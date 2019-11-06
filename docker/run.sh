@@ -14,4 +14,4 @@ fi
 # Run server
 export UWSGI_CONFIG_FILE=${UWSGI_CONFIG_FILE:-/home/app/conf/uwsgi.ini:allinone}  # Until we move off template deploy and onto Kubernetes with the split app
 export WORKER_APP_CONCURRENCY=${WORKER_APP_CONCURRENCY:-8}
-/usr/local/bin/uwsgi --ini $UWSGI_CONFIG_FILE
+/usr/bin/uwsgi --ini $UWSGI_CONFIG_FILE
