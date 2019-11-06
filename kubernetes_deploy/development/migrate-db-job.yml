@@ -21,9 +21,5 @@ spec:
         imagePullPolicy: Never
         command: ["python", "manage.py", "migrate", "--noinput"]
         env:
-          - name: DB_USERNAME
-            value: postgres
-          - name: DB_NAME
-            value: laalaa
-          - name: DB_HOST
-            value: laa-legal-adviser-api-shared-services
+          - name: DATABASE_URL
+            value: "postgres://postgres@laa-legal-adviser-api-shared-services:5432/laalaa"
