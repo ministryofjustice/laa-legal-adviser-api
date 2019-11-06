@@ -13,6 +13,7 @@ import os
 from os.path import join, abspath, dirname
 import sys
 import ssl
+import dj_database_url
 
 
 def here(*x):
@@ -98,14 +99,9 @@ TEMPLATES = [
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": os.environ.get("DB_NAME", "laalaa"),
-        "USER": os.environ.get("DB_USERNAME", os.environ.get("DB_NAME", "postgres")),
-        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-        "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-    }
+    "default": dj_database_url.config(
+        default="postgres://postgres@127.0.0.1:5432/laalaa", engine="django.contrib.gis.db.backends.postgis"
+    )
 }
 
 # Internationalization
