@@ -15,6 +15,7 @@ xlrd==0.9.3
 django-moj-irat>=0.4
 # https://github.com/celery/kombu/issues/1063
 kombu==4.6.3
+dj-database-url==0.5.0
 
 # locks for Python 2.7
 more-itertools==5.0.0
