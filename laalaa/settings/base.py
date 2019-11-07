@@ -100,7 +100,9 @@ TEMPLATES = [
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgis://postgres@127.0.0.1:5432/laalaa", engine="django.contrib.gis.db.backends.postgis"
+        env="DATABASE_URL",
+        default="postgis://postgres@127.0.0.1:5432/laalaa",
+        engine="django.contrib.gis.db.backends.postgis",
     )
 }
 
