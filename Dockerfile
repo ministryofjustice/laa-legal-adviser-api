@@ -1,6 +1,7 @@
 FROM osgeo/gdal:alpine-normal-v2.4.1
 
-RUN apk add --no-cache \
+RUN apk upgrade --no-cache && \
+    apk add --no-cache \
       bash \
       postgresql-client \
       py2-pip \
