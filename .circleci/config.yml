@@ -95,6 +95,41 @@ jobs:
             source env/bin/activate
             python manage.py test
 
+  image_security_scan:
+    docker:
+      - image: docker:18.09.3-git
+    steps:
+      - setup_remote_docker:
+          version: "18.09.3"
+      - run:
+          name: Login to the Docker registry
+          command: |
+            apk add --no-cache --no-progress py2-pip
+            pip install awscli
+            ecr_login="$(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
+            ${ecr_login}
+      - run:
+          name: Install trivy
+          command: |
+            apk add --update curl
+            VERSION=$(
+                curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
+                grep '"tag_name":' | \
+                sed -E 's/.*"v([^"]+)".*/\1/'
+            )
+
+            wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+            tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+            mv trivy /usr/local/bin
+      - run:
+          name: Pull down image
+          command: docker pull ${ECR_DOCKER_REPO_BASE}
+      - run:
+          name: Scan the image with trivy
+          command: |
+            trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM,HIGH --no-progress ${ECR_DOCKER_REPO_BASE}
+            trivy --exit-code 1 --severity CRITICAL --no-progress ${ECR_DOCKER_REPO_BASE}
+
   staging_deploy:
     docker:
       - image: ${ECR_ENDPOINT}/cloud-platform/tools:circleci
@@ -137,6 +172,9 @@ workflows:
           requires:
             - lint
             - test
+      - image_security_scan:
+          requires:
+            - build
       - staging_deploy_approval:
           type: approval
           requires:
@@ -148,6 +186,7 @@ workflows:
           type: approval
           requires:
             - staging_deploy
+            - image_security_scan
           filters:
             branches:
                 only:
