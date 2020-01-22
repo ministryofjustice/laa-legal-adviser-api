@@ -8,6 +8,6 @@ from moj_irat.views import HealthcheckView
 
 urlpatterns = [
     url(r"^healthcheck.json$", never_cache(HealthcheckView.as_view()), name="healthcheck_json"),
-    url(r"^admin/", include(admin_site.urls)),
+    url(r"^admin/", admin_site.urls),
     url(r"^", include("advisers.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
                 ("telephone", models.CharField(max_length=48)),
                 ("account_number", models.CharField(unique=True, max_length=10)),
-                ("location", models.ForeignKey(to="advisers.Location")),
+                ("location", models.ForeignKey(to="advisers.Location", on_delete=models.CASCADE)),
             ],
             options={},
             bases=(models.Model,),
@@ -66,8 +66,8 @@ class Migration(migrations.Migration):
             name="OutreachService",
             fields=[
                 ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
-                ("location", models.ForeignKey(to="advisers.Location")),
-                ("office", models.ForeignKey(to="advisers.Office")),
+                ("location", models.ForeignKey(to="advisers.Location", on_delete=models.CASCADE)),
+                ("office", models.ForeignKey(to="advisers.Office", on_delete=models.CASCADE)),
             ],
             options={},
             bases=(models.Model,),
@@ -84,19 +84,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="outreachservice",
             name="type",
-            field=models.ForeignKey(to="advisers.OutreachType"),
+            field=models.ForeignKey(to="advisers.OutreachType", on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name="organisation",
             name="type",
-            field=models.ForeignKey(to="advisers.OrganisationType"),
+            field=models.ForeignKey(to="advisers.OrganisationType", on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name="office",
             name="organisation",
-            field=models.ForeignKey(to="advisers.Organisation"),
+            field=models.ForeignKey(to="advisers.Organisation", on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

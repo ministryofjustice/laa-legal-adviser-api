@@ -41,13 +41,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="office",
             name="location",
-            field=models.OneToOneField(null=True, to="advisers.Location"),
+            field=models.OneToOneField(null=True, to="advisers.Location", on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name="outreachservice",
             name="location",
-            field=models.OneToOneField(null=True, to="advisers.Location"),
+            field=models.OneToOneField(null=True, to="advisers.Location", on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.RunPython(load_fixture, reverse_code=unload_fixture),

@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="category",
             name="firm",
-            field=models.ForeignKey(to="advisers.Organisation", null=True),
+            field=models.ForeignKey(to="advisers.Organisation", null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(
