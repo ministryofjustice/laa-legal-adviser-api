@@ -4,7 +4,7 @@ RUN apk upgrade --no-cache && \
     apk add --no-cache \
       bash \
       postgresql-client \
-      py2-pip \
+      py3-pip \
       tzdata
 
 RUN adduser -D app && \
@@ -15,13 +15,13 @@ RUN apk add --no-cache \
       build-base \
       linux-headers \
       postgresql-dev \
-      python2-dev && \
-    pip install -U setuptools pip==18.1 wheel
+      python3-dev && \
+    pip3 install -U setuptools pip==18.1 wheel
 
 WORKDIR /home/app
 
 COPY requirements/base.txt requirements/base.txt
-RUN pip install -r ./requirements/base.txt
+RUN pip3 install -r ./requirements/base.txt
 
 COPY . .
 
