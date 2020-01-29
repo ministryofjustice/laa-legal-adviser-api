@@ -27,7 +27,7 @@ jobs:
               .
       - run:
           name: Validate Python version
-          command: docker run --rm --tty --interactive application:$CIRCLE_SHA1 python --version | grep "2.7"
+          command: docker run --rm --tty --interactive application:$CIRCLE_SHA1 python --version | grep "3.7"
       - run:
           name: Tag and push Docker images
           command: .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 ${ECR_DOCKER_REPO_BASE}
@@ -65,7 +65,7 @@ jobs:
             black --check --skip-string-normalization laalaa
   test:
     docker:
-      - image: circleci/python:2.7
+      - image: circleci/python:3.7
       - image: circleci/postgres:9.4-alpine-postgis
     steps:
       - checkout
