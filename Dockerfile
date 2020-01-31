@@ -4,7 +4,6 @@ RUN apk upgrade --no-cache && \
     apk add --no-cache \
       bash \
       postgresql-client \
-      py3-pip \
       tzdata
 
 RUN adduser -D app && \
@@ -14,15 +13,15 @@ RUN adduser -D app && \
 RUN apk add --no-cache \
       build-base \
       linux-headers \
-      postgresql-dev \
-      python3-dev && \
-    pip3 install -U setuptools pip==18.1 wheel
+      postgresql-dev
+
+# Install python3.7 from a later repository than the base image uses
+RUN apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main python3-dev=3.7.5-r1 && \
+    rm /usr/bin/python && \
+        ln -s /usr/bin/python3 /usr/bin/python && \
+        ln -s /usr/bin/pip3 /usr/bin/pip
 
 WORKDIR /home/app
-
-RUN rm /usr/bin/python && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
 
 COPY requirements/base.txt requirements/base.txt
 RUN pip install -r ./requirements/base.txt
