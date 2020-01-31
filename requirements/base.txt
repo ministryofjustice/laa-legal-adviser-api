@@ -15,6 +15,3 @@ xlrd~=1.0
 django-moj-irat>=0.4
 
 dj-database-url==0.5.0
-
-# locks for Python 2.7
-more-itertools==5.0.0
