@@ -20,8 +20,12 @@ RUN apk add --no-cache \
 
 WORKDIR /home/app
 
+RUN rm /usr/bin/python && \
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
+
 COPY requirements/base.txt requirements/base.txt
-RUN pip3 install -r ./requirements/base.txt
+RUN pip install -r ./requirements/base.txt
 
 COPY . .
 
