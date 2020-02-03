@@ -13,5 +13,4 @@ requests==2.20.0
 uwsgi==2.0.17.1
 xlrd~=1.0
 django-moj-irat>=0.4
-
 dj-database-url==0.5.0

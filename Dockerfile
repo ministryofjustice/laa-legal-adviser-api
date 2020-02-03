@@ -18,8 +18,9 @@ RUN apk add --no-cache \
 # Install python3.7 from a later repository than the base image uses
 RUN apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main python3-dev=3.7.5-r1 && \
     rm /usr/bin/python && \
-        ln -s /usr/bin/python3 /usr/bin/python && \
-        ln -s /usr/bin/pip3 /usr/bin/pip
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip && \
+    pip install -U setuptools pip==18.1 wheel
 
 WORKDIR /home/app
 
