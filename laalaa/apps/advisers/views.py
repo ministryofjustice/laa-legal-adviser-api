@@ -134,7 +134,11 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             origin = self.get_origin_point() or self.get_origin_postcode()
             if origin:
-                return queryset.distance(origin, field_name="point").order_by("distance")
+                # srid is required for calculating when distance otherwise Distance will throw an exception
+                origin.srid = origin.srid or 4326
+                from django.contrib.gis.db.models.functions import Distance
+
+                return queryset.annotate(distance=Distance("point", origin)).order_by("distance")
 
         return queryset
 

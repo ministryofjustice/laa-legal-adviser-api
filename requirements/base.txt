@@ -1,21 +1,16 @@
 boto3==1.9.159
-celery[redis]==4.3.0
+celery[redis]==4.4.0
 django-celery-results==1.1.2
 django-filter==1.1
-django==1.11.23
+django==2.2.10
 django-storages==1.7.1
 djangorestframework-gis==0.14.0
 djangorestframework==3.9.3
 logstash-formatter==0.5.9
 psycopg2-binary==2.7.5
-raven==5.2.0
+raven~=6.0
 requests==2.20.0
 uwsgi==2.0.17.1
-xlrd==0.9.3
+xlrd==1.2.0
 django-moj-irat>=0.4
-# https://github.com/celery/kombu/issues/1063
-kombu==4.6.3
 dj-database-url==0.5.0
-
-# locks for Python 2.7
-more-itertools==5.0.0

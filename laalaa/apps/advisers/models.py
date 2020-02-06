@@ -54,13 +54,13 @@ class Organisation(models.Model):
     name = models.CharField(max_length=255)
     website = models.URLField(null=True, blank=True)
     contracted = models.BooleanField(default=True)
-    type = models.ForeignKey("OrganisationType")
+    type = models.ForeignKey("OrganisationType", on_delete=models.CASCADE)
 
     def __unicode__(self):
         return unicode(self.name)
 
 
-class LocationManager(models.GeoManager):
+class LocationManager(models.Manager):
     def get_queryset(self):
         return (
             super(LocationManager, self)
@@ -118,8 +118,8 @@ class Location(models.Model):
 class Office(models.Model):
     telephone = models.CharField(max_length=48)
     account_number = models.CharField(max_length=10, unique=True)
-    organisation = models.ForeignKey("Organisation")
-    location = models.OneToOneField("Location", null=True)
+    organisation = models.ForeignKey("Organisation", on_delete=models.CASCADE)
+    location = models.OneToOneField("Location", null=True, on_delete=models.CASCADE)
     categories = models.ManyToManyField(Category)
 
 
@@ -131,9 +131,9 @@ class OutreachType(models.Model):
 
 
 class OutreachService(models.Model):
-    office = models.ForeignKey("Office")
-    location = models.OneToOneField("Location", null=True)
-    type = models.ForeignKey("OutreachType")
+    office = models.ForeignKey("Office", on_delete=models.CASCADE)
+    location = models.OneToOneField("Location", null=True, on_delete=models.CASCADE)
+    type = models.ForeignKey("OutreachType", on_delete=models.CASCADE)
     categories = models.ManyToManyField(Category)
 
     @property
@@ -164,4 +164,4 @@ class Import(models.Model):
     started = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=7, choices=list(IMPORT_STATUSES))
     filename = models.TextField()
-    user = models.ForeignKey(User, null=True)
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)

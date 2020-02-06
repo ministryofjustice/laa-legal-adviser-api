@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("filename", models.TextField()),
-                ("user", models.ForeignKey(to=settings.AUTH_USER_MODEL, null=True)),
+                ("user", models.ForeignKey(to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)),
             ],
             options={},
             bases=(models.Model,),

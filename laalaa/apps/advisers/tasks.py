@@ -72,7 +72,7 @@ class StrippedDict(dict):
 
 
 class GeocoderTask(Task):
-    name = 'advisers.tasks.GeocoderTask'
+    name = "advisers.tasks.GeocoderTask"
 
     def __init__(self):
         self.errors = []
@@ -85,7 +85,7 @@ class GeocoderTask(Task):
             self.errors.append(err)
 
         for n, postcode in enumerate(postcodes):
-            pc = re.sub(" +", " ", postcode[0]).encode("utf-8")
+            pc = re.sub(" +", " ", postcode[0])
             try:
                 point = geocode(pc)
             except geocoder.PostcodeNotFound:
@@ -102,7 +102,7 @@ class GeocoderTask(Task):
 
 
 class ProgressiveAdviserImport(Task):
-    name = 'advisers.tasks.ProgressiveAdviserImport'
+    name = "advisers.tasks.ProgressiveAdviserImport"
 
     worksheet_names = (
         "LOCAL ADVICE ORG",
@@ -208,12 +208,13 @@ class ProgressiveAdviserImport(Task):
         def value(cell):
             if cell.ctype == xlrd.XL_CELL_NUMBER:
                 return int(cell.value)
-            return cell.value.encode("utf-8", errors="ignore")
+            return cell.value
 
-        with open(csv_filename, "wb") as csv_file:
+        with open(csv_filename, "w") as csv_file:
             writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
             for row in xrange(worksheet.nrows):
-                writer.writerow([value(cell) for cell in worksheet.row(row)])
+                items = [value(cell) for cell in worksheet.row(row)]
+                writer.writerow(items)
         return csv_filename, headers, types
 
     def load_csv_into_db(self, csv_filename, headers, types):

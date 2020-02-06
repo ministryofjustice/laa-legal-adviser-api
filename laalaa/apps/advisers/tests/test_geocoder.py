@@ -108,7 +108,7 @@ class AdviserViewSetTest(django.test.TestCase):
         )
 
         office = models.Office.objects.create(telephone="0200 000 0000", location=loc, organisation=org)
-        office.categories = [category]
+        office.categories.set([category])
         office.save()
 
     @mock.patch("advisers.geocoder.lookup_postcode")
