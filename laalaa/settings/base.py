@@ -197,6 +197,8 @@ if "SENTRY_DSN" in os.environ:
 
     MIDDLEWARE = ("raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware",) + MIDDLEWARE
 
+TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
+TEST_OUTPUT_DIR = "test-reports"
 
 # .local.py overrides all the common settings.
 try:

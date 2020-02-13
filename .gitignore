@@ -75,3 +75,4 @@ node_modules/
 
 laalaa/settings/local.py
 laalaa/static/
+test-reports/
