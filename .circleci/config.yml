@@ -93,7 +93,17 @@ jobs:
           name: Run unit tests
           command: |
             source env/bin/activate
-            python manage.py test
+            coverage run manage.py test --verbosity=2
+            coverage report -m
+            coverage html
+            coveralls
+      - store_artifacts:
+          path: htmlcov
+          destination: coverage
+      - store_test_results:
+          path: test-reports
+      - store_artifacts:
+          path: test-reports
 
   image_security_scan:
     docker:

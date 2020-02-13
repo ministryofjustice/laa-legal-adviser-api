@@ -5,3 +5,4 @@ mock
 responses==0.9.0
 pre-commit==1.14.2
 unittest-xml-reporting==3.0.1
+coverage==5.0.3
