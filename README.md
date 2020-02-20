@@ -1,5 +1,7 @@
 # LAA Legal Adviser API
 
+[![Coverage Status](https://coveralls.io/repos/github/ministryofjustice/laa-legal-adviser-api/badge.svg?branch=master)](https://coveralls.io/github/ministryofjustice/laa-legal-adviser-api?branch=master)
+
 Service to search for nearby LAA Legal Advisers by postcode.
 
 The search is based on looking up latitude and longitude from the given postcode and finding legal advisers who are
