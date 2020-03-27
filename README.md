@@ -10,8 +10,8 @@ near that point.
 ## Dependencies
 
 * Virtualenv
-* Python 2.7
-* RabbitMQ
+* Python 3.7
+* Redis
 * PostgreSQL => 9.3 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
 * [PostGIS](https://postgis.net/) (`brew install postgis`)
 
@@ -36,7 +36,7 @@ pip install virtualenv
 
 # Create a virtualenv
 # In the directory in which the virtualenv directory should be created
-virtualenv -p python2 env
+virtualenv -p python3 env
 
 # Start the virtualenv
 source env/bin/activate
@@ -111,30 +111,5 @@ The repository unit tests and Docker images are built by CircleCI at https://cir
 Deployment can be triggered via https://ci.service.dsd.io/job/DEPLOY-laalaa.
 
 ## Releasing
-
-### Releasing to non-production
-
-> Currently, `staging` is the only non-production environment.
-
-1. Wait for [the Docker build to complete on CircleCI](https://circleci.com/gh/ministryofjustice/laa-legal-adviser-api) for the feature branch.
-1. Copy the `feature_branch.<sha>` reference from the `build` job's "Push Docker image" step. Eg:
-    ```
-    Pushing tag for rev [1ad776954b2e] on {https://registry.service.dsd.io/v1/repositories/laalaa/tags/dependabot-pip-django-filter-2.0.0.7243223}}
-    ```
-1. [Deploy `feature_branch.<sha>`](https://ci.service.dsd.io/view/LaaLaa/job/DEPLOY-laalaa/build?delay=0sec).
-    * `ENVIRONMENT` is the target environment, select "staging".
-    * `DEPLOY_BRANCH` is the [deploy repo's](https://github.com/ministryofjustice/laalaa-deploy) default branch name, usually master.
-    * `VERSION` is the branch that needs to be released plus a specific 7-character prefix of the Git SHA. (`dependabot-pip-django-filter-2.0.0.7243223` for the above example).
-
-### Releasing to production
-
-1. Please make sure you tested on a non-production environment before merging.
-1. Merge your feature branch pull request to `master`.
-1. Wait for [the Docker build to complete on CircleCI](https://circleci.com/gh/ministryofjustice/laa-legal-adviser-api/tree/master) for the `master` branch.
-1. Copy the `master.<sha>` reference from the `build` job's "Tag and push Docker images" step. Eg:
-    ```
-    Pushing tag for rev [70079f727578] on {https://registry.service.dsd.io/v1/repositories/laalaa/tags/master.9d39b80}
-    ```
-1. [Deploy `master.<sha>` to **prod**uction](https://ci.service.dsd.io/view/LaaLaa/job/DEPLOY-laalaa/build?delay=0sec).
-
-:tada: :shipit:
+* [Releasing](https://github.com/ministryofjustice/laa-civil-legal-aid-documentation/blob/master/releasing/kubernetes.md)
+(opens in https://github.com/ministryofjustice/laa-civil-legal-aid-documentation)
