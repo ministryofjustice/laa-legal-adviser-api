@@ -16,7 +16,7 @@ RUN apk add --no-cache \
       postgresql-dev
 
 # Install python3.7 from a later repository than the base image uses
-RUN apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main python3-dev=3.7.5-r1 && \
+RUN apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main python3-dev=3.7.7-r0 && \
     rm /usr/bin/python && \
     ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip && \
