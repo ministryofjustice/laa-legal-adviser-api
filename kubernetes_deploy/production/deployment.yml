@@ -20,6 +20,7 @@ spec:
         service_area: laa-get-access
         service_team: cla-fala
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
       - image: "<to be set by deploy_to_kubernetes>"
         name: app
@@ -37,6 +38,10 @@ spec:
           initialDelaySeconds: 10
           timeoutSeconds: 1
           periodSeconds: 10
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sleep","10"]
         env:
         - name: ENV
           value: prod
