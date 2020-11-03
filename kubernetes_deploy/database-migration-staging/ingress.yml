@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: laa-legal-adviser-api-database-migration
+  namespace: laa-legal-adviser-api-staging
+spec:
+  tls:
+  - hosts:
+    - database-migration-laa-legal-adviser-api-staging.apps.live-1.cloud-platform.service.justice.gov.uk
+  rules:
+  - host: database-migration-laa-legal-adviser-api-staging.apps.live-1.cloud-platform.service.justice.gov.uk
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: laa-legal-adviser-api-database-migration
+          servicePort: 80

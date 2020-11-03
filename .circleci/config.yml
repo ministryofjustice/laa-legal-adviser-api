@@ -161,7 +161,7 @@ jobs:
       - deploy:
           name: Deploy laalaa to staging
           command: |
-            .circleci/deploy_to_kubernetes staging
+            .circleci/deploy_to_kubernetes database-migration-staging
       - slack/status
 
   production_deploy:
