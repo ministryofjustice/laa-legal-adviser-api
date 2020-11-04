@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: database-migration
-          image: "saidmoj/database-migration:python3.7"
+          image: "saidmoj/database-migration:postgis"
           imagePullPolicy: Always
           env:
             - name: TARGET_DB_HOST
