@@ -30,5 +30,5 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: db
+              name: database
               key: url
