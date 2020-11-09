@@ -13,7 +13,10 @@ import os
 from os.path import join, abspath, dirname
 import sys
 import ssl
+
 import dj_database_url
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 
 def here(*x):
@@ -189,13 +192,14 @@ LOGGING["handlers"]["console"] = {"level": "DEBUG", "class": "logging.StreamHand
 
 LOGGING["loggers"][""] = {"handlers": ["console"], "level": "DEBUG"}
 
-# RAVEN SENTRY CONFIG
+# SENTRY CONFIG
 if "SENTRY_DSN" in os.environ:
-    RAVEN_CONFIG = {"dsn": os.environ.get("SENTRY_DSN")}
-
-    INSTALLED_APPS += ("raven.contrib.django.raven_compat",)
-
-    MIDDLEWARE = ("raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware",) + MIDDLEWARE
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN"),
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+        environment=os.environ.get("ENV", "unknown")
+    )
 
 TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
 TEST_OUTPUT_DIR = "test-reports"
