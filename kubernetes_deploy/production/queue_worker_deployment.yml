@@ -37,6 +37,8 @@ spec:
           timeoutSeconds: 1
           periodSeconds: 10
         env:
+        - name: ENV
+          value: prod
         - name: WORKER_APP_CONCURRENCY
           value: "8"
         - name: LOG_LEVEL
