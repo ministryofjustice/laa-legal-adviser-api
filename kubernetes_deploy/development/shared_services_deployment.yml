@@ -20,7 +20,7 @@ spec:
         service_team: cla-fala
     spec:
       containers:
-      - image: circleci/postgres:9.4-alpine-postgis
+      - image: circleci/postgres:11-alpine-postgis
         name: db
         env:
         - name: POSTGRES_USER
