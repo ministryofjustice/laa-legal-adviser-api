@@ -198,7 +198,7 @@ if "SENTRY_DSN" in os.environ:
         dsn=os.environ.get("SENTRY_DSN"),
         integrations=[DjangoIntegration()],
         traces_sample_rate=1.0,
-        environment=os.environ.get("ENV", "unknown")
+        environment=os.environ.get("ENV", "unknown"),
     )
 
 TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
