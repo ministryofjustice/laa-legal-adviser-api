@@ -66,7 +66,7 @@ jobs:
   test:
     docker:
       - image: circleci/python:3.7
-      - image: circleci/postgres:9.4-alpine-postgis
+      - image: circleci/postgres:11-alpine-postgis
     steps:
       - checkout
       - run:
@@ -162,6 +162,7 @@ jobs:
           name: Deploy laalaa to staging
           command: |
             .circleci/deploy_to_kubernetes staging
+            .circleci/deploy_to_kubernetes database-migration-staging
       - slack/status
 
   production_deploy:
@@ -178,6 +179,7 @@ jobs:
           name: Deploy laalaa to production
           command: |
             .circleci/deploy_to_kubernetes production
+            .circleci/deploy_to_kubernetes database-migration-production
       - slack/status
 
 workflows:

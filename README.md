@@ -12,12 +12,12 @@ near that point.
 * Virtualenv
 * Python 3.7
 * Redis
-* PostgreSQL => 9.3 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
+* PostgreSQL => 11 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
 * [PostGIS](https://postgis.net/) (`brew install postgis`)
 
-:memo: If you are using Docker to provide a database, please use `circleci/postgres:9.4-alpine-postgis`, which has the required extensions installed.
+:memo: If you are using Docker to provide a database, please use `circleci/postgres:11-alpine-postgis`, which has the required extensions installed.
 
-    docker run --detach --publish 5432:5432 circleci/postgres:9.4-alpine-postgis
+    docker run --detach --publish 5432:5432 circleci/postgres:11-alpine-postgis
 
 :memo: If you are using Docker to provide RabbitMQ, it's preferable to use one with management interface enabled:
 
