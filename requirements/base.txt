@@ -1,3 +1,4 @@
+requests==2.20.0
 boto3==1.9.159
 celery[redis]==4.4.0
 django-celery-results==1.1.2
@@ -7,9 +8,8 @@ django-storages==1.7.1
 djangorestframework-gis==0.14.0
 djangorestframework==3.9.3
 logstash-formatter==0.5.9
-psycopg2-binary==2.7.5
-raven~=6.0
-requests==2.20.0
+psycopg2-binary==2.8.6
+sentry-sdk==0.19.2
 uwsgi==2.0.17.1
 xlrd==1.2.0
 django-moj-irat>=0.4

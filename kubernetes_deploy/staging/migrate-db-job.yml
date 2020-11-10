@@ -20,6 +20,8 @@ spec:
         image: "<to be set by deploy_to_kubernetes>"
         command: ["python", "manage.py", "migrate", "--noinput"]
         env:
+        - name: ENV
+          value: staging
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
