@@ -27,6 +27,7 @@ PROVIDER_CATEGORIES = {
     "pl": "Prison law",
     "pub": "Public law",
     "wb": "Welfare benefits",
+    "mosl": "Modern slavery",
 }
 
 
