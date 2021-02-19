@@ -15,7 +15,7 @@ RUN apk add --no-cache \
       linux-headers \
       postgresql-dev
 
-# Remove the python3 version included by the base image install the latest version that fixes [CVE-2021-3177]
+# Remove the python3 version included by the base image; install the latest version that fixes [CVE-2021-3177]
 RUN apk del python3 \
     && apk add --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main python3-dev \
     && apk add --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community py3-pip \
