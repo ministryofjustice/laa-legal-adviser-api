@@ -1,4 +1,4 @@
-FROM osgeo/gdal:alpine-normal-v2.4.1
+FROM osgeo/gdal:alpine-normal-3.2.1
 
 RUN apk upgrade --no-cache && \
     apk add --no-cache \
@@ -15,12 +15,11 @@ RUN apk add --no-cache \
       linux-headers \
       postgresql-dev
 
-# Install python3.7 from a later repository than the base image uses
-RUN apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main python3-dev=3.7.7-r1 && \
-    rm /usr/bin/python && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip && \
-    pip install -U setuptools pip==18.1 wheel
+# Remove the python3 version included by the base image; install the latest version that fixes [CVE-2021-3177]
+RUN apk del python3 \
+    && apk add --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main python3-dev \
+    && apk add --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community py3-pip \
+    && pip install -U setuptools pip==18.1 wheel
 
 WORKDIR /home/app
 
