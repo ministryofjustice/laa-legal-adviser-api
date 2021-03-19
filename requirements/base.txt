@@ -6,7 +6,7 @@ django-filter==1.1
 django==2.2.10
 django-storages==1.7.1
 djangorestframework-gis==0.14.0
-djangorestframework==3.9.3
+djangorestframework==3.11.2
 logstash-formatter==0.5.9
 psycopg2-binary==2.8.6
 sentry-sdk==0.19.2
