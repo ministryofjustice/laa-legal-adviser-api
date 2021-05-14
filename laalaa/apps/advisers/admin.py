@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.db.models import Q
 from django.views.generic import TemplateView
 
-from .models import Office
+from .models import Office, Import
 from . import views
 
 
@@ -67,4 +67,5 @@ class MyAdminSite(admin.AdminSite):
 
 
 admin_site = MyAdminSite()
+admin_site.register(Import, admin.ModelAdmin)
 admin_site.index_template = "admin_index.html"
