@@ -3,7 +3,7 @@ boto3==1.9.159
 celery[redis]==4.4.0
 django-celery-results==1.1.2
 django-filter==1.1
-django==2.2.10
+django==2.2.21
 django-storages==1.7.1
 djangorestframework-gis==0.14.0
 djangorestframework==3.9.3
