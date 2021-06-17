@@ -3,8 +3,8 @@ from django.test import TestCase
 
 from advisers import models, tasks
 
-class SeedTest(TestCase):
 
+class SeedTest(TestCase):
     def test_seed_loads_models_with_organisation_type(self):
         tasks.clear_db()
         call_command("seed")
