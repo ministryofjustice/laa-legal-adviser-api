@@ -1,4 +1,5 @@
 FROM osgeo/gdal:alpine-normal-3.2.1
+FROM python:3.8-alpine3.12
 
 RUN apk upgrade --no-cache && \
     apk add --no-cache \
