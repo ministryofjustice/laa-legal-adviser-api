@@ -179,11 +179,18 @@ def upload_spreadsheet(request):
                     destination.write(chunk)
 
             task = ProgressiveAdviserImport()
-            task.truncate_and_upload_data_tables_from_xlsx(xls_file)
-            task_id = task.delay(xls_file)
-            Import.objects.create(
-                task_id=task_id, status=IMPORT_STATUSES.RUNNING, filename=xls_file, user=request.user
-            )
+            try:
+                task.truncate_and_upload_data_tables_from_xlsx(xls_file)
+            except Exception:
+                task_id = task.delay(xls_file)
+                Import.objects.create(
+                    task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=request.user
+                )
+            else:
+                task_id = task.delay(xls_file)
+                Import.objects.create(
+                    task_id=task_id, status=IMPORT_STATUSES.RUNNING, filename=xls_file, user=request.user
+                )
 
             return redirect("/admin/import-in-progress/")
     return render(request, "upload.html", {"form": form})

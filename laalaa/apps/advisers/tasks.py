@@ -7,14 +7,15 @@ import re
 import time
 import tempfile
 import xlrd
+import sys
 
 from celery import group
-from django.utils.text import slugify
 from celery import Task
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.gis.geos import Point
-from django.db import connection
+from django.db import connection, IntegrityError, transaction
+from django.utils.text import slugify
 
 from . import models
 from . import geocoder
@@ -22,7 +23,6 @@ from laalaa.celery import app
 
 
 logging.basicConfig(filename="adviser_import.log", level=logging.WARNING)
-
 
 # Python 3 compatibility
 try:
@@ -124,9 +124,13 @@ class ProgressiveAdviserImport(Task):
         for csv_filename, headers, types in csv_metadata:
             self.load_csv_into_db(csv_filename, headers, types)
 
-        clear_db()
-
-        self.translate_data()
+        try:
+            with transaction.atomic():
+                clear_db()
+                self.translate_data()
+        except Exception as error:
+            logging.warn(error)
+            self.on_failure()
 
         for meta in csv_metadata:
             self.drop_csv_table(meta[0])
