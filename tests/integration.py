@@ -10,7 +10,7 @@ try:
     """
     Check response code is 200
     """
-    if req.status_code is not 200:
+    if req.status_code != 200:
         print("[ERROR] Response code not 200: {0}".format(req.status_code))
         sys.exit(1)
 

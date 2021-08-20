@@ -5,19 +5,21 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('advisers', '0008_import_task_id'),
-    ]
+    dependencies = [("advisers", "0008_import_task_id")]
 
     operations = [
         migrations.AlterField(
-            model_name='import',
-            name='status',
-            field=models.CharField(choices=[('RUNNING', 'running'), ('SUCCESS', 'success'), ('FAILURE', 'failure'), ('ABORTED', 'aborted')], max_length=7),
+            model_name="import",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("RUNNING", "running"),
+                    ("SUCCESS", "success"),
+                    ("FAILURE", "failure"),
+                    ("ABORTED", "aborted"),
+                ],
+                max_length=7,
+            ),
         ),
-        migrations.AlterField(
-            model_name='import',
-            name='task_id',
-            field=models.CharField(default='', max_length=50),
-        ),
+        migrations.AlterField(model_name="import", name="task_id", field=models.CharField(default="", max_length=50)),
     ]

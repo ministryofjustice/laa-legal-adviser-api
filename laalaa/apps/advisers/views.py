@@ -17,7 +17,7 @@ from rest_framework.views import exception_handler
 from . import geocoder
 from .models import Location, Import, IMPORT_STATUSES
 from .serializers import LocationOfficeSerializer
-from .tasks import MyException, ProgressiveAdviserImport
+from .tasks import ProgressiveAdviserImport
 
 LOCATION = re.compile("^[a-zA-Z -]+$")
 
@@ -152,6 +152,20 @@ class UploadSpreadsheetForm(forms.Form):
     xlfile = forms.FileField(label="Spreadsheet")
 
 
+def import_progressive_advisors(xls_file, user):
+    task = ProgressiveAdviserImport()
+    try:
+        task.truncate_and_upload_data_tables_from_xlsx(xls_file)
+    except Exception as error:
+        task_id = task.delay(xls_file)
+        Import.objects.create(
+            task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=user, failure_reason=error
+        )
+    else:
+        task_id = task.delay(xls_file)
+        Import.objects.create(task_id=task_id, status=IMPORT_STATUSES.RUNNING, filename=xls_file, user=user)
+
+
 @never_cache
 @login_required(login_url="/admin/login")
 def upload_spreadsheet(request):
@@ -178,25 +192,7 @@ def upload_spreadsheet(request):
                 for chunk in file.chunks():
                     destination.write(chunk)
 
-            task = ProgressiveAdviserImport()
-            try:
-                task.truncate_and_upload_data_tables_from_xlsx(xls_file)
-            except MyException as error:
-                import pdb; pdb.set_trace()
-                task_id = task.delay(xls_file)
-                Import.objects.create(
-                    task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=request.user, failure_reason=error
-                )
-            except Exception as error:
-                task_id = task.delay(xls_file)
-                Import.objects.create(
-                    task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=request.user, failure_reason=error
-                )
-            else:
-                task_id = task.delay(xls_file)
-                Import.objects.create(
-                    task_id=task_id, status=IMPORT_STATUSES.RUNNING, filename=xls_file, user=request.user
-                )
+            import_progressive_advisors(xls_file, user=request.user)
 
             return redirect("/admin/import-in-progress/")
     return render(request, "upload.html", {"form": form})

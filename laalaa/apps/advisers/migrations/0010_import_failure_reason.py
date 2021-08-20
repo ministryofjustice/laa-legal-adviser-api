@@ -5,14 +5,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('advisers', '0009_auto_20210811_1709'),
-    ]
+    dependencies = [("advisers", "0009_auto_20210811_1709")]
 
-    operations = [
-        migrations.AddField(
-            model_name='import',
-            name='failure_reason',
-            field=models.TextField(null=True),
-        ),
-    ]
+    operations = [migrations.AddField(model_name="import", name="failure_reason", field=models.TextField(null=True))]

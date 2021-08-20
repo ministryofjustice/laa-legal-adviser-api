@@ -8,7 +8,6 @@ import time
 import tempfile
 from django.db.utils import ProgrammingError
 import xlrd
-import sys
 
 from celery import group
 from celery import Task
@@ -62,8 +61,9 @@ def clear_db():
         cursor.execute("TRUNCATE {table} RESTART IDENTITY CASCADE".format(table=table))
 
 
-class MyException(Exception):
-  pass
+class UploadException(Exception):
+    pass
+
 
 class StrippedDict(dict):
     """
@@ -135,7 +135,7 @@ class ProgressiveAdviserImport(Task):
                 self.translate_data()
         except ProgrammingError as error:
             logging.warn(error)
-            raise MyException(error)
+            raise UploadException(error)
 
         for meta in csv_metadata:
             self.drop_csv_table(meta[0])
