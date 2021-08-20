@@ -17,7 +17,7 @@ from rest_framework.views import exception_handler
 from . import geocoder
 from .models import Location, Import, IMPORT_STATUSES
 from .serializers import LocationOfficeSerializer
-from .tasks import ProgressiveAdviserImport
+from .tasks import MyException, ProgressiveAdviserImport
 
 LOCATION = re.compile("^[a-zA-Z -]+$")
 
@@ -161,7 +161,7 @@ def upload_spreadsheet(request):
         if last_import.status == IMPORT_STATUSES.RUNNING:
             return redirect("/admin/import-in-progress/")
         elif last_import.status == IMPORT_STATUSES.FAILURE:
-            messages.error(request, "Last import failed")
+            messages.error(request, "Last import failed: {}".format(last_import.failure_reason))
         elif last_import.status == IMPORT_STATUSES.ABORTED:
             messages.error(request, "Last import aborted")
         elif last_import.status == IMPORT_STATUSES.SUCCESS:
@@ -181,10 +181,16 @@ def upload_spreadsheet(request):
             task = ProgressiveAdviserImport()
             try:
                 task.truncate_and_upload_data_tables_from_xlsx(xls_file)
-            except Exception:
+            except MyException as error:
+                import pdb; pdb.set_trace()
                 task_id = task.delay(xls_file)
                 Import.objects.create(
-                    task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=request.user
+                    task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=request.user, failure_reason=error
+                )
+            except Exception as error:
+                task_id = task.delay(xls_file)
+                Import.objects.create(
+                    task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=request.user, failure_reason=error
                 )
             else:
                 task_id = task.delay(xls_file)

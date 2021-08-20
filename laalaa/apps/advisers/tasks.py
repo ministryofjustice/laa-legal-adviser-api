@@ -6,6 +6,7 @@ import os
 import re
 import time
 import tempfile
+from django.db.utils import ProgrammingError
 import xlrd
 import sys
 
@@ -14,7 +15,7 @@ from celery import Task
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.gis.geos import Point
-from django.db import connection, IntegrityError, transaction
+from django.db import connection, transaction
 from django.utils.text import slugify
 
 from . import models
@@ -23,6 +24,7 @@ from laalaa.celery import app
 
 
 logging.basicConfig(filename="adviser_import.log", level=logging.WARNING)
+
 
 # Python 3 compatibility
 try:
@@ -59,6 +61,9 @@ def clear_db():
     for table in tables:
         cursor.execute("TRUNCATE {table} RESTART IDENTITY CASCADE".format(table=table))
 
+
+class MyException(Exception):
+  pass
 
 class StrippedDict(dict):
     """
@@ -128,9 +133,9 @@ class ProgressiveAdviserImport(Task):
             with transaction.atomic():
                 clear_db()
                 self.translate_data()
-        except Exception as error:
+        except ProgrammingError as error:
             logging.warn(error)
-            self.on_failure()
+            raise MyException(error)
 
         for meta in csv_metadata:
             self.drop_csv_table(meta[0])
