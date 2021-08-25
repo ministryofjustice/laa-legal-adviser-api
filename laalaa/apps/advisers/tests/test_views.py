@@ -1,6 +1,9 @@
 # coding=utf-8
 
+from django.contrib.auth.models import User
 from django.test import TestCase
+from django.test.client import Client
+from advisers.models import Import, IMPORT_STATUSES
 
 
 class CategoriesOfLawTestCase(TestCase):
@@ -15,3 +18,19 @@ class CategoriesOfLawTestCase(TestCase):
         expected_crime = dict(code="CRM", civil=False, name="Crime")
         self.assertIn(expected_civil, response.data)
         self.assertIn(expected_crime, response.data)
+
+
+class UploadTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user("test", "test@test.com", "testpassword", is_active=True)
+
+    def test_upload_spreadsheet_failure(self):
+        self.client.login(username="test", password="testpassword")
+        Import.objects.create(
+            task_id=1, status=IMPORT_STATUSES.FAILURE, filename="filename", user=self.user, failure_reason="error"
+        )
+        response = self.client.get("/admin/upload/")
+
+        expected_message = "Last import failed: error"
+        self.assertIn(expected_message, response.content.decode("utf-8"))
