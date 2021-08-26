@@ -25,7 +25,15 @@ class UploadTestCase(TestCase):
         self.client = Client()
         self.user = User.objects.create_user("test", "test@test.com", "testpassword", is_active=True)
 
-    def test_upload_spreadsheet_failure(self):
+    def test_upload_spreadsheet_success_message(self):
+        self.client.login(username="test", password="testpassword")
+        Import.objects.create(task_id=1, status=IMPORT_STATUSES.SUCCESS, filename="filename", user=self.user)
+        response = self.client.get("/admin/upload/")
+
+        expected_message = "Last import successful"
+        self.assertIn(expected_message, response.content.decode("utf-8"))
+
+    def test_upload_spreadsheet_failure_message(self):
         self.client.login(username="test", password="testpassword")
         Import.objects.create(
             task_id=1, status=IMPORT_STATUSES.FAILURE, filename="filename", user=self.user, failure_reason="error"
@@ -34,3 +42,24 @@ class UploadTestCase(TestCase):
 
         expected_message = "Last import failed: error"
         self.assertIn(expected_message, response.content.decode("utf-8"))
+
+    def test_upload_spreadsheet_aborted_message(self):
+        self.client.login(username="test", password="testpassword")
+        Import.objects.create(
+            task_id=1, status=IMPORT_STATUSES.ABORTED, filename="filename", user=self.user, failure_reason="error"
+        )
+        response = self.client.get("/admin/upload/")
+
+        expected_message = "Last import aborted"
+        self.assertIn(expected_message, response.content.decode("utf-8"))
+
+    def test_upload_spreadsheet_running_message(self):
+        self.client.login(username="test", password="testpassword")
+        Import.objects.create(
+            task_id=1, status=IMPORT_STATUSES.RUNNING, filename="filename", user=self.user, failure_reason="error"
+        )
+        response = self.client.get("/admin/upload/")
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertEqual(response.url, "/admin/import-in-progress/")
