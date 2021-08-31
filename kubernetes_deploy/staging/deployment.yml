@@ -25,14 +25,14 @@ spec:
         name: app
         readinessProbe:
           httpGet:
-            path: /ping.json
+            path: /healthcheck.json
             port: 8000
           initialDelaySeconds: 5
           timeoutSeconds: 1
           periodSeconds: 10
         livenessProbe:
           httpGet:
-            path: /ping.json
+            path: /healthcheck.json
             port: 8000
           initialDelaySeconds: 10
           timeoutSeconds: 1
