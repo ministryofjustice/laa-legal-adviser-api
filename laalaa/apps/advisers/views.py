@@ -152,6 +152,20 @@ class UploadSpreadsheetForm(forms.Form):
     xlfile = forms.FileField(label="Spreadsheet")
 
 
+def import_advisers(xls_file, user):
+    task = ProgressiveAdviserImport()
+    try:
+        task.truncate_and_upload_data_tables_from_xlsx(xls_file)
+    except Exception as error:
+        task_id = task.delay(xls_file)
+        Import.objects.create(
+            task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=user, failure_reason=error
+        )
+    else:
+        task_id = task.delay(xls_file)
+        Import.objects.create(task_id=task_id, status=IMPORT_STATUSES.RUNNING, filename=xls_file, user=user)
+
+
 @never_cache
 @login_required(login_url="/admin/login")
 def upload_spreadsheet(request):
@@ -161,7 +175,7 @@ def upload_spreadsheet(request):
         if last_import.status == IMPORT_STATUSES.RUNNING:
             return redirect("/admin/import-in-progress/")
         elif last_import.status == IMPORT_STATUSES.FAILURE:
-            messages.error(request, "Last import failed")
+            messages.error(request, "Last import failed: {}".format(last_import.failure_reason))
         elif last_import.status == IMPORT_STATUSES.ABORTED:
             messages.error(request, "Last import aborted")
         elif last_import.status == IMPORT_STATUSES.SUCCESS:
@@ -178,12 +192,7 @@ def upload_spreadsheet(request):
                 for chunk in file.chunks():
                     destination.write(chunk)
 
-            task = ProgressiveAdviserImport()
-            task.truncate_and_upload_data_tables_from_xlsx(xls_file)
-            task_id = task.delay(xls_file)
-            Import.objects.create(
-                task_id=task_id, status=IMPORT_STATUSES.RUNNING, filename=xls_file, user=request.user
-            )
+            import_advisers(xls_file, user=request.user)
 
             return redirect("/admin/import-in-progress/")
     return render(request, "upload.html", {"form": form})

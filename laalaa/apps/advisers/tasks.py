@@ -6,15 +6,16 @@ import os
 import re
 import time
 import tempfile
+from django.db.utils import ProgrammingError
 import xlrd
 
 from celery import group
-from django.utils.text import slugify
 from celery import Task
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.gis.geos import Point
-from django.db import connection
+from django.db import connection, transaction
+from django.utils.text import slugify
 
 from . import models
 from . import geocoder
@@ -58,6 +59,10 @@ def clear_db():
     tables = ("advisers_location", "advisers_organisationtype", "advisers_outreachtype", "advisers_category")
     for table in tables:
         cursor.execute("TRUNCATE {table} RESTART IDENTITY CASCADE".format(table=table))
+
+
+class UploadException(Exception):
+    pass
 
 
 class StrippedDict(dict):
@@ -124,9 +129,13 @@ class ProgressiveAdviserImport(Task):
         for csv_filename, headers, types in csv_metadata:
             self.load_csv_into_db(csv_filename, headers, types)
 
-        clear_db()
-
-        self.translate_data()
+        try:
+            with transaction.atomic():
+                clear_db()
+                self.translate_data()
+        except ProgrammingError as error:
+            logging.warn(error)
+            raise UploadException(error)
 
         for meta in csv_metadata:
             self.drop_csv_table(meta[0])

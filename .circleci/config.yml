@@ -72,7 +72,7 @@ jobs:
       - run:
           name: Setup Python environment
           command: |
-            sudo apt-get update && sudo apt-get install python-gdal
+            sudo apt-get update && sudo apt-get install gdal-bin
             pip install virtualenv
             virtualenv env
       - restore_cache:
