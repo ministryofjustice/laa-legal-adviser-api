@@ -152,7 +152,7 @@ class UploadSpreadsheetForm(forms.Form):
     xlfile = forms.FileField(label="Spreadsheet")
 
 
-def import_progressive_advisors(xls_file, user):
+def import_advisers(xls_file, user):
     task = ProgressiveAdviserImport()
     try:
         task.truncate_and_upload_data_tables_from_xlsx(xls_file)
@@ -192,7 +192,7 @@ def upload_spreadsheet(request):
                 for chunk in file.chunks():
                     destination.write(chunk)
 
-            import_progressive_advisors(xls_file, user=request.user)
+            import_advisers(xls_file, user=request.user)
 
             return redirect("/admin/import-in-progress/")
     return render(request, "upload.html", {"form": form})
