@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
+from django.utils import timezone
 
 
 # Python 3 compatibility
@@ -156,14 +157,33 @@ class Choices(object):
 
 
 IMPORT_STATUSES = Choices(
-    ("RUNNING", "running"), ("SUCCESS", "success"), ("FAILURE", "failure"), ("ABORTED", "aborted")
+    ("CREATED", "created"),
+    ("RUNNING", "running"),
+    ("SUCCESS", "success"),
+    ("FAILURE", "failure"),
+    ("ABORTED", "aborted"),
 )
 
 
 class Import(models.Model):
     task_id = models.CharField(max_length=50, default="")
-    started = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, null=True)
+    started = models.DateTimeField(auto_now_add=False, null=True)
+    completed = models.DateTimeField(auto_now_add=False, null=True)
     status = models.CharField(max_length=7, choices=list(IMPORT_STATUSES))
     filename = models.TextField()
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     failure_reason = models.TextField(null=True)
+
+    def start(self):
+        self.status = IMPORT_STATUSES.RUNNING
+        self.started = timezone.now()
+        self.save(update_fields=["status", "started"])
+
+    def complete(self):
+        self.status = IMPORT_STATUSES.SUCCESS
+        self.completed = timezone.now()
+        self.save(update_fields=["status", "completed"])
+
+    def is_in_progress(self):
+        return self.status in [IMPORT_STATUSES.CREATED, IMPORT_STATUSES.RUNNING]
