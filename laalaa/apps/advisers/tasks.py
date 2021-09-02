@@ -141,6 +141,8 @@ class ProgressiveAdviserImport(Task):
             self.drop_csv_table(meta[0])
 
     def run(self, xlsx_file, record=None, *args, **kwargs):
+        import_object = models.Import.objects.get(task_id=self.request.id)
+        import_object.start()
         self.record = record
         cursor = connection.cursor()
         cursor.execute(
@@ -187,16 +189,16 @@ class ProgressiveAdviserImport(Task):
         self.update_state(state="RUNNING", meta=self.progress)
 
     def on_success(self, retval, task_id, args, kwargs):
-        self.save_state(models.IMPORT_STATUSES.SUCCESS)
+        import_object = models.Import.objects.get(task_id=self.request.id)
+        import_object.complete()
+        self.update_state(state=models.IMPORT_STATUSES.SUCCESS.upper(), meta=self.progress)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         self.save_state(models.IMPORT_STATUSES.FAILURE)
-
-    def save_state(self, status):
         import_object = models.Import.objects.get(task_id=self.request.id)
-        import_object.status = status
+        import_object.status = models.IMPORT_STATUSES.FAILURE
         import_object.save()
-        self.update_state(state=status.upper(), meta=self.progress)
+        self.update_state(state=models.IMPORT_STATUSES.FAILURE.upper(), meta=self.progress)
 
     def convert_excel_to_csv(self, xlsx_file):
         workbook = xlrd.open_workbook(xlsx_file)
