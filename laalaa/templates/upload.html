@@ -11,7 +11,7 @@
     {% endif %}
   </div>
   <div>
-    <input type="submit" value="Import">
+    <input type="submit" value="Import" onclick="this.disabled=true,this.form.submit();">
   </div>
 </form>
 {% endblock %}
