@@ -175,6 +175,10 @@ class Import(models.Model):
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     failure_reason = models.TextField(null=True)
 
+    def abort(self):
+        self.status = IMPORT_STATUSES.ABORTED
+        self.save(update_fields=["status"])
+
     def start(self):
         self.status = IMPORT_STATUSES.RUNNING
         self.started = timezone.now()
@@ -189,7 +193,11 @@ class Import(models.Model):
         return self.status in [IMPORT_STATUSES.CREATED, IMPORT_STATUSES.RUNNING]
 
     @staticmethod
+    def get_last():
+        return Import.objects.all().order_by("-id").first()
+
+    @staticmethod
     def abort_last():
-        last_import = Import.objects.all().order_by("-id").first()
+        last_import = Import.get_last()
         last_import.status = IMPORT_STATUSES.ABORTED
         last_import.save()
