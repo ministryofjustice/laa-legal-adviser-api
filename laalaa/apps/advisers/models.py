@@ -187,3 +187,9 @@ class Import(models.Model):
 
     def is_in_progress(self):
         return self.status in [IMPORT_STATUSES.CREATED, IMPORT_STATUSES.RUNNING]
+
+    @staticmethod
+    def abort_last():
+        last_import = Import.objects.all().order_by("-id").first()
+        last_import.status = IMPORT_STATUSES.ABORTED
+        last_import.save()
