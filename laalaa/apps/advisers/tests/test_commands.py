@@ -12,7 +12,18 @@ from advisers.management.commands.worker_health_checks import Command
 class WorkerHealthCheckCommandTestCase(TestCase):
     def setUp(self):
         self.command = Command()
+        self.celery_app_patcher = patch.object(self.command, "get_celery_app", self.mock_celery_app)
+        self.celery_app_patcher.start()
         self.user = User.objects.create_user("test", "test@test.com", "testpassword", is_active=True)
+
+    def tearDown(self):
+        self.celery_app_patcher.stop()
+
+    def mock_celery_app(self):
+        app = Mock()
+        app.control = Mock()
+        app.control.purge = Mock()
+        return app
 
     def test_check_import_stuck_in_progress__created(self):
         Import.objects.create(task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user)
@@ -26,6 +37,7 @@ class WorkerHealthCheckCommandTestCase(TestCase):
         Import.objects.create(task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user)
         last_import = Import.get_last()
         last_import.start()
+
         self.command.import_running_status_stuck_interval = datetime.timedelta(minutes=30)
         self.command.check_import_stuck_in_progress()
         self.command.import_running_status_stuck_interval = datetime.timedelta(minutes=-60)
