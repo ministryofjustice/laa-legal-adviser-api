@@ -46,10 +46,12 @@ class Command(BaseCommand):
         if last_import.status == IMPORT_STATUSES.CREATED:
             if last_import.created + self.import_created_status_stuck_interval < timezone.now():
                 last_import.abort()
+                self.get_celery_app().control.purge()
                 raise CommandError("Last import is stuck in CREATE status. Import has been aborted")
         if last_import.status == IMPORT_STATUSES.RUNNING:
             if last_import.started + self.import_running_status_stuck_interval < timezone.now():
                 last_import.abort()
+                self.get_celery_app().control.purge()
                 raise CommandError("Last import is stuck in RUNNING status. Import has been aborted")
 
     def check_celery_worker(self):
@@ -65,8 +67,12 @@ class Command(BaseCommand):
             raise CommandError(f"Celery worker check failed.  Check that the message broker is running: {str(e)}")
 
     def get_celery_stats(self):
+        app = self.get_celery_app()
+        return app.control.inspect().stats()
+
+    def get_celery_app(self):
         from celery import Celery
 
         app = Celery("laalaa")
         app.config_from_object("django.conf:settings", namespace="CELERY")
-        return app.control.inspect().stats()
+        return app
