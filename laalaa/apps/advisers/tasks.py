@@ -194,7 +194,6 @@ class ProgressiveAdviserImport(Task):
         self.update_state(state=models.IMPORT_STATUSES.SUCCESS.upper(), meta=self.progress)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
-        self.save_state(models.IMPORT_STATUSES.FAILURE)
         import_object = models.Import.objects.get(task_id=self.request.id)
         import_object.status = models.IMPORT_STATUSES.FAILURE
         import_object.save()
