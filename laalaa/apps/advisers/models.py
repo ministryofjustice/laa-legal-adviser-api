@@ -165,6 +165,14 @@ IMPORT_STATUSES = Choices(
 )
 
 
+class ImportManager(models.Manager):
+    @staticmethod
+    def abort_last():
+        last_import = Import.objects.last()
+        last_import.status = IMPORT_STATUSES.ABORTED
+        last_import.save()
+
+
 class Import(models.Model):
     task_id = models.CharField(max_length=50, default="")
     created = models.DateTimeField(auto_now_add=True, null=True)
@@ -174,6 +182,7 @@ class Import(models.Model):
     filename = models.TextField()
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     failure_reason = models.TextField(null=True)
+    objects = ImportManager()
 
     def abort(self):
         self.status = IMPORT_STATUSES.ABORTED
@@ -191,13 +200,3 @@ class Import(models.Model):
 
     def is_in_progress(self):
         return self.status in [IMPORT_STATUSES.CREATED, IMPORT_STATUSES.RUNNING]
-
-    @staticmethod
-    def get_last():
-        return Import.objects.all().order_by("-id").first()
-
-    @staticmethod
-    def abort_last():
-        last_import = Import.get_last()
-        last_import.status = IMPORT_STATUSES.ABORTED
-        last_import.save()

@@ -40,7 +40,7 @@ class Command(BaseCommand):
             raise CommandError("database access check has failed.")
 
     def check_import_stuck_in_progress(self):
-        last_import = Import.get_last()
+        last_import = Import.objects.last()
         if not last_import.is_in_progress():
             return
         if last_import.status == IMPORT_STATUSES.CREATED:

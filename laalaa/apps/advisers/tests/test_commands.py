@@ -15,6 +15,7 @@ class WorkerHealthCheckCommandTestCase(TestCase):
         self.celery_app_patcher = patch.object(self.command, "get_celery_app", self.mock_celery_app)
         self.celery_app_patcher.start()
         self.user = User.objects.create_user("test", "test@test.com", "testpassword", is_active=True)
+        Import.objects.create(task_id=2, status=IMPORT_STATUSES.SUCCESS, filename="filename", user=self.user)
 
     def tearDown(self):
         self.celery_app_patcher.stop()
@@ -31,11 +32,11 @@ class WorkerHealthCheckCommandTestCase(TestCase):
         self.command.import_created_status_stuck_interval = datetime.timedelta(minutes=-20)
         with self.assertRaisesMessage(CommandError, "Last import is stuck in CREATE status. Import has been aborted"):
             self.command.check_import_stuck_in_progress()
-        self.assertEqual(Import.get_last().status, IMPORT_STATUSES.ABORTED)
+        self.assertEqual(Import.objects.last().status, IMPORT_STATUSES.ABORTED)
 
     def test_check_import_stuck_in_progress__running(self):
         Import.objects.create(task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user)
-        last_import = Import.get_last()
+        last_import = Import.objects.last()
         last_import.start()
 
         self.command.import_running_status_stuck_interval = datetime.timedelta(minutes=30)
@@ -43,7 +44,7 @@ class WorkerHealthCheckCommandTestCase(TestCase):
         self.command.import_running_status_stuck_interval = datetime.timedelta(minutes=-60)
         with self.assertRaisesMessage(CommandError, "Last import is stuck in RUNNING status. Import has been aborted"):
             self.command.check_import_stuck_in_progress()
-        self.assertEqual(Import.get_last().status, IMPORT_STATUSES.ABORTED)
+        self.assertEqual(Import.objects.last().status, IMPORT_STATUSES.ABORTED)
 
     def test_check_celery_worker_failure_workers(self):
         def mock_celery_get_stats():

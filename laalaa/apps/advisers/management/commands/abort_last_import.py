@@ -6,4 +6,12 @@ class Command(BaseCommand):
     help = "Abort last Import job"
 
     def handle(self, *args, **options):
-        Import.abort_last()
+        Import.objects.abort_last()
+        self.get_celery_app().control.purge()
+
+    def get_celery_app(self):
+        from celery import Celery
+
+        app = Celery("laalaa")
+        app.config_from_object("django.conf:settings", namespace="CELERY")
+        return app
