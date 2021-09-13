@@ -12,6 +12,15 @@ class ImportModelTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user("test", "test@test.com", "testpassword", is_active=True)
 
+    def test_abort_last_import(self):
+        Import.objects.create(task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user)
+        last = Import.objects.abort_last()
+        self.assertIsInstance(last, Import)
+        self.assertEqual(last.status, IMPORT_STATUSES.ABORTED)
+
+    def test_abort_last_import__no_imports(self):
+        self.assertIsNone(Import.objects.abort_last())
+
     def test_is_in_progress(self):
         last_import = Import.objects.create(
             task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user

@@ -166,11 +166,12 @@ IMPORT_STATUSES = Choices(
 
 
 class ImportManager(models.Manager):
-    @staticmethod
-    def abort_last():
-        last_import = Import.objects.last()
-        last_import.status = IMPORT_STATUSES.ABORTED
-        last_import.save()
+    def abort_last(self):
+        last = self.last()
+        if last:
+            last.status = IMPORT_STATUSES.ABORTED
+            last.save()
+            return last
 
 
 class Import(models.Model):
