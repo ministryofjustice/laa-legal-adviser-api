@@ -41,7 +41,7 @@ class Command(BaseCommand):
 
     def check_import_stuck_in_progress(self):
         last_import = Import.objects.last()
-        if not last_import.is_in_progress():
+        if not last_import or not last_import.is_in_progress():
             return
         if last_import.status == IMPORT_STATUSES.CREATED:
             if last_import.created + self.import_created_status_stuck_interval < timezone.now():
