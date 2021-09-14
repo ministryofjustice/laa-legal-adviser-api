@@ -163,7 +163,7 @@ def import_advisers(xls_file, user):
         )
     else:
         task_id = task.delay(xls_file)
-        Import.objects.create(task_id=task_id, status=IMPORT_STATUSES.RUNNING, filename=xls_file, user=user)
+        Import.objects.create(task_id=task_id, status=IMPORT_STATUSES.CREATED, filename=xls_file, user=user)
 
 
 @never_cache
@@ -172,7 +172,7 @@ def upload_spreadsheet(request):
     last_import = Import.objects.all().order_by("-id").first()
 
     if last_import:
-        if last_import.status == IMPORT_STATUSES.RUNNING:
+        if last_import.is_in_progress():
             return redirect("/admin/import-in-progress/")
         elif last_import.status == IMPORT_STATUSES.FAILURE:
             messages.error(request, "Last import failed: {}".format(last_import.failure_reason))
@@ -203,7 +203,7 @@ def import_progress(request):
     last_import = Import.objects.all().order_by("-id").first()
     response = {"status": "not running"}
     if last_import:
-        if last_import.status == IMPORT_STATUSES.RUNNING:
+        if last_import.is_in_progress():
             res = AsyncResult(last_import.task_id).result or {}
             response = {
                 "task": res.get("task"),

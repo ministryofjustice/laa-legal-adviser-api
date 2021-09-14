@@ -53,6 +53,17 @@ class UploadTestCase(TestCase):
         expected_message = "Last import aborted"
         self.assertIn(expected_message, response.content.decode("utf-8"))
 
+    def test_upload_spreadsheet_created_message(self):
+        self.client.login(username="test", password="testpassword")
+        Import.objects.create(
+            task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user, failure_reason="error"
+        )
+        response = self.client.get("/admin/upload/")
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertEqual(response.url, "/admin/import-in-progress/")
+
     def test_upload_spreadsheet_running_message(self):
         self.client.login(username="test", password="testpassword")
         Import.objects.create(
