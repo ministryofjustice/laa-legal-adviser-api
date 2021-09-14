@@ -6,12 +6,13 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from advisers.models import Organisation, Import, IMPORT_STATUSES
+from .utils import AbortImportMixin
 
 
 logger = logging.getLogger(__name__)
 
 
-class Command(BaseCommand):
+class Command(BaseCommand, AbortImportMixin):
     help = "Check access to the database, celery workers and postcodes.io"
     import_created_status_stuck_interval = datetime.timedelta(minutes=10)
     import_running_status_stuck_interval = datetime.timedelta(minutes=60)
@@ -64,19 +65,6 @@ class Command(BaseCommand):
         except IOError as e:
             raise CommandError(f"Celery worker check failed.  Check that the message broker is running: {str(e)}")
 
-    def abort_import(self, obj):
-        obj.abort()
-        app = self.get_celery_app()
-        app.control.revoke(obj.task_id, terminate=True)
-        app.control.purge()
-
     def get_celery_stats(self):
         app = self.get_celery_app()
         return app.control.inspect().stats()
-
-    def get_celery_app(self):
-        from celery import Celery
-
-        app = Celery("laalaa")
-        app.config_from_object("django.conf:settings", namespace="CELERY")
-        return app
