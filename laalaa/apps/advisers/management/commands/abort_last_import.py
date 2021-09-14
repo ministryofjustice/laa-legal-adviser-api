@@ -6,8 +6,10 @@ class Command(BaseCommand):
     help = "Abort last Import job"
 
     def handle(self, *args, **options):
-        Import.objects.abort_last()
-        self.get_celery_app().control.purge()
+        last = Import.objects.abort_last()
+        app = self.get_celery_app()
+        app.control.revoke(last.task_id, terminate=True)
+        app.control.purge()
 
     def get_celery_app(self):
         from celery import Celery
