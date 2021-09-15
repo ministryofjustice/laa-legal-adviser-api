@@ -5,7 +5,7 @@ class AbortImportMixin(object):
 
     def cleanup_celery(self, obj):
         app = self.get_celery_app()
-        app.control.revoke(obj.task_id, terminate=True)
+        app.control.revoke(obj.task_id, terminate=True, signal="SIGUSR1")
         app.control.purge()
         stats = app.control.inspect()
         self.cancel_geocoding_tasks(app, stats.reserved())
@@ -14,9 +14,8 @@ class AbortImportMixin(object):
     def cancel_geocoding_tasks(self, app, tasks):
         for worker in tasks:
             for task in tasks[worker]:
-                if task["name"] == "advisers.tasks.GeocoderTask":
-                    print("Cancelling task {} of {}".format(task["id"], task["name"]))
-                    app.control.revoke(task["id"], terminate=True)
+                print("Cancelling task {} of {}".format(task["id"], task["name"]))
+                app.control.revoke(task["id"], terminate=True, signal="SIGUSR1")
 
     def get_celery_app(self):
         from celery import Celery
