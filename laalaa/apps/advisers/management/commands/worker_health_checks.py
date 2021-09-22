@@ -6,12 +6,13 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from advisers.models import Organisation, Import, IMPORT_STATUSES
+from .utils import AbortImportMixin
 
 
 logger = logging.getLogger(__name__)
 
 
-class Command(BaseCommand):
+class Command(BaseCommand, AbortImportMixin):
     help = "Check access to the database, celery workers and postcodes.io"
     import_created_status_stuck_interval = datetime.timedelta(minutes=10)
     import_running_status_stuck_interval = datetime.timedelta(minutes=60)
@@ -45,13 +46,11 @@ class Command(BaseCommand):
             return
         if last_import.status == IMPORT_STATUSES.CREATED:
             if last_import.created + self.import_created_status_stuck_interval < timezone.now():
-                last_import.abort()
-                self.get_celery_app().control.purge()
+                self.abort_import(last_import)
                 raise CommandError("Last import is stuck in CREATE status. Import has been aborted")
         if last_import.status == IMPORT_STATUSES.RUNNING:
             if last_import.started + self.import_running_status_stuck_interval < timezone.now():
-                last_import.abort()
-                self.get_celery_app().control.purge()
+                self.abort_import(last_import)
                 raise CommandError("Last import is stuck in RUNNING status. Import has been aborted")
 
     def check_celery_worker(self):
@@ -69,10 +68,3 @@ class Command(BaseCommand):
     def get_celery_stats(self):
         app = self.get_celery_app()
         return app.control.inspect().stats()
-
-    def get_celery_app(self):
-        from celery import Celery
-
-        app = Celery("laalaa")
-        app.config_from_object("django.conf:settings", namespace="CELERY")
-        return app

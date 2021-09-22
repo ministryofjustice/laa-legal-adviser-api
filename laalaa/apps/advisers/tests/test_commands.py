@@ -26,7 +26,9 @@ class WorkerHealthCheckCommandTestCase(TestCase):
         app.control.purge = Mock()
         return app
 
-    def test_check_import_stuck_in_progress__created(self):
+    @patch("advisers.management.commands.worker_health_checks.Command.cleanup_celery")
+    def test_check_import_stuck_in_progress__created(self, mock_abort_import):
+        mock_abort_import.side_effect = Mock(return_value=True)
         Import.objects.create(task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user)
         self.command.check_import_stuck_in_progress()
         self.command.import_created_status_stuck_interval = datetime.timedelta(minutes=-20)
@@ -34,7 +36,9 @@ class WorkerHealthCheckCommandTestCase(TestCase):
             self.command.check_import_stuck_in_progress()
         self.assertEqual(Import.objects.last().status, IMPORT_STATUSES.ABORTED)
 
-    def test_check_import_stuck_in_progress__running(self):
+    @patch("advisers.management.commands.worker_health_checks.Command.cleanup_celery")
+    def test_check_import_stuck_in_progress__running(self, mock_abort_import):
+        mock_abort_import.side_effect = Mock(return_value=True)
         Import.objects.create(task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user)
         last_import = Import.objects.last()
         last_import.start()

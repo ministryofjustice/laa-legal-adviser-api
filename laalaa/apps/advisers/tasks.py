@@ -9,6 +9,8 @@ import tempfile
 from django.db.utils import ProgrammingError
 import xlrd
 
+from billiard.exceptions import SoftTimeLimitExceeded
+from celery.exceptions import Ignore
 from celery import group
 from celery import Task
 from django.core.cache import cache
@@ -82,7 +84,15 @@ class GeocoderTask(Task):
     def __init__(self):
         self.errors = []
 
-    def run(self, postcodes):
+    def run(self, *args, **kwargs):
+        try:
+            self.task_run_handler(*args, **kwargs)
+        # This is raised when we abort the celery task with signal=SIGUSR1
+        # See advisers.management.commands.utils.AbortImportMixin.cleanup_celery
+        except SoftTimeLimitExceeded:
+            raise Ignore()
+
+    def task_run_handler(self, postcodes):
         tot = len(postcodes)
 
         def log_error(err):
@@ -140,7 +150,13 @@ class ProgressiveAdviserImport(Task):
         for meta in csv_metadata:
             self.drop_csv_table(meta[0])
 
-    def run(self, xlsx_file, record=None, *args, **kwargs):
+    def run(self, *args, **kwargs):
+        try:
+            self.task_run_handler(*args, **kwargs)
+        except SoftTimeLimitExceeded:
+            raise Ignore()
+
+    def task_run_handler(self, xlsx_file, record=None, *args, **kwargs):
         import_object = models.Import.objects.get(task_id=self.request.id)
         import_object.start()
         self.record = record
