@@ -3,6 +3,9 @@ kind: Ingress
 metadata:
   name: laa-legal-adviser-api
   namespace: laa-legal-adviser-api-production
+  annotations:
+    external-dns.alpha.kubernetes.io/set-identifier: laa-legal-adviser-api-laa-legal-adviser-api-production-blue
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
   tls:
   - hosts:
