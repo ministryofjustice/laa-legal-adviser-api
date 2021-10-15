@@ -193,11 +193,25 @@ LOGGING["handlers"]["console"] = {"level": "DEBUG", "class": "logging.StreamHand
 LOGGING["loggers"][""] = {"handlers": ["console"], "level": "DEBUG"}
 
 # SENTRY CONFIG
+LOW_SAMPLE_RATE_TRANSACTIONS = ["/ping.json", "/healthcheck.json"]
+
+
+def traces_sampler(sampling_context):
+    try:
+        name = sampling_context["wsgi_environ"].get("PATH_INFO")
+    except Exception:
+        pass
+    else:
+        if name in LOW_SAMPLE_RATE_TRANSACTIONS:
+            return 0.0001
+    return 0.1
+
+
 if "SENTRY_DSN" in os.environ:
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DSN"),
         integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
+        traces_sampler=traces_sampler,
         environment=os.environ.get("ENV", "unknown"),
     )
 
