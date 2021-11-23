@@ -148,7 +148,10 @@ jobs:
             source .circleci/define_build_environment_variables
             trivy --exit-code 1 --severity CRITICAL --no-progress ${ECR_DEPLOY_IMAGE}
 
-  staging_deploy:
+  deploy:
+    parameters:
+      namespace:
+        type: string
     docker:
       - image: ${ECR_ENDPOINT}/cloud-platform/tools:circleci
     steps:
@@ -159,9 +162,9 @@ jobs:
             setup-kube-auth
             kubectl config use-context staging
       - deploy:
-          name: Deploy laalaa to staging
+          name: Deploy to << parameters.namespace >>
           command: |
-            .circleci/deploy_to_kubernetes staging
+            .circleci/deploy_to_kubernetes << parameters.namespace >>
       - slack/status
 
   production_deploy:
@@ -197,13 +200,15 @@ workflows:
           type: approval
           requires:
             - build
-      - staging_deploy:
+      - deploy:
+          name: staging_deploy_live_1
+          namespace: staging
           requires:
             - staging_deploy_approval
       - production_deploy_approval:
           type: approval
           requires:
-            - staging_deploy
+            - staging_deploy_live_1
             - image_security_scan
           filters:
             branches:
