@@ -157,30 +157,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Initialise Kubernetes staging context
+          name: Initialise Kubernetes << parameters.namespace >> context
           command: |
             setup-kube-auth
-            kubectl config use-context staging
+            kubectl config use-context << parameters.namespace >>
       - deploy:
           name: Deploy to << parameters.namespace >>
           command: |
             .circleci/deploy_to_kubernetes << parameters.namespace >>
-      - slack/status
-
-  production_deploy:
-    docker:
-      - image: ${ECR_ENDPOINT}/cloud-platform/tools:circleci
-    steps:
-      - checkout
-      - run:
-          name: Initialise Kubernetes production context
-          command: |
-            setup-kube-auth
-            kubectl config use-context production
-      - deploy:
-          name: Deploy laalaa to production
-          command: |
-            .circleci/deploy_to_kubernetes production
       - slack/status
 
 workflows:
@@ -214,6 +198,8 @@ workflows:
             branches:
                 only:
                     - master
-      - production_deploy:
+      - deploy:
+          name: production_deploy_live_1
+          namespace: production
           requires:
             - production_deploy_approval
