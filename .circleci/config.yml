@@ -212,3 +212,5 @@ workflows:
           namespace: production
           requires:
             - production_deploy_approval
+          context:
+            - laa-legal-adviser-api-live1-production
