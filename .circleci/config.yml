@@ -192,7 +192,7 @@ workflows:
 
       - deploy:
           name: staging_deploy_live_1
-          namespace: staging
+          namespace: staging-live1
           requires:
             - staging_deploy_approval
           context:

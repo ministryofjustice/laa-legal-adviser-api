@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
+  name: laa-legal-adviser-api-migrate-db
+spec:
+  template:
+    metadata:
+      name: laa-legal-adviser-api-migrate-db
+      labels:
+        app: laa-legal-adviser-api
+        tier: migrate-db
+        type: job
+        env: staging
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: app
+        image: "<to be set by deploy_to_kubernetes>"
+        command: ["python", "manage.py", "migrate", "--noinput"]
+        env:
+        - name: ENV
+          value: staging
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: secret-key
+              key: SECRET_KEY
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database
+              key: url
