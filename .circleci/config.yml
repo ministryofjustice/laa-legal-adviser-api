@@ -148,36 +148,27 @@ jobs:
             source .circleci/define_build_environment_variables
             trivy --exit-code 1 --severity CRITICAL --no-progress ${ECR_DEPLOY_IMAGE}
 
-  staging_deploy:
+  deploy:
+    parameters:
+      namespace:
+        type: string
     docker:
-      - image: ${ECR_ENDPOINT}/cloud-platform/tools:circleci
+      - image: ministryofjustice/cloud-platform-tools
     steps:
       - checkout
       - run:
-          name: Initialise Kubernetes staging context
+          name: Authenticate with cluster
           command: |
-            setup-kube-auth
-            kubectl config use-context staging
+            echo -n ${K8S_CLUSTER_CERT} | base64 -d > ./ca.crt
+            kubectl config set-cluster ${K8S_CLUSTER_NAME} --certificate-authority=./ca.crt --server=${K8S_SERVER_ADDRESS}
+            kubectl config set-credentials circleci --token=${K8S_TOKEN}
+            kubectl config set-context ${K8S_CLUSTER_NAME} --cluster=${K8S_CLUSTER_NAME} --user=circleci --namespace=${K8S_NAMESPACE}
+            kubectl config use-context ${K8S_CLUSTER_NAME}
+            kubectl --namespace=${K8S_NAMESPACE} get pods
       - deploy:
-          name: Deploy laalaa to staging
+          name: Deploy to << parameters.namespace >>
           command: |
-            .circleci/deploy_to_kubernetes staging
-      - slack/status
-
-  production_deploy:
-    docker:
-      - image: ${ECR_ENDPOINT}/cloud-platform/tools:circleci
-    steps:
-      - checkout
-      - run:
-          name: Initialise Kubernetes production context
-          command: |
-            setup-kube-auth
-            kubectl config use-context production
-      - deploy:
-          name: Deploy laalaa to production
-          command: |
-            .circleci/deploy_to_kubernetes production
+            .circleci/deploy_to_kubernetes << parameters.namespace >>
       - slack/status
 
 workflows:
@@ -193,22 +184,33 @@ workflows:
       - image_security_scan:
           requires:
             - build
+
       - staging_deploy_approval:
           type: approval
           requires:
             - build
-      - staging_deploy:
+
+      - deploy:
+          name: staging_deploy_live_1
+          namespace: staging
           requires:
             - staging_deploy_approval
+          context:
+            - laa-legal-adviser-api-live1-staging
+
       - production_deploy_approval:
           type: approval
           requires:
-            - staging_deploy
+            - staging_deploy_live_1
             - image_security_scan
           filters:
             branches:
                 only:
                     - master
-      - production_deploy:
+      - deploy:
+          name: production_deploy_live_1
+          namespace: production
           requires:
             - production_deploy_approval
+          context:
+            - laa-legal-adviser-api-live1-production
