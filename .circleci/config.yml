@@ -150,7 +150,7 @@ jobs:
 
   deploy:
     parameters:
-      namespace:
+      environment:
         type: string
     docker:
       - image: ministryofjustice/cloud-platform-tools
@@ -166,9 +166,9 @@ jobs:
             kubectl config use-context ${K8S_CLUSTER_NAME}
             kubectl --namespace=${K8S_NAMESPACE} get pods
       - deploy:
-          name: Deploy to << parameters.namespace >>
+          name: Deploy to << parameters.environment >>
           command: |
-            .circleci/deploy_to_kubernetes << parameters.namespace >>
+            .circleci/deploy_to_kubernetes << parameters.environment >>
       - slack/status
 
 workflows:
@@ -192,11 +192,19 @@ workflows:
 
       - deploy:
           name: staging_deploy_live_1
-          namespace: staging
+          environment: staging-live1
           requires:
             - staging_deploy_approval
           context:
             - laa-legal-adviser-api-live1-staging
+
+      - deploy:
+          name: staging_deploy_live
+          environment: staging
+          requires:
+            - staging_deploy_approval
+          context:
+            - laa-legal-adviser-api-live-staging
 
       - production_deploy_approval:
           type: approval
@@ -209,7 +217,7 @@ workflows:
                     - master
       - deploy:
           name: production_deploy_live_1
-          namespace: production
+          environment: production
           requires:
             - production_deploy_approval
           context:
