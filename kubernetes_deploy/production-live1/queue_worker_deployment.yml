@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
+  name: laa-legal-adviser-api-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laa-legal-adviser-api
+      tier: worker
+      env: production
+  template:
+    metadata:
+      labels:
+        app: laa-legal-adviser-api
+        tier: worker
+        env: production
+        service_area: laa-get-access
+        service_team: cla-fala
+    spec:
+      containers:
+      - image: "<to be set by deploy_to_kubernetes>"
+        name: worker
+        args: ["docker/run_worker.sh"]
+        readinessProbe:
+          exec:
+            command: ["docker/workers_healthcheck.sh"]
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["docker/workers_healthcheck.sh"]
+          initialDelaySeconds: 10
+          timeoutSeconds: 1
+          periodSeconds: 10
+        env:
+        - name: ENV
+          value: prod
+        - name: WORKER_APP_CONCURRENCY
+          value: "8"
+        - name: LOG_LEVEL
+          value: INFO
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: secret-key
+              key: SECRET_KEY
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: sentry
+              key: dsn
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database
+              key: url
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            secretKeyRef:
+              name: celery-broker
+              key: url
+        - name: CELERY_BROKER_USE_SSL
+          value: "true"
