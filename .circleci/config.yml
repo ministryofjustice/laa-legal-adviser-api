@@ -191,14 +191,6 @@ workflows:
             - build
 
       - deploy:
-          name: staging_deploy_live_1
-          environment: staging-live1
-          requires:
-            - staging_deploy_approval
-          context:
-            - laa-legal-adviser-api-live1-staging
-
-      - deploy:
           name: staging_deploy_live
           environment: staging
           requires:
@@ -209,7 +201,7 @@ workflows:
       - production_deploy_approval:
           type: approval
           requires:
-            - staging_deploy_live_1
+            - staging_deploy_live
             - image_security_scan
           filters:
             branches:
