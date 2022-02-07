@@ -141,12 +141,12 @@ jobs:
           name: Scan for vulnerabilities (informative, non-breaking)
           command: |
             source .circleci/define_build_environment_variables
-            trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM,HIGH --no-progress ${ECR_DEPLOY_IMAGE}
+            trivy image --exit-code 0 --severity UNKNOWN,LOW,MEDIUM,HIGH --no-progress ${ECR_DEPLOY_IMAGE}
       - run:
           name: Scan for breaking vulnerabilities
           command: |
             source .circleci/define_build_environment_variables
-            trivy --exit-code 1 --severity CRITICAL --no-progress ${ECR_DEPLOY_IMAGE}
+            trivy image --exit-code 1 --severity CRITICAL --no-progress ${ECR_DEPLOY_IMAGE}
 
   deploy:
     parameters:
