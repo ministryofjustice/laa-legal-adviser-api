@@ -141,12 +141,12 @@ jobs:
           name: Scan for vulnerabilities (informative, non-breaking)
           command: |
             source .circleci/define_build_environment_variables
-            trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM,HIGH --no-progress ${ECR_DEPLOY_IMAGE}
+            trivy image --exit-code 0 --severity UNKNOWN,LOW,MEDIUM,HIGH --no-progress ${ECR_DEPLOY_IMAGE}
       - run:
           name: Scan for breaking vulnerabilities
           command: |
             source .circleci/define_build_environment_variables
-            trivy --exit-code 1 --severity CRITICAL --no-progress ${ECR_DEPLOY_IMAGE}
+            trivy image --exit-code 1 --severity CRITICAL --no-progress ${ECR_DEPLOY_IMAGE}
 
   deploy:
     parameters:
@@ -191,14 +191,6 @@ workflows:
             - build
 
       - deploy:
-          name: staging_deploy_live_1
-          environment: staging-live1
-          requires:
-            - staging_deploy_approval
-          context:
-            - laa-legal-adviser-api-live1-staging
-
-      - deploy:
           name: staging_deploy_live
           environment: staging
           requires:
@@ -209,7 +201,7 @@ workflows:
       - production_deploy_approval:
           type: approval
           requires:
-            - staging_deploy_live_1
+            - staging_deploy_live
             - image_security_scan
           filters:
             branches:
