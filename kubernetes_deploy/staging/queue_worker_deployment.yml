@@ -24,18 +24,18 @@ spec:
       - image: "<to be set by deploy_to_kubernetes>"
         name: worker
         args: ["docker/run_worker.sh"]
-        readinessProbe:
-          exec:
-            command: ["docker/workers_healthcheck.sh"]
-          initialDelaySeconds: 5
-          timeoutSeconds: 10
-          periodSeconds: 10
-        livenessProbe:
-          exec:
-            command: ["docker/workers_healthcheck.sh"]
-          initialDelaySeconds: 10
-          timeoutSeconds: 10
-          periodSeconds: 10
+#        readinessProbe:
+#          exec:
+#            command: ["docker/workers_healthcheck.sh"]
+#          initialDelaySeconds: 5
+#          timeoutSeconds: 10
+#          periodSeconds: 10
+#        livenessProbe:
+#          exec:
+#            command: ["docker/workers_healthcheck.sh"]
+#          initialDelaySeconds: 10
+#          timeoutSeconds: 10
+#          periodSeconds: 10
         env:
         - name: ENV
           value: staging
