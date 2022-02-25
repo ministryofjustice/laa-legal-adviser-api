@@ -28,13 +28,13 @@ spec:
           exec:
             command: ["docker/workers_healthcheck.sh"]
           initialDelaySeconds: 5
-          timeoutSeconds: 1
+          timeoutSeconds: 10
           periodSeconds: 10
         livenessProbe:
           exec:
             command: ["docker/workers_healthcheck.sh"]
           initialDelaySeconds: 10
-          timeoutSeconds: 1
+          timeoutSeconds: 10
           periodSeconds: 10
         env:
         - name: ENV
