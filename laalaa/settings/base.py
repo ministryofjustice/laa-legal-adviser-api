@@ -241,4 +241,3 @@ if not hasattr(sys, "cli_args_overrides"):
     setattr(sys, "cli_args_overrides", True)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
