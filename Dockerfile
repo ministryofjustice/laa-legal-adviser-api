@@ -1,25 +1,23 @@
-FROM osgeo/gdal:alpine-normal-3.2.1
+FROM osgeo/gdal:alpine-normal-3.6.0
 
 RUN apk upgrade --no-cache && \
     apk add --no-cache \
-      bash \
-      postgresql-client \
-      tzdata
+    bash \
+    postgresql-client \
+    tzdata \
+    py3-pip \
+    python3-dev
 
 RUN adduser -D app && \
     cp /usr/share/zoneinfo/Europe/London /etc/localtime
 
 # To install pip dependencies
 RUN apk add --no-cache \
-      build-base \
-      linux-headers \
-      postgresql-dev
+    build-base \
+    linux-headers \
+    postgresql-dev
 
-# Remove the python3 version included by the base image; install the latest version that fixes [CVE-2021-3177]
-RUN apk del python3 \
-    && apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main python3-dev \
-    && apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/community py3-pip \
-    && pip install -U setuptools pip==18.1 wheel
+RUN pip install -U setuptools pip wheel
 
 WORKDIR /home/app
 
