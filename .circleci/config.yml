@@ -27,7 +27,7 @@ jobs:
               .
       - run:
           name: Validate Python version
-          command: docker run --rm --tty --interactive application:$CIRCLE_SHA1 python --version | grep "3.8"
+          command: docker run --rm --tty --interactive application:$CIRCLE_SHA1 python --version | grep "3.10"
       - run:
           name: Tag and push Docker images
           command: .circleci/tag_and_push_docker_image application:$CIRCLE_SHA1 ${ECR_DOCKER_REPO_BASE}
