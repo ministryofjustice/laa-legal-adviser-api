@@ -4,7 +4,7 @@ celery[redis]==5.2.3
 django-celery-results==2.4.0
 django-filter==2.4.0
 django==3.2.15
-django-storages==1.7.1
+django-storages==1.13.1
 djangorestframework-gis==0.15.0
 djangorestframework==3.11.2
 logstash-formatter==0.5.9
