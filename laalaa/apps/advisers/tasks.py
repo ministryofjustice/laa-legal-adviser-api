@@ -115,6 +115,9 @@ class GeocoderTask(Task):
                 locations.update(point=point)
                 self.update_state(state="RUNNING", meta={"count": n, "total": tot, "errors": self.errors})
 
+        # clean up task errors
+        self.errors = []
+
 
 class ProgressiveAdviserImport(Task):
     name = "advisers.tasks.ProgressiveAdviserImport"
