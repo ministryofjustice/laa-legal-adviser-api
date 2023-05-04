@@ -19,8 +19,6 @@ from .models import Location, Import, IMPORT_STATUSES
 from .serializers import LocationOfficeSerializer
 from .tasks import ProgressiveAdviserImport
 
-LOCATION = re.compile("^[a-zA-Z -]+$")
-
 
 def custom_exception_handler(exc, context):
     # Call REST framework's default exception handler first,
