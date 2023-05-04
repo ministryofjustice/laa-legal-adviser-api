@@ -127,8 +127,6 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = Location.objects.filter(Q(outreachservice__isnull=False) | Q(office__isnull=False))
 
-        postcode = self.request.query_params.get("postcode")
-
         origin = self.get_origin_point() or self.get_origin_postcode()
         if origin:
             # srid is required for calculating when distance otherwise Distance will throw an exception
