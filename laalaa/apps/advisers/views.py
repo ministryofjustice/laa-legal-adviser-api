@@ -19,8 +19,6 @@ from .models import Location, Import, IMPORT_STATUSES
 from .serializers import LocationOfficeSerializer
 from .tasks import ProgressiveAdviserImport
 
-LOCATION = re.compile("^[a-zA-Z -]+$")
-
 
 def custom_exception_handler(exc, context):
     # Call REST framework's default exception handler first,
@@ -127,18 +125,13 @@ class AdviserViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = Location.objects.filter(Q(outreachservice__isnull=False) | Q(office__isnull=False))
 
-        postcode = self.request.query_params.get("postcode")
+        origin = self.get_origin_point() or self.get_origin_postcode()
+        if origin:
+            # srid is required for calculating when distance otherwise Distance will throw an exception
+            origin.srid = origin.srid or 4326
+            from django.contrib.gis.db.models.functions import Distance
 
-        if postcode and LOCATION.match(postcode) is not None:
-            queryset = queryset.filter(city__icontains=postcode.strip())
-        else:
-            origin = self.get_origin_point() or self.get_origin_postcode()
-            if origin:
-                # srid is required for calculating when distance otherwise Distance will throw an exception
-                origin.srid = origin.srid or 4326
-                from django.contrib.gis.db.models.functions import Distance
-
-                return queryset.annotate(distance=Distance("point", origin)).order_by("distance")
+            return queryset.annotate(distance=Distance("point", origin)).order_by("distance")
 
         return queryset
 

@@ -18,7 +18,6 @@ class Command(BaseCommand, AbortImportMixin):
     import_running_status_stuck_interval = datetime.timedelta(minutes=60)
 
     def handle(self, *args, **options):
-
         try:
             self.check_database_access()
             self.check_import_stuck_in_progress()
