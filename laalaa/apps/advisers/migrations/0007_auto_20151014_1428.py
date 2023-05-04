@@ -30,7 +30,6 @@ def unload_fixture(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("advisers", "0006_import")]
 
     operations = [
