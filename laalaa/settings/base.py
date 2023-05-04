@@ -218,7 +218,7 @@ if "SENTRY_DSN" in os.environ:
 TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
 TEST_OUTPUT_DIR = "test-reports"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # .local.py overrides all the common settings.
 try:
