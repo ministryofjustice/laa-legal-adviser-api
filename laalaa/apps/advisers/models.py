@@ -9,7 +9,7 @@ try:
 except NameError:
     unicode = str  # Python 3
 
-# We can't add category name to model because the categories data
+# We can't add category name to model because the categories' data
 # gets reset during the upload of the provider spreadsheet
 # https://github.com/ministryofjustice/laa-legal-adviser-api/blob/master/laalaa/apps/advisers/tasks.py#L55
 PROVIDER_CATEGORIES = {
@@ -29,6 +29,7 @@ PROVIDER_CATEGORIES = {
     "pub": "Public law",
     "wb": "Welfare benefits",
     "mosl": "Modern slavery",
+    "hlpas": "Housing Loss Prevention Advice Services",
 }
 
 
