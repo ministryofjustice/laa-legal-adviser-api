@@ -14,7 +14,7 @@ jobs:
           name: Login to the Docker registry
           command: |
             apk add --no-cache --no-progress py2-pip
-            pip install awscli
+            pip install awscli==1.29.12
             ecr_login="$(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
             ${ecr_login}
       - run:
