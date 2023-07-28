@@ -10,7 +10,7 @@ except NameError:
     unicode = str  # Python 3
 
 # We can't add category name to model because the categories' data
-# gets reset during the upload of the provider spreadsheet
+# Gets reset during the upload of the provider spreadsheet
 # https://github.com/ministryofjustice/laa-legal-adviser-api/blob/master/laalaa/apps/advisers/tasks.py#L55
 PROVIDER_CATEGORIES = {
     "aap": "Claims Against Public Authorities",
