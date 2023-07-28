@@ -29,7 +29,6 @@ PROVIDER_CATEGORIES = {
     "pub": "Public law",
     "wb": "Welfare benefits",
     "mosl": "Modern slavery",
-    "hlpas": "Housing Loss Prevention Advice Services",
 }
 
 
