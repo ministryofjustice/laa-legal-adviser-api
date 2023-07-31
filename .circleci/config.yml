@@ -4,19 +4,17 @@ orbs:
 jobs:
   build:
     docker:
-      - image: docker:18.09.3-git
+      - image: ministryofjustice/cloud-platform-tools
     steps:
       - checkout
       - setup_remote_docker:
-          version: "18.09.3"
           docker_layer_caching: true
       - run:
-          name: Login to the Docker registry
+          name: Login to the ECR Docker registry
           command: |
-            apk add --no-cache --no-progress py2-pip
-            pip install awscli
-            ecr_login="$(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
-            ${ecr_login}
+            aws ecr get-login-password --region $AWS_DEFAULT_REGION \
+            | docker login --username AWS --password-stdin \
+            $ECR_ENDPOINT
       - run:
           name: Build Docker image
           command: |
@@ -107,18 +105,17 @@ jobs:
 
   image_security_scan:
     docker:
-      - image: docker:18.09.3-git
+      - image: ministryofjustice/cloud-platform-tools
     steps:
-      - setup_remote_docker:
-          version: "18.09.3"
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
-          name: Login to the Docker registry
+          name: Login to the ECR Docker registry
           command: |
-            apk add --no-cache --no-progress py2-pip
-            pip install awscli
-            ecr_login="$(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)"
-            ${ecr_login}
+            aws ecr get-login-password --region $AWS_DEFAULT_REGION \
+            | docker login --username AWS --password-stdin \
+            $ECR_ENDPOINT
       - run:
           name: Install trivy
           command: |
