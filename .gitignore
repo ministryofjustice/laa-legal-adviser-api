@@ -77,3 +77,4 @@ laalaa/settings/local.py
 laalaa/static/
 test-reports/
 htmlcov/
+.env

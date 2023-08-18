@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 from os.path import join, abspath, dirname
 import sys
-import ssl
 
 import dj_database_url
 import sentry_sdk
@@ -149,15 +148,32 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"
 
 CACHE_MIDDLEWARE_SECONDS = 3600
 
-CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]
-
+CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]  # because json serializer doesn't support dates
+CELERY_ENABLE_UTC = True  # I think this is the default now anyway
 CELERY_RESULT_BACKEND = "django-db"
+CELERY_IGNORE_RESULT = True  # SQS doesn't support it
+CELERY_MESSAGE_COMPRESSION = "gzip"  # got to look after the pennies
+CELERY_DISABLE_RATE_LIMITS = True  # they don't work with SQS
+CELERY_ENABLE_REMOTE_CONTROL = False  # doesn't work well under docker
+CELERY_TIMEZONE = "UTC"
 
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "polling_interval": 10,
+    "region": os.environ.get("SQS_REGION", "eu-west-2"),
+    "wait_time_seconds": 20,
+}
 
-CELERY_BROKER_USE_SSL = os.environ.get("CELERY_BROKER_USE_SSL", None)
-if CELERY_BROKER_USE_SSL:
-    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
+if os.environ.get("CELERY_PREDEFINED_QUEUE_URL"):
+    predefined_queue_url = os.environ.get("CELERY_PREDEFINED_QUEUE_URL")
+    CELERY_BROKER_URL = "sqs://"
+    CELERY_DEFAULT_QUEUE = predefined_queue_url.split("/")[-1]
+    CELERY_CREATE_MISSING_QUEUES = False
+    CELERY_BROKER_TRANSPORT_OPTIONS["predefined_queues"] = {"celery": {"url": predefined_queue_url}}
+else:
+    # if no BROKER_URL specified then don't try to use celery
+    # because it'll just cause errors
+    CELERY_ALWAYS_EAGER = True
+
 
 TEMP_DIRECTORY = root("tmp")
 

@@ -65,10 +65,8 @@ spec:
             secretKeyRef:
               name: s3
               key: bucket_name
-        - name: CELERY_BROKER_URL
+        - name: CELERY_PREDEFINED_QUEUE_URL
           valueFrom:
             secretKeyRef:
-              name: celery-broker
-              key: url
-        - name: CELERY_BROKER_USE_SSL
-          value: "true"
+              name: sqs
+              key: sqs_id
