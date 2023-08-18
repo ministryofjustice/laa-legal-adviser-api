@@ -148,7 +148,7 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"
 
 CACHE_MIDDLEWARE_SECONDS = 3600
 
-CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]  # because json serializer doesn't support dates
+CELERY_ACCEPT_CONTENT = ["pickle", "json", "msgpack"]
 CELERY_ENABLE_UTC = True  # I think this is the default now anyway
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_IGNORE_RESULT = True  # SQS doesn't support it

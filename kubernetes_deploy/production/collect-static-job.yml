@@ -15,6 +15,7 @@ spec:
         env: production
     spec:
       restartPolicy: Never
+      serviceAccountName: laa-legal-adviser-api-production-irsa-sevice-account
       containers:
       - name: app
         image: "<to be set by deploy_to_kubernetes>"
@@ -39,18 +40,8 @@ spec:
             secretKeyRef:
               name: s3
               key: bucket_name
-        - name: AWS_ACCESS_KEY_ID
+       - name: CELERY_PREDEFINED_QUEUE_URL
           valueFrom:
             secretKeyRef:
-              name: s3
-              key: access_key_id
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: s3
-              key: secret_access_key
-        - name: AWS_S3_REGION_NAME
-          valueFrom:
-            secretKeyRef:
-              name: s3
-              key: region
+              name: sqs
+              key: sqs_id
