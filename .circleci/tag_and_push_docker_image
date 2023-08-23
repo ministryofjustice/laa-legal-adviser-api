@@ -1,0 +1,19 @@
+#!/bin/sh -e
+
+source $(dirname "$0")/define_build_environment_variables
+built_tag="$1"
+docker_repository="$2"
+
+function tag_and_push() {
+  tag="$1"
+  echo
+  echo "Tagging and pushing $tag..."
+  docker tag $built_tag $tag
+  docker push $tag
+}
+
+if [ "$CIRCLE_BRANCH" == "master" ]; then
+  tag_and_push "$docker_repository:$CIRCLE_SHA1"
+fi
+tag_and_push "$docker_repository:$safe_git_branch.$short_sha"
+tag_and_push "$docker_repository:$safe_git_branch"
