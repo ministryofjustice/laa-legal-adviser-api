@@ -27,7 +27,7 @@ jobs:
             source .circleci/define_build_environment_variables
             echo "Created tags $TARGET_TAGS"
             echo "export BUILD_TAGS=$TARGET_TAGS" >> $BASH_ENV
-            echo "export IMAGE_TAG=$IMAGE_TAG" >> $BASH_ENV
+            echo "export ECR_DEPLOY_IMAGE=${AWS_ECR_REGISTRY_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG" >> $BASH_ENV
       - run: |
           aws ecr get-login-password --region $ECR_REGION | docker login --username AWS --password-stdin ${AWS_ECR_REGISTRY_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com
       # Build and push your Docker image
@@ -40,7 +40,7 @@ jobs:
       - run:
           name: Validate Python version
           command: |
-            docker run --rm --tty --interactive ${AWS_ECR_REGISTRY_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG python --version | grep "3.8"
+            docker run --rm --tty --interactive $ECR_DEPLOY_IMAGE python --version | grep "3.8"
 
   lint:
     docker:
