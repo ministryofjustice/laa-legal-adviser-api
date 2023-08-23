@@ -15,6 +15,7 @@ spec:
         env: production
     spec:
       restartPolicy: Never
+      serviceAccountName: laa-legal-adviser-api-production-irsa-sevice-account
       containers:
       - name: app
         image: "<to be set by deploy_to_kubernetes>"

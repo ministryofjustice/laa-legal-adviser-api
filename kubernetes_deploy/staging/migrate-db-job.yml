@@ -15,6 +15,7 @@ spec:
         env: staging
     spec:
       restartPolicy: Never
+      serviceAccountName: laa-legal-adviser-api-staging-irsa-sevice-account
       containers:
       - name: app
         image: "<to be set by deploy_to_kubernetes>"

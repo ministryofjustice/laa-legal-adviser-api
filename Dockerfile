@@ -13,7 +13,8 @@ RUN adduser -D app && \
 RUN apk add --no-cache \
       build-base \
       linux-headers \
-      postgresql-dev
+      postgresql-dev \
+      curl-dev
 
 # Remove the python3 version included by the base image; install the latest version that fixes [CVE-2021-3177]
 RUN apk del python3 \
