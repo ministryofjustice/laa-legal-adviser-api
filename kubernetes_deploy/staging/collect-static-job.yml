@@ -40,3 +40,8 @@ spec:
             secretKeyRef:
               name: s3
               key: bucket_name
+        - name: CELERY_PREDEFINED_QUEUE_URL
+          valueFrom:
+            secretKeyRef:
+              name: sqs
+              key: sqs_id
