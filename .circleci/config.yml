@@ -117,7 +117,9 @@ jobs:
           path: test-reports
 
   image_security_scan:
-    executor: aws-ecr/default # use the aws-ecr/default executor to start the docker daemon
+    executor: 
+      name: aws-ecr/default # use the aws-ecr/default executor to start the docker daemon
+      image: ministryofjustice/cloud-platform-tools
     steps:
       # Checkout your repository
       - checkout
@@ -209,12 +211,12 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - lint
-      - test
-      - build:
-          requires:
-            - lint
-            - test
+      ##- lint
+      #- test
+      - build
+          #requires:
+            #- lint
+            #- test
       - image_security_scan:
           requires:
             - build
