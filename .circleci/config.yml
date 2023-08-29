@@ -117,22 +117,28 @@ jobs:
           path: test-reports
 
   image_security_scan:
-    docker:
-      - image: ministryofjustice/cloud-platform-tools
+    executor: aws-ecr/default # use the aws-ecr/default executor to start the docker daemon
     steps:
+      # Checkout your repository
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      # Authenticate to AWS using OIDC v2 with the AWS CLI
+      - aws-cli/setup:
+          role_arn: $ECR_ROLE_TO_ASSUME # this will use the env var
+          region: $ECR_REGION # this will use the env var
+      # Authenticate to the ECR repository using the standard command
       - run:
-          name: Login to the ECR Docker registry
+          name: Create target tags
           command: |
-            aws ecr get-login-password --region $AWS_DEFAULT_REGION \
-            | docker login --username AWS --password-stdin \
-            $ECR_ENDPOINT
+            source .circleci/define_build_environment_variables
+            echo "export ECR_DEPLOY_IMAGE=${AWS_ECR_REGISTRY_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG" >> $BASH_ENV
+      - run: |
+          aws ecr get-login-password --region $ECR_REGION | docker login --username AWS --password-stdin ${AWS_ECR_REGISTRY_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com
+
       - run:
           name: Install trivy
           command: |
-            apk add --update curl
+            sudo apt-get update
+            sudo apt-get install -y curl wget
             VERSION=$(
                 curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
                 grep '"tag_name":' | \
@@ -141,7 +147,7 @@ jobs:
 
             wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
             tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-            mv trivy /usr/local/bin
+            sudo mv trivy /usr/local/bin
       - run:
           name: Pull down image
           command: |
