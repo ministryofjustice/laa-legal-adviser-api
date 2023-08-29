@@ -160,7 +160,7 @@ jobs:
 
             wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
             tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-            mv trivy /usr/local/bin
+            sudo mv trivy /usr/local/bin
       - run:
           name: Pull down image
           command: |
