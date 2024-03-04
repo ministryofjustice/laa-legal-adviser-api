@@ -1,8 +1,8 @@
 version: 2.1
 orbs:
   slack: circleci/slack@2.5.0
-  aws-cli: circleci/aws-cli@4.0.0 # use v4 of this orb
-  aws-ecr: circleci/aws-ecr@8.2.1 # this orb doesn't support OIDC v2, so we use aws-cli to authenticate
+  aws-cli: circleci/aws-cli@4.1 # use v4 of this orb
+  aws-ecr: circleci/aws-ecr@9.0 # this orb doesn't support OIDC v2, so we use aws-cli to authenticate
 
 # ------------------
 #
@@ -31,8 +31,9 @@ jobs:
       - run: |
           aws ecr get-login-password --region $ECR_REGION | docker login --username AWS --password-stdin ${AWS_ECR_REGISTRY_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com
       # Build and push your Docker image
-      - aws-ecr/build-image:
-          push-image: true
+      - aws-ecr/build_image:
+          push_image: true
+          account_id: $AWS_ECR_REGISTRY_ID
           tag: $BUILD_TAGS
           region: $ECR_REGION # this will use the env var
           repo: $ECR_REPOSITORY # this will use the env var
