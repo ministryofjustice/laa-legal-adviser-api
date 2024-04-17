@@ -17,3 +17,4 @@ django-moj-irat>=0.4
 dj-database-url==0.5.0
 importlib_metadata==4.13.0
 
+sqlparse>=0.5.0 # not directly required, pinned by Snyk to avoid a vulnerability
