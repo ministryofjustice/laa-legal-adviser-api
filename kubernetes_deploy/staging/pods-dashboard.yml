@@ -317,7 +317,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "1000 * http_server_request_duration_seconds_sum{namespace='$namespace',path='/v6/assessments'}/http_server_request_duration_seconds_count{namespace='$namespace',path='/v6/assessments'}",
+              "expr": "1000 * django_http_requests_latency_including_middlewares_seconds_sum{namespace='$namespace'}/django_http_requests_latency_including_middlewares_seconds_count{namespace='$namespace'}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{pod}}",
