@@ -224,7 +224,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "3600 * rate(django_http_responses_total_by_status_view_method_created{namespace='$namespace'}[15m])",
+              "expr": "3600 * rate(django_http_responses_total_by_status_total{namespace='$namespace',status='200'}[15m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{pod}}",
