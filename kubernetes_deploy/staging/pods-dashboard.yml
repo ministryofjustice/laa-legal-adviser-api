@@ -224,7 +224,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "3600 * rate(django_http_responses_total_by_status_total{namespace='$namespace',status='200'}[15m])",
+              "expr": "60 * rate(django_http_responses_total_by_status_view_method_total{namespace='$namespace',method='GET',view='legal-advisers-list'}[15m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{pod}}",
@@ -235,7 +235,7 @@ data:
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Requests per Hour",
+          "title": "Requests per Minute",
           "tooltip": {
             "shared": true,
             "sort": 0,
