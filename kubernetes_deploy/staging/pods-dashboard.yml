@@ -317,7 +317,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "1000 * django_http_requests_latency_including_middlewares_seconds_sum{namespace='$namespace'}/django_http_requests_latency_including_middlewares_seconds_count{namespace='$namespace'}",
+              "expr": "1000 * django_http_requests_latency_seconds_by_view_method_sum{namespace='$namespace',method='GET',view='legal-advisers-list'}/django_http_requests_latency_seconds_by_view_method_count{namespace='$namespace',method='GET',view='legal-advisers-list'}",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{pod}}",
