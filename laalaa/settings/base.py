@@ -62,9 +62,11 @@ INSTALLED_APPS = (
     "rest_framework_gis",
     "advisers",
     "categories",
+    "django_prometheus",
 )
 
 MIDDLEWARE = (
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "advisers.middleware.PingMiddleware",
     "django.middleware.cache.UpdateCacheMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -74,6 +76,7 @@ MIDDLEWARE = (
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.cache.FetchFromCacheMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 )
 
 ROOT_URLCONF = "laalaa.urls"
