@@ -224,7 +224,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "60 * rate(django_http_responses_total_by_status_view_method_total{namespace='$namespace',method='GET',view='legal-advisers-list'}[15m])",
+              "expr": "60 * rate(django_http_responses_total_by_status_view_method_total{namespace='$namespace',method='GET',status='200',view='legal-advisers-list'}[15m])",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "{{pod}}",
