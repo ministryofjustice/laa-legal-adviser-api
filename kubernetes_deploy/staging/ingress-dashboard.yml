@@ -30,7 +30,7 @@ data:
           }
         ]
       },
-      "description": "LAALAA Ingress (LAA Legal Adviser API)",
+      "description": "LAA Legal Adviser API - Ingress dashboard",
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
