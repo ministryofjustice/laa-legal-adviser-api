@@ -7,3 +7,4 @@ pre-commit==1.14.2
 unittest-xml-reporting==3.0.2
 coverage==5.0.3
 coveralls==3.3.1
+requests>=2.32.0 # not directly required, pinned by Snyk to avoid a vulnerability
