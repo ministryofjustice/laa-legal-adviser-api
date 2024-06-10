@@ -186,6 +186,11 @@ jobs:
           name: Deploy to << parameters.environment >>
           command: |
             .circleci/deploy_to_kubernetes << parameters.environment >>
+      - run:
+          name: Deploy Grafana Dashboards
+          command: |
+            kubectl apply -f ./kubernetes_deploy/staging/ingress-dashboard.yml
+            kubectl apply -f ./kubernetes_deploy/staging/pods-dashboard.yml
       - slack/status
 
 # ------------------
