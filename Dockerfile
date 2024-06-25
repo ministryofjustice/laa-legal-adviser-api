@@ -1,4 +1,4 @@
-FROM osgeo/gdal:alpine-normal-3.2.1
+FROM ghcr.io/osgeo/gdal:alpine-small-3.9.0
 
 RUN apk upgrade --no-cache && \
     apk add --no-cache \
@@ -14,28 +14,28 @@ RUN apk add --no-cache \
       build-base \
       linux-headers \
       postgresql-dev \
-      curl-dev
-
-# Remove the python3 version included by the base image; install the latest version that fixes [CVE-2021-3177]
-RUN apk del python3 \
-    && apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/main python3-dev \
-    && apk add --repository=http://dl-cdn.alpinelinux.org/alpine/v3.10/community py3-pip \
-    && pip install -U setuptools pip==18.1 wheel
+      curl-dev \
+      python3-dev \
+      geos-dev \
+      py-pip
 
 WORKDIR /home/app
 
 COPY requirements/base.txt requirements/base.txt
-RUN pip install -r ./requirements/base.txt
 
 COPY . .
 
 RUN chown -R app:app laalaa/tmp
+RUN mkdir laalaa/static
+RUN chown -R app:app laalaa/static
+
+USER 1000
+RUN pip install --user --break-system-packages -r ./requirements/base.txt
 
 # Kubernetes deploy does not need this as it runs it in a Job with the s3 storage backend set,
 # so it can be removed once we're fully migrated
 RUN python manage.py collectstatic --noinput
 
-USER 1000
 EXPOSE 8000
 
 CMD ["docker/run.sh"]
