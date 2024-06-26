@@ -242,7 +242,6 @@ workflows:
 
       - deploy_grafana:
           name: deploy_grafana
-          environment: staging
           requires:
             - staging_deploy_approval
           context:
