@@ -10,7 +10,7 @@ near that point.
 ## Dependencies
 
 * Virtualenv
-* Python 3.7
+* Python 3.7 (follow the [FALA installation guide](https://github.com/ministryofjustice/fala/blob/main/docs/virtual-env.md) and use `pyenv` to install correct version of python)
 * Redis
 * PostgreSQL => 11 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
 * [PostGIS](https://postgis.net/) (`brew install postgis`)
