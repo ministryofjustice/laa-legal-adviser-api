@@ -76,6 +76,8 @@ MIDDLEWARE = (
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.cache.FetchFromCacheMiddleware",
+    # Prometheus should maybe be before the cache, so that we know when the URL has been accessed
+    # but it didn't seem to work at all
     "django_prometheus.middleware.PrometheusAfterMiddleware",
 )
 
