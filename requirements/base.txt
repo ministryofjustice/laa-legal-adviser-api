@@ -1,4 +1,4 @@
-requests==2.30.0
+requests==2.32.2
 boto3==1.24.95
 celery[sqs]==5.2.3
 pycurl>=7.43.0.5; sys_platform != 'win32' and platform_python_implementation=="CPython"
