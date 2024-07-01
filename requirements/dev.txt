@@ -2,7 +2,7 @@
 django-extensions
 werkzeug
 mock
-responses==0.9.0
+responses==0.25.3
 pre-commit==1.14.2
 unittest-xml-reporting==3.0.2
 coverage==5.0.3

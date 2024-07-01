@@ -37,15 +37,15 @@ jobs:
           tag: $BUILD_TAGS
           region: $ECR_REGION # this will use the env var
           repo: $ECR_REPOSITORY # this will use the env var
-      # Validate the python version as 3.8
+      # Validate the python version
       - run:
           name: Validate Python version
           command: |
-            docker run --rm --tty --interactive $ECR_DEPLOY_IMAGE python --version | grep "3.8"
+            docker run --rm --tty --interactive $ECR_DEPLOY_IMAGE python --version | grep "3.11"
 
   lint:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.11
     steps:
       - checkout
       - run:
@@ -77,7 +77,7 @@ jobs:
             black --check --skip-string-normalization laalaa
   test:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.11
       - image: cimg/postgres:14.9-postgis
     steps:
       - checkout
