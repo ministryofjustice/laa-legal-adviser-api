@@ -2,7 +2,7 @@ import json
 import logging
 import requests
 from django.conf import settings
-
+from requests.adapters import HTTPAdapter
 
 class PostcodePlaceholder:
     def __init__(self):
@@ -37,7 +37,14 @@ def result_to_postcode(result):
 
 def lookup_postcode(postcode):
     normalised_postcode = normalise_postcode(postcode)
-    raw = requests.get(
+    
+    session = requests.Session()
+    
+    # `max_retries` only applies to failed DNS lookups, socket connections and connection timeouts, never to requests where data has made it to the server. 
+    # by default, Requests does not retry failed connections. Please see documentation: https://docs.python-requests.org/en/latest/api/#requests.adapters.HTTPAdapter
+    session.mount("https://api.postcodes.io/", HTTPAdapter(max_retries=5))
+    
+    raw = session.get(
         "{host}/postcodes/?q={postcode}&limit=1".format(host=settings.POSTCODES_IO_URL, postcode=normalised_postcode)
     )
     return json.loads(raw.text)
