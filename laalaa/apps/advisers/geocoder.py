@@ -41,11 +41,11 @@ def lookup_postcode(postcode):
 
     session = requests.Session()
 
-    retry_stratergy = Retry(total=5, backoff_factor=0.1)
+    retry_strategy = Retry(total=5, backoff_factor=0.1)
 
     # `max_retries` only applies to failed DNS lookups, socket connections and connection timeouts, never to requests where data has made it to the server.
     # by default, Requests does not retry failed connections. Please see documentation: https://docs.python-requests.org/en/latest/api/#requests.adapters.HTTPAdapter
-    session.mount("https://", HTTPAdapter(max_retries=retry_stratergy))
+    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
 
     raw = session.get(
         "{host}/postcodes/?q={postcode}&limit=1".format(host=settings.POSTCODES_IO_URL, postcode=normalised_postcode)
