@@ -112,7 +112,7 @@ class GeocoderTask(Task):
                 point = geocode(postcode)
             except geocoder.PostcodeNotFound:
                 log_error(
-                    f"Failed geocoding postcode: {postcode}; On worksheet tab: {outreach_type}; With the organisation name: {org_name}; And firm ID: {firm};"
+                    f"Failed geocoding postcode: {postcode}; On worksheet tab: {outreach_type}; With the organisation name: {org_name}; And firm ID: {firm}."
                 )
                 continue
             except geocoder.GeocoderError as e:
