@@ -106,13 +106,23 @@ class GeocoderTask(Task):
 
             org_name = location["org_name"]
 
+            account_number = location["account_number"]
+
             firm = location["firm"]
+
+            message_parts = []
+
+            if outreach_type == "OFFICE LOCATION":
+                message_parts.append(
+                    f"; With the organisation name: {org_name}; With the account_number: {account_number};  And firm ID: {firm}."
+                )
 
             try:
                 point = geocode(postcode)
             except geocoder.PostcodeNotFound:
                 log_error(
-                    f"Failed geocoding postcode: {postcode}; On worksheet tab: {outreach_type}; With the organisation name: {org_name}; And firm ID: {firm}."
+                    f"Failed geocoding postcode: {postcode}; On worksheet tab: {outreach_type}"
+                    + "".join(message_parts)
                 )
                 continue
             except geocoder.GeocoderError as e:
@@ -175,7 +185,7 @@ class ProgressiveAdviserImport(Task):
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT advisers_location.id, postcode, advisers_organisation.name, advisers_organisation.firm, advisers_outreachtype.name
+            SELECT advisers_location.id, postcode, advisers_organisation.name, advisers_organisation.firm, advisers_outreachtype.name, advisers_office.account_number
             FROM advisers_location
             LEFT JOIN advisers_office
             ON advisers_office.location_id = advisers_location.id
@@ -196,6 +206,7 @@ class ProgressiveAdviserImport(Task):
                 "org_name": location[2],
                 "firm": location[3],
                 "outreach_type": location[4],
+                "account_number": location[5],
             }
             for location in results
         ]
