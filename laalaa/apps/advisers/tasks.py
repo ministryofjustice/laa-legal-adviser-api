@@ -121,7 +121,7 @@ class GeocoderTask(Task):
                 point = geocode(postcode)
             except geocoder.PostcodeNotFound:
                 log_error(
-                    f"Failed geocoding postcode: {postcode}; On worksheet tab: {outreach_type}. "
+                    f"Failed geocoding postcode: {postcode}; On worksheet tab: {outreach_type}"
                     f"{''.join(message_parts)}"
                 )
                 continue
