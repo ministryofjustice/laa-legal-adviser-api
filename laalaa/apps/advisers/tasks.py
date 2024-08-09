@@ -114,7 +114,7 @@ class GeocoderTask(Task):
 
             if outreach_type == "OFFICE LOCATION":
                 message_parts.append(
-                    f"; With the organisation name: {org_name}; With the account_number: {account_number};  And firm ID: {firm}."
+                    f"; With the organisation name: {org_name}; The account number: {account_number};  And firm ID: {firm}."
                 )
 
             try:
