@@ -92,26 +92,45 @@ class GeocoderTask(Task):
         except SoftTimeLimitExceeded:
             raise Ignore()
 
-    def task_run_handler(self, postcodes):
-        tot = len(postcodes)
+    def task_run_handler(self, location_details):
+        tot = len(location_details)
 
         def log_error(err):
             logging.warn(err)
             self.errors.append(err)
 
-        for n, postcode in enumerate(postcodes):
-            pc = re.sub(" +", " ", postcode[0])
+        for n, location in enumerate(location_details):
+            postcode = re.sub(" +", " ", location["postcode"])
+
+            outreach_type = "OFFICE LOCATION" if location["outreach_type"] is None else "OUTREACH SERVICE"
+
+            org_name = location["org_name"]
+
+            account_number = location["account_number"]
+
+            firm = location["firm"]
+
+            message_parts = []
+
+            if outreach_type == "OFFICE LOCATION":
+                message_parts.append(
+                    f"; With the organisation name: {org_name}; The account number: {account_number}; And firm ID: {firm}."
+                )
+
             try:
-                point = geocode(pc)
+                point = geocode(postcode)
             except geocoder.PostcodeNotFound:
-                log_error("Failed geocoding postcode: %s" % postcode)
+                log_error(
+                    f"Failed geocoding postcode: {postcode}; On worksheet tab: {outreach_type}"
+                    f"{''.join(message_parts)}"
+                )
                 continue
             except geocoder.GeocoderError as e:
-                log_error('Failed postcode: "%s" .Error connecting to ' "geocoder: %s" % (pc, e))
+                log_error(f"Failed postcode: {postcode}. Error connecting to geocoder: {e}")
                 continue
 
             if point:
-                locations = models.Location.objects.filter(postcode=pc)
+                locations = models.Location.objects.filter(postcode=postcode)
                 locations.update(point=point)
                 self.update_state(state="RUNNING", meta={"count": n, "total": tot, "errors": self.errors})
 
@@ -166,15 +185,37 @@ class ProgressiveAdviserImport(Task):
         cursor = connection.cursor()
         cursor.execute(
             """
-            SELECT DISTINCT postcode FROM advisers_location"""
+            SELECT advisers_location.id, postcode, advisers_organisation.name, advisers_organisation.firm, advisers_outreachtype.name, advisers_office.account_number
+            FROM advisers_location
+            LEFT JOIN advisers_office
+            ON advisers_office.location_id = advisers_location.id
+            LEFT JOIN advisers_organisation
+            ON advisers_office.organisation_id = advisers_organisation.id
+            LEFT JOIN advisers_outreachservice
+            ON advisers_location.id = advisers_outreachservice.location_id
+            LEFT JOIN advisers_outreachtype
+            ON advisers_outreachtype.id = advisers_outreachservice.type_id
+            """
         )
-        postcodes = cursor.fetchall()
+        results = cursor.fetchall()
 
-        self.total = len(postcodes)
+        location_details = [
+            {
+                "id": location[0],
+                "postcode": location[1],
+                "org_name": location[2],
+                "firm": location[3],
+                "outreach_type": location[4],
+                "account_number": location[5],
+            }
+            for location in results
+        ]
+
+        self.total = len(location_details)
 
         def chunks(n=1000):
-            for i in xrange(0, len(postcodes), n):
-                yield postcodes[i : i + n]
+            for i in xrange(0, len(location_details), n):
+                yield location_details[i : i + n]
 
         self.update_count()
 
