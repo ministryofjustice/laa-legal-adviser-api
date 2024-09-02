@@ -255,7 +255,7 @@ workflows:
           filters:
             branches:
                 only:
-                    - master
+                    - main
 
       - deploy:
           name: production_deploy_live
