@@ -1,8 +1,8 @@
 version: 2.1
 orbs:
   slack: circleci/slack@2.5.0
-  aws-cli: circleci/aws-cli@4.0.0 # use v4 of this orb
-  aws-ecr: circleci/aws-ecr@8.2.1 # this orb doesn't support OIDC v2, so we use aws-cli to authenticate
+  aws-cli: circleci/aws-cli@4.1 # use v4 of this orb
+  aws-ecr: circleci/aws-ecr@9.0 # this orb doesn't support OIDC v2, so we use aws-cli to authenticate
 
 # ------------------
 #
@@ -31,20 +31,21 @@ jobs:
       - run: |
           aws ecr get-login-password --region $ECR_REGION | docker login --username AWS --password-stdin ${AWS_ECR_REGISTRY_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com
       # Build and push your Docker image
-      - aws-ecr/build-image:
-          push-image: true
+      - aws-ecr/build_image:
+          push_image: true
+          account_id: $AWS_ECR_REGISTRY_ID
           tag: $BUILD_TAGS
           region: $ECR_REGION # this will use the env var
           repo: $ECR_REPOSITORY # this will use the env var
-      # Validate the python version as 3.8
+      # Validate the python version
       - run:
           name: Validate Python version
           command: |
-            docker run --rm --tty --interactive $ECR_DEPLOY_IMAGE python --version | grep "3.8"
+            docker run --rm --tty --interactive $ECR_DEPLOY_IMAGE python --version | grep "3.11"
 
   lint:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.11
     steps:
       - checkout
       - run:
@@ -76,7 +77,7 @@ jobs:
             black --check --skip-string-normalization laalaa
   test:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.11
       - image: cimg/postgres:14.9-postgis
     steps:
       - checkout
@@ -187,6 +188,25 @@ jobs:
             .circleci/deploy_to_kubernetes << parameters.environment >>
       - slack/status
 
+  deploy_grafana:
+    docker:
+      - image: ministryofjustice/cloud-platform-tools
+    steps:
+      - checkout
+      - run:
+          name: Authenticate with cluster
+          command: |
+            echo -n ${K8S_CLUSTER_CERT} | base64 -d > ./ca.crt
+            kubectl config set-cluster ${K8S_CLUSTER_NAME} --certificate-authority=./ca.crt --server=${K8S_SERVER_ADDRESS}
+            kubectl config set-credentials circleci --token=${K8S_TOKEN}
+            kubectl config set-context ${K8S_CLUSTER_NAME} --cluster=${K8S_CLUSTER_NAME} --user=circleci --namespace=${K8S_NAMESPACE}
+            kubectl config use-context ${K8S_CLUSTER_NAME}
+      - run:
+          name: Deploy Grafana Dashboards
+          command: |
+            kubectl apply -f ./kubernetes_deploy/staging/ingress-dashboard.yml
+            kubectl apply -f ./kubernetes_deploy/staging/pods-dashboard.yml
+
 # ------------------
 #
 #WORKFLOWS
@@ -220,6 +240,13 @@ workflows:
           context:
             - laa-legal-adviser-api-live-staging
 
+      - deploy_grafana:
+          name: deploy_grafana
+          requires:
+            - staging_deploy_approval
+          context:
+            - laa-legal-adviser-api-live-staging
+
       - production_deploy_approval:
           type: approval
           requires:
@@ -228,7 +255,7 @@ workflows:
           filters:
             branches:
                 only:
-                    - master
+                    - main
 
       - deploy:
           name: production_deploy_live

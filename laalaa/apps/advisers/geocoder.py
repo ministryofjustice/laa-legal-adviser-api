@@ -2,6 +2,8 @@ import json
 import logging
 import requests
 from django.conf import settings
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 class PostcodePlaceholder:
@@ -37,7 +39,16 @@ def result_to_postcode(result):
 
 def lookup_postcode(postcode):
     normalised_postcode = normalise_postcode(postcode)
-    raw = requests.get(
+
+    session = requests.Session()
+
+    retry_strategy = Retry(total=5, backoff_factor=0.1)
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+
+    raw = session.get(
         "{host}/postcodes/?q={postcode}&limit=1".format(host=settings.POSTCODES_IO_URL, postcode=normalised_postcode)
     )
     return json.loads(raw.text)

@@ -38,6 +38,13 @@ spec:
           initialDelaySeconds: 10
           timeoutSeconds: 1
           periodSeconds: 10
+        resources:
+          limits:
+            cpu: 600m
+            memory: 600Mi
+          requests:
+            cpu: 300m
+            memory: 300Mi
         env:
         - name: ENV
           value: staging

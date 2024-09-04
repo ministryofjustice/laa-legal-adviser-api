@@ -13,4 +13,4 @@ fi
 
 # Run server
 export WORKER_APP_CONCURRENCY=${WORKER_APP_CONCURRENCY:-8}
-/usr/bin/uwsgi --ini /home/app/conf/uwsgi.ini
+/home/app/.local/bin/uwsgi --ini /home/app/conf/uwsgi.ini

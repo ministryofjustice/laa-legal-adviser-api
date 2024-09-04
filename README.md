@@ -10,10 +10,11 @@ near that point.
 ## Dependencies
 
 * Virtualenv
-* Python 3.7
+* Python 3.11 (follow the [FALA installation guide](https://github.com/ministryofjustice/fala/blob/main/docs/virtual-env.md) and use `pyenv` to install correct version of python)
 * Redis
 * PostgreSQL => 11 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
 * [PostGIS](https://postgis.net/) (`brew install postgis`)
+  * Go get a hot beverage whilst waiting for this step to finish
 
 :memo: If you are using Docker to provide a database, please use `circleci/postgres:11-alpine-postgis`, which has the required extensions installed.
 
@@ -29,17 +30,30 @@ As a convenience, a `docker-compose.yml` specifies these dependendencies and can
 
 ## Installation
 
-```sh
-# Install Virtualenv if necessary
-# sudo may be required if Python is not installed via brew
-pip install virtualenv
+"pyenv" is the tool we use to install and use the correct version of Python. (Other CLA repos need different python versions, and we've settled on pyenv as the best way to easily switch versions, depending on the repo you're in.)
 
-# Create a virtualenv
-# In the directory in which the virtualenv directory should be created
-virtualenv -p python3 env
+1. Install pyenv with brew:
+
+       brew install pyenv
+
+2. Set up your shell for pyenv. Make the changes to `~/.zshrc` described here: [Set up your shell for pyenv](https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv) (This is so that pyenv's python binary can be found in your path)
+
+3. To make the shell changes take effect:
+
+       . ~/.zshrc (or whatever your local shell file is e.g. .bashrc for bash)
+
+   (or alternatively, restart your shell)
+
+4. Install into pyenv the python version this repo uses (which is defined in `.python-version`):
+
+       pyenv install 3.11
+       pyenv local 3.11
+
+```sh
+python -m venv venv
 
 # Start the virtualenv
-source env/bin/activate
+source venv/bin/activate
 
 # Install further requirements with pip, assuming you are in the
 # project directory
