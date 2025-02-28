@@ -92,7 +92,7 @@ $(function () {
       var labelText = data.status || 'No import running';
       label.text(labelText);
     }
-    if (data.task === 'done' || data.status === 'not running') {
+    if (data.task === 'done' || data.status === 'not running' || label.text === "success") {
       window.clearInterval(polling);
       progressBar.remove();
       counts.remove();
