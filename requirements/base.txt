@@ -4,7 +4,7 @@ celery[sqs]==5.4
 pycurl>=7.43.0.5; sys_platform != 'win32' and platform_python_implementation=="CPython"
 django-celery-results==2.5.1
 django-filter==24.2
-django==4.2.21
+django==4.2.22
 django-storages==1.14.3
 djangorestframework-gis==1.0.0
 djangorestframework==3.15.2
