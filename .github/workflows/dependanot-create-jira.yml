@@ -1,0 +1,87 @@
+name: Raise Dependabot Jira Ticket
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  create-jira-issue:
+    name: Create Jira Ticket for Dependabot PRs
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Create Jira ticket via JIRA API
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          PROJECT_KEY: LGA
+          ISSUE_TYPE: Task
+          SUMMARY: |
+            LAALAA Dependabot: ${{ github.event.pull_request.title }}, GitHub PR#${{ github.event.pull_request.number }}
+          PR_URL: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+        run: |
+          B64ENCODED_CREDS=$(echo -n "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}" | base64)
+
+          curl -s -X POST "${JIRA_BASE_URL}/rest/api/3/issue" \
+            -H "Authorization: Basic $B64ENCODED_CREDS" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg project "$PROJECT_KEY" \
+              --arg summary "$SUMMARY" \
+              --arg issuetype "$ISSUE_TYPE" \
+              --arg pr_url "$PR_URL" \
+              '{
+                fields: {
+                  project: { key: $project },
+                  summary: $summary,
+                  description: {
+                    content: [
+                      {
+                        content: [
+                          {
+                            text: "Please view the PR for further information.",
+                            type: "text"
+                          }
+                        ],
+                        type: "paragraph"
+                      },
+                      {
+                        content: [
+                          {
+                            text: "Link to Pull Request: ",
+                            type: "text"
+                          },
+                          {
+                            text: $pr_url,
+                            type: "text",
+                            marks: [
+                              {
+                                type: "link",
+                                attrs: {
+                                  href: $pr_url
+                                }
+                              }
+                            ]
+                          }
+                        ],
+                        type: "paragraph"
+                      },
+                      {
+                        content: [
+                          {
+                            text: "If tests are failing and some investigation is required please bring it to refinement for re-pointing",
+                            type: "text"
+                          }
+                        ],
+                        type: "paragraph"
+                      }
+                    ],
+                    type: "doc",
+                    version: 1
+                  },
+                  issuetype: { name: $issuetype }
+                }
+              }')"
