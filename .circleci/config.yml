@@ -227,40 +227,29 @@ workflows:
           requires:
             - build
 
-      - staging_deploy_approval:
-          type: approval
-          requires:
-            - build
-
       - deploy:
           name: staging_deploy_live
           environment: staging
-          requires:
-            - staging_deploy_approval
           context:
             - laa-legal-adviser-api-live-staging
+          requires:
+            - image_security_scan
 
       - deploy_grafana:
           name: deploy_grafana
-          requires:
-            - staging_deploy_approval
           context:
             - laa-legal-adviser-api-live-staging
-
-      - production_deploy_approval:
-          type: approval
           requires:
-            - staging_deploy_live
+            - image_security_scan
+
+      - deploy:
+          name: production_deploy_live
+          environment: production
+          context:
+            - laa-legal-adviser-api-live-production
+          requires:
             - image_security_scan
           filters:
             branches:
                 only:
                     - main
-
-      - deploy:
-          name: production_deploy_live
-          environment: production
-          requires:
-            - production_deploy_approval
-          context:
-            - laa-legal-adviser-api-live-production
