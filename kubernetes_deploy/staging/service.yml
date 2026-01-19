@@ -6,7 +6,6 @@ metadata:
   labels:
     app: laa-legal-adviser-api
 spec:
-  externalTrafficPolicy: Local
   ports:
   - port: 80
     name: http
