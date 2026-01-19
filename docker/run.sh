@@ -9,8 +9,9 @@ bash /home/app/docker/setup_postgres.sh
 
 if [ "$ENV" != "prod" ]; then
   ./manage.py seed
-fi
+  python manage.py runserver 0.0.0.0:8000
 
-# Run server
-export WORKER_APP_CONCURRENCY=${WORKER_APP_CONCURRENCY:-8}
-/home/app/.local/bin/uwsgi --ini /home/app/conf/uwsgi.ini
+else:
+  export WORKER_APP_CONCURRENCY=${WORKER_APP_CONCURRENCY:-8}
+  /home/app/.local/bin/uwsgi --ini /home/app/conf/uwsgi.ini
+fi

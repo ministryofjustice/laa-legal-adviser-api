@@ -145,18 +145,11 @@ class UploadSpreadsheetForm(forms.Form):
     xlfile = forms.FileField(label="Spreadsheet")
 
 
-def import_advisers(xls_file, user):
+def import_advisers(xls_file, request, user):
     task = ProgressiveAdviserImport()
-    try:
-        task.truncate_and_upload_data_tables_from_xlsx(xls_file)
-    except Exception as error:
-        task_id = task.delay(xls_file)
-        Import.objects.create(
-            task_id=task_id, status=IMPORT_STATUSES.FAILURE, filename=xls_file, user=user, failure_reason=error
-        )
-    else:
-        task_id = task.delay(xls_file)
-        Import.objects.create(task_id=task_id, status=IMPORT_STATUSES.CREATED, filename=xls_file, user=user)
+    task.truncate_and_upload_data_tables_from_xlsx(xls_file)
+    task_id = task.delay(xls_file)
+    Import.objects.create(task_id=task_id, status=IMPORT_STATUSES.CREATED, filename=xls_file, user=user)
 
 
 @never_cache
@@ -185,9 +178,14 @@ def upload_spreadsheet(request):
                 for chunk in file.chunks():
                     destination.write(chunk)
 
-            import_advisers(xls_file, user=request.user)
+            try:
+                import_advisers(xls_file, request=request, user=request.user)
+            except Exception as error:
+                messages.add_message(request, messages.ERROR, str(error))
+                return redirect("/admin/upload/")
+            else:
+                return redirect("/admin/import-in-progress/")
 
-            return redirect("/admin/import-in-progress/")
     return render(request, "upload.html", {"form": form})
 
 
