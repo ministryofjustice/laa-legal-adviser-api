@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 from rest_framework import exceptions, viewsets, filters
@@ -152,11 +152,8 @@ def import_advisers(xls_file, request, user):
     Import.objects.create(task_id=task_id, status=IMPORT_STATUSES.CREATED, filename=xls_file, user=user)
 
 
-@never_cache
-@login_required(login_url="/admin/login")
-def upload_spreadsheet(request):
+def process_last_import(request):
     last_import = Import.objects.all().order_by("-id").first()
-
     if last_import:
         if last_import.is_in_progress():
             return redirect("/admin/import-in-progress/")
@@ -166,6 +163,14 @@ def upload_spreadsheet(request):
             messages.error(request, "Last import aborted")
         elif last_import.status == IMPORT_STATUSES.SUCCESS:
             messages.success(request, "Last import successful")
+
+
+@never_cache
+@login_required(login_url="/admin/login")
+def upload_spreadsheet(request):
+    result = process_last_import(request)
+    if isinstance(result, HttpResponseRedirect):
+        return result
 
     form = UploadSpreadsheetForm()
     if request.method == "POST":
