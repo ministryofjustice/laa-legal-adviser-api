@@ -8,7 +8,6 @@ from django.utils import timezone
 from advisers.models import Organisation, Import, IMPORT_STATUSES
 from .utils import AbortImportMixin
 
-
 logger = logging.getLogger(__name__)
 
 

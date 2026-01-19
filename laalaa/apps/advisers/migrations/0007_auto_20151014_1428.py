@@ -6,7 +6,6 @@ import os
 from django.db import models, migrations
 from django.core import serializers
 
-
 fixture_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../fixtures"))
 fixture_filename = "initial_categories.json"
 
