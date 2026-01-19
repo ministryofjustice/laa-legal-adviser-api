@@ -174,12 +174,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Fetch Dynamic IP Allowlist
-          command: |
-            LAA_IPS=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',' | sed 's/,$//')
-            PINGDOM_IPS=$(curl -s https://my.pingdom.com/probes/ipv4 | tr -d ' ' | tr '\n' ',' | sed 's/,/\/32,/g' | sed 's/$/\/32/')
-            echo "export ALLOWLIST_IPS=\"${LAA_IPS},${PINGDOM_IPS}\"" >> "$BASH_ENV"
-      - run:
           name: Authenticate with cluster
           command: |
             echo -n ${K8S_CLUSTER_CERT} | base64 -d > ./ca.crt

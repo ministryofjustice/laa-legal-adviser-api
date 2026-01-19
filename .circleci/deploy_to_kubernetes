@@ -56,20 +56,10 @@ cat "$NAMESPACE_DIR/deployment.yml" | \
   kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
   kubectl apply --record=false \
     --filename=/dev/stdin \
-    --filename="$NAMESPACE_DIR/service.yml"
+    --filename="$NAMESPACE_DIR/service.yml" \
+    --filename="$NAMESPACE_DIR/ingress.yml"
 
-if [ "$NAMESPACE" == "staging" ]; then
-    echo "Applying IP Allowlist to Staging Ingress..."
-perl -pe "s|\\\$ALLOWLIST_IPS|$ALLOWLIST_IPS|g" "$NAMESPACE_DIR/ingress.yml" | kubectl apply -f -
-    if [ -f "$NAMESPACE_DIR/ingress-dashboard.yml" ]; then
-perl -pe "s|\\\$ALLOWLIST_IPS|$ALLOWLIST_IPS|g" "$NAMESPACE_DIR/ingress-dashboard.yml" | kubectl apply -f -
-    fi
-else
-    echo "Applying Production Ingress (No Whitelist)..."
-    kubectl apply -f "$NAMESPACE_DIR/ingress.yml"
-fi
-
-echo "Deploying worker"
+# Worker queue deployment
 cat "$NAMESPACE_DIR/queue_worker_deployment.yml" | \
   kubectl set image worker="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
   kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
