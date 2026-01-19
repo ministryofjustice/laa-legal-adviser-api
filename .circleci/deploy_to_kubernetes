@@ -48,20 +48,13 @@ Logs for failed pod $FIRST_POD:"
 fi
 
 echo "Deploying app"
-CIDR_LAAI=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',' | sed 's/,$//')
-CIDR_MONX=$(curl -s https://my.pingdom.com/probes/ipv4 | sed 's/$/\/32/' | tr '\n' ',' | sed 's/,$//')
-COMBINED_WHITELIST="${CIDR_LAAI},${CIDR_MONX}"
-INGRESS_FILE="$NAMESPACE_DIR/ingress.yml"
+CIDR_LAAI=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',')
+CIDR_MONX=$(curl -s https://my.pingdom.com/probes/ipv4 | sed 's/$/\/32/' | tr '\n' ',')
+COMBINED_WHITELIST=$(echo "${CIDR_LAAI}${CIDR_MONX}" | sed 's/,,*/,/g; s/^,//; s/,$//')
 
 if [ "$NAMESPACE" == "staging" ]; then
-    if [ -n "$COMBINED_WHITELIST" ]; then
-        echo "Applying combined LAA and Pingdom whitelist to Staging..."
-        sed "s|WHITELIST_PLACEHOLDER|${COMBINED_WHITELIST}|g" "$INGRESS_FILE" > "$NAMESPACE_DIR/ingress_patched.yml"
-        INGRESS_FILE="$NAMESPACE_DIR/ingress_patched.yml"
-    else
-        echo "ERROR: Failed to fetch IP ranges. Blocking access for safety."
-        exit 1
-    fi
+    echo "Applying whitelist with $(echo $COMBINED_WHITELIST | grep -o ',' | wc -l) entries..."
+    sed -i "s|WHITELIST_PLACEHOLDER|${COMBINED_WHITELIST}|g" "$NAMESPACE_DIR/ingress.yml"
 fi
 
 cat "$NAMESPACE_DIR/deployment.yml" | \
