@@ -174,10 +174,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install envsubst
-          command: |
-            sudo apt-get update && sudo apt-get install -y gettext-base
-      - run:
           name: Fetch Dynamic IP Allowlist
           command: |
             LAA_IPS=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',' | sed 's/,$//')
@@ -195,7 +191,6 @@ jobs:
       - deploy:
           name: Deploy to << parameters.environment >>
           command: |
-            source $BASH_ENV
             .circleci/deploy_to_kubernetes << parameters.environment >>
       - slack/status
 

@@ -60,10 +60,9 @@ cat "$NAMESPACE_DIR/deployment.yml" | \
 
 if [ "$NAMESPACE" == "staging" ]; then
     echo "Applying IP Allowlist to Staging Ingress..."
-    envsubst '$ALLOWLIST_IPS' < "$NAMESPACE_DIR/ingress.yml" | kubectl apply -f -
-    # If you have the dashboard ingress too:
+perl -pe "s|\\\$ALLOWLIST_IPS|$ALLOWLIST_IPS|g" "$NAMESPACE_DIR/ingress.yml" | kubectl apply -f -
     if [ -f "$NAMESPACE_DIR/ingress-dashboard.yml" ]; then
-      envsubst '$ALLOWLIST_IPS' < "$NAMESPACE_DIR/ingress-dashboard.yml" | kubectl apply -f -
+perl -pe "s|\\\$ALLOWLIST_IPS|$ALLOWLIST_IPS|g" "$NAMESPACE_DIR/ingress-dashboard.yml" | kubectl apply -f -
     fi
 else
     echo "Applying Production Ingress (No Whitelist)..."
