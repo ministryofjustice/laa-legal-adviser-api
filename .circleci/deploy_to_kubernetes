@@ -48,17 +48,24 @@ Logs for failed pod $FIRST_POD:"
 fi
 
 echo "Deploying app"
-# shellcheck disable=SC2002 # Useless cat, https://www.shellcheck.net/wiki/SC2002
-# Using a separate cat command here helps in separating the pipe of
-# "altering" kubectl commands which all take something from stdin and write to stdout.
+SHARED_IP_RANGES_LAA=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',' | sed 's/,$//')
+
+if [ "$NAMESPACE" == "staging" ] && [ -n "$SHARED_IP_RANGES_LAA" ]; then
+    echo "Applying IP Whitelist for Staging..."
+    sed "s|WHITELIST_PLACEHOLDER|${SHARED_IP_RANGES_LAA}|g" "$NAMESPACE_DIR/ingress.yml" > "$NAMESPACE_DIR/ingress_patched.yml"
+    INGRESS_TO_APPLY="$NAMESPACE_DIR/ingress_patched.yml"
+else
+    INGRESS_TO_APPLY="$NAMESPACE_DIR/ingress.yml"
+fi
+
 cat "$NAMESPACE_DIR/deployment.yml" | \
   kubectl set image app="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
   kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
   kubectl apply --record=false \
     --filename=/dev/stdin \
     --filename="$NAMESPACE_DIR/service.yml" \
-    --filename="$NAMESPACE_DIR/ingress.yml"
-
+    --filename="$INGRESS_TO_APPLY" 
+    
 # Worker queue deployment
 cat "$NAMESPACE_DIR/queue_worker_deployment.yml" | \
   kubectl set image worker="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
