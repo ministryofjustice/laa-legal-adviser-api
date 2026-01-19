@@ -58,7 +58,7 @@ cat "$NAMESPACE_DIR/deployment.yml" | \
     --filename=/dev/stdin \
     --filename="$NAMESPACE_DIR/service.yml"
 
-if [ "$ENVIRONMENT" == "staging" ]; then
+if [ "$NAMESPACE" == "staging" ]; then
     echo "Applying IP Allowlist to Staging Ingress..."
     envsubst '$ALLOWLIST_IPS' < "$NAMESPACE_DIR/ingress.yml" | kubectl apply -f -
     # If you have the dashboard ingress too:
