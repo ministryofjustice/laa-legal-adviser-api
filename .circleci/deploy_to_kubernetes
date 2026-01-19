@@ -48,18 +48,6 @@ Logs for failed pod $FIRST_POD:"
 fi
 
 echo "Deploying app"
-
-INGRESS_FILE="$NAMESPACE_DIR/ingress.yml"
-if [ "$NAMESPACE" == "staging" ]; then
-  echo "Fetching LAA shared IP ranges for staging whitelist..."
-  # Fetch ranges, remove spaces, and convert newlines to commas
-  SHARED_IP_RANGES_LAA=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',' | sed 's/,$//')
-  
-  # Inject the whitelist into the ingress file (creating a temporary patched version)
-  sed "s|WHITELIST_PLACEHOLDER|${SHARED_IP_RANGES_LAA}|g" "$INGRESS_FILE" > "$NAMESPACE_DIR/ingress_patched.yml"
-  INGRESS_FILE="$NAMESPACE_DIR/ingress_patched.yml"
-fi
-
 # shellcheck disable=SC2002 # Useless cat, https://www.shellcheck.net/wiki/SC2002
 # Using a separate cat command here helps in separating the pipe of
 # "altering" kubectl commands which all take something from stdin and write to stdout.
