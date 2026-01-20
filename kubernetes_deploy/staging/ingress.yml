@@ -6,15 +6,10 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/set-identifier: laa-legal-adviser-api-v122-laa-legal-adviser-api-staging-green
     external-dns.alpha.kubernetes.io/aws-weight: "100"
-    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
-    nginx.ingress.kubernetes.io/modsecurity-snippet: |
-      SecRuleEngine On
-      SecRule REQUEST_HEADERS:X-Forwarded-For \
-        "@ipMatch 1.2.3.4/32,5.6.7.8/32" \
-        "id:1001,phase:1,pass,ctl:ruleEngine=Off"
     nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "WHITELIST_PLACEHOLDER"
 spec:
-  ingressClassName: "modsec"
+  ingressClassName: nginx
   tls:
   - hosts:
     - laa-legal-adviser-api-staging.apps.live-1.cloud-platform.service.justice.gov.uk
