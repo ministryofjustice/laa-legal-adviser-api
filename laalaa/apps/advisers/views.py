@@ -177,7 +177,9 @@ def upload_spreadsheet(request):
         form = UploadSpreadsheetForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES["xlfile"]
-            xls_file = os.path.join(settings.TEMP_DIRECTORY, file.name)
+            # os.path.basename ignores any path components like "../../"
+            safe_name = os.path.basename(file.name)
+            xls_file = os.path.join(settings.TEMP_DIRECTORY, safe_name)
 
             with open(xls_file, "wb+") as destination:
                 for chunk in file.chunks():
