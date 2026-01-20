@@ -9,7 +9,7 @@ metadata:
     nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
     nginx.ingress.kubernetes.io/whitelist-source-range: "WHITELIST_PLACEHOLDER"
 spec:
-  ingressClassName: nginx
+  ingressClassName: "default-non-prod"
   tls:
   - hosts:
     - laa-legal-adviser-api-staging.apps.live-1.cloud-platform.service.justice.gov.uk
