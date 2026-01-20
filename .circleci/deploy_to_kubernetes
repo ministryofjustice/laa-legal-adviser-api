@@ -56,6 +56,9 @@ if [ "$NAMESPACE" == "staging" ]; then
     echo "Applying whitelist with $(echo $COMBINED_WHITELIST | grep -o ',' | wc -l) entries..."
     sed "s|WHITELIST_PLACEHOLDER|${COMBINED_WHITELIST}|g" "$NAMESPACE_DIR/ingress.yml" | \
     kubectl apply -f -
+else
+    # For other namespaces, just apply the normal ingress without replacement
+    kubectl apply -f "$NAMESPACE_DIR/ingress.yml"
 fi
 
 cat "$NAMESPACE_DIR/deployment.yml" | \
@@ -64,7 +67,6 @@ cat "$NAMESPACE_DIR/deployment.yml" | \
   kubectl apply --record=false \
     --filename=/dev/stdin \
     --filename="$NAMESPACE_DIR/service.yml" \
-    --filename="$NAMESPACE_DIR/ingress.yml"
     
 # Worker queue deployment
 cat "$NAMESPACE_DIR/queue_worker_deployment.yml" | \
