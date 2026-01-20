@@ -54,7 +54,8 @@ COMBINED_WHITELIST=$(echo "${CIDR_LAAI}${CIDR_MONX}" | sed 's/,,*/,/g; s/^,//; s
 
 if [ "$NAMESPACE" == "staging" ]; then
     echo "Applying whitelist with $(echo $COMBINED_WHITELIST | grep -o ',' | wc -l) entries..."
-    sed -i "s|WHITELIST_PLACEHOLDER|${COMBINED_WHITELIST}|g" "$NAMESPACE_DIR/ingress.yml"
+    sed "s|WHITELIST_PLACEHOLDER|${COMBINED_WHITELIST}|g" "$NAMESPACE_DIR/ingress.yml" | \
+    kubectl apply -f -
 fi
 
 cat "$NAMESPACE_DIR/deployment.yml" | \
@@ -63,7 +64,7 @@ cat "$NAMESPACE_DIR/deployment.yml" | \
   kubectl apply --record=false \
     --filename=/dev/stdin \
     --filename="$NAMESPACE_DIR/service.yml" \
-    --filename="$INGRESS_TO_APPLY" 
+    --filename="$NAMESPACE_DIR/ingress.yml"
     
 # Worker queue deployment
 cat "$NAMESPACE_DIR/queue_worker_deployment.yml" | \
