@@ -50,6 +50,7 @@ services:
       DATABASE_URL: postgis://postgres@db:5432/laalaa
       HOST_IP: redis
       CELERY_BROKER_URL: redis://redis:6379
+      ENV: local
 
     volumes:
       - ./laalaa:/home/app/laalaa
