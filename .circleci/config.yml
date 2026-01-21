@@ -182,7 +182,7 @@ jobs:
             kubectl config set-context ${K8S_CLUSTER_NAME} --cluster=${K8S_CLUSTER_NAME} --user=circleci --namespace=${K8S_NAMESPACE}
             kubectl config use-context ${K8S_CLUSTER_NAME}
             kubectl --namespace=${K8S_NAMESPACE} get pods
-      - deploy:
+      - run:
           name: Deploy to << parameters.environment >>
           command: |
             .circleci/deploy_to_kubernetes << parameters.environment >>
