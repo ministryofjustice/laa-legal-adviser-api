@@ -165,6 +165,21 @@ def process_last_import(request):
             messages.success(request, "Last import successful")
 
 
+def save_file(request):
+    target_dir = settings.TEMP_DIRECTORY
+    os.makedirs(target_dir, exist_ok=True)
+
+    file = request.FILES["xlfile"]
+    # os.path.basename ignores any path components like "../../"
+    safe_name = os.path.basename(file.name)
+    xls_file = os.path.join(target_dir, safe_name)
+
+    with open(xls_file, "wb+") as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)
+    return xls_file
+
+
 @never_cache
 @login_required(login_url="/admin/login")
 def upload_spreadsheet(request):
@@ -176,14 +191,7 @@ def upload_spreadsheet(request):
     if request.method == "POST":
         form = UploadSpreadsheetForm(request.POST, request.FILES)
         if form.is_valid():
-            file = request.FILES["xlfile"]
-            # os.path.basename ignores any path components like "../../"
-            safe_name = os.path.basename(file.name)
-            xls_file = os.path.join(settings.TEMP_DIRECTORY, safe_name)
-
-            with open(xls_file, "wb+") as destination:
-                for chunk in file.chunks():
-                    destination.write(chunk)
+            xls_file = save_file(request)
 
             try:
                 import_advisers(xls_file, request=request, user=request.user)
