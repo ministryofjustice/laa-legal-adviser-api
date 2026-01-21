@@ -48,17 +48,26 @@ Logs for failed pod $FIRST_POD:"
 fi
 
 echo "Deploying app"
-# shellcheck disable=SC2002 # Useless cat, https://www.shellcheck.net/wiki/SC2002
-# Using a separate cat command here helps in separating the pipe of
-# "altering" kubectl commands which all take something from stdin and write to stdout.
+CIDR_LAAI=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',')
+CIDR_MONX=$(curl -s https://my.pingdom.com/probes/ipv4 | sed 's/$/\/32/' | tr '\n' ',')
+COMBINED_WHITELIST=$(echo "${CIDR_LAAI}${CIDR_MONX}" | sed 's/,,*/,/g; s/^,//; s/,$//')
+
+if [ "$NAMESPACE" == "staging" ]; then
+    echo "Applying whitelist with $(echo $COMBINED_WHITELIST | grep -o ',' | wc -l) entries..."
+    sed "s|WHITELIST_PLACEHOLDER|${COMBINED_WHITELIST}|g" "$NAMESPACE_DIR/ingress.yml" | \
+    kubectl apply -f -
+else
+    # For other namespaces, just apply the normal ingress without replacement
+    kubectl apply -f "$NAMESPACE_DIR/ingress.yml"
+fi
+
 cat "$NAMESPACE_DIR/deployment.yml" | \
   kubectl set image app="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \
   kubectl annotate kubernetes.io/change-cause="$CIRCLE_BUILD_URL" --filename=/dev/stdin --local --output=yaml | \
   kubectl apply --record=false \
     --filename=/dev/stdin \
     --filename="$NAMESPACE_DIR/service.yml" \
-    --filename="$NAMESPACE_DIR/ingress.yml"
-
+    
 # Worker queue deployment
 cat "$NAMESPACE_DIR/queue_worker_deployment.yml" | \
   kubectl set image worker="$ECR_DEPLOY_IMAGE" --filename=/dev/stdin --local --output=yaml | \

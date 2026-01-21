@@ -23,7 +23,6 @@ from . import models
 from . import geocoder
 from laalaa.celery import app
 
-
 logging.basicConfig(filename="adviser_import.log", level=logging.WARNING)
 
 
@@ -183,8 +182,7 @@ class ProgressiveAdviserImport(Task):
         import_object.start()
         self.record = record
         cursor = connection.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT advisers_location.id, postcode, advisers_organisation.name, advisers_organisation.firm, advisers_outreachtype.name, advisers_office.account_number
             FROM advisers_location
             LEFT JOIN advisers_office
@@ -195,8 +193,7 @@ class ProgressiveAdviserImport(Task):
             ON advisers_location.id = advisers_outreachservice.location_id
             LEFT JOIN advisers_outreachtype
             ON advisers_outreachtype.id = advisers_outreachservice.type_id
-            """
-        )
+            """)
         results = cursor.fetchall()
 
         location_details = [
@@ -326,44 +323,35 @@ class ProgressiveAdviserImport(Task):
     def translate_data(self):
         cursor = connection.cursor()
 
-        cursor.execute(
-            """
+        cursor.execute("""
             INSERT
                 INTO advisers_category (code, civil)
                 SELECT DISTINCT
                     civil_category_code, true
-                    FROM cat_of_law_civil"""
-        )
-        cursor.execute(
-            """
+                    FROM cat_of_law_civil""")
+        cursor.execute("""
             INSERT
                 INTO advisers_category (code, civil)
                 SELECT DISTINCT
                     crime_category_code, false
-                    FROM cat_of_law_crime"""
-        )
-        cursor.execute(
-            """
+                    FROM cat_of_law_crime""")
+        cursor.execute("""
             INSERT
                 INTO advisers_organisationtype (name)
                 SELECT
                     DISTINCT(type_of_organisation)
-                    FROM local_advice_org"""
-        )
+                    FROM local_advice_org""")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             INSERT
                 INTO advisers_outreachtype (name)
                 SELECT DISTINCT
                     pt_or_outreach_indicator
-                    FROM outreach_service"""
-        )
+                    FROM outreach_service""")
 
         cursor.execute("DROP FUNCTION IF EXISTS count_office_relations(integer);")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE OR REPLACE FUNCTION count_office_relations(
                 _id int
                 , OUT _count int)
@@ -377,13 +365,11 @@ class ProgressiveAdviserImport(Task):
                 RAISE NOTICE 'Location: % , Count: %', _id, _count;
 
                 END
-                $func$  LANGUAGE plpgsql"""
-        )
+                $func$  LANGUAGE plpgsql""")
 
         cursor.execute("DROP FUNCTION IF EXISTS count_outreachservice_relations(integer);")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE OR REPLACE FUNCTION count_outreachservice_relations(
                 _id int
                 , OUT _count int)
@@ -395,13 +381,11 @@ class ProgressiveAdviserImport(Task):
                 SELECT INTO _count COUNT(*) FROM advisers_outreachservice o WHERE o.location_id=_id;
 
                 END
-                $func$  LANGUAGE plpgsql"""
-        )
+                $func$  LANGUAGE plpgsql""")
 
         cursor.execute("DROP FUNCTION IF EXISTS fetch_free_location(integer);")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE OR REPLACE FUNCTION fetch_free_location(
                 _address_line_1 character varying
                 , _address_line_2 character varying
@@ -429,13 +413,11 @@ class ProgressiveAdviserImport(Task):
                     LIMIT 1;
 
                 END
-                $func$  LANGUAGE plpgsql"""
-        )
+                $func$  LANGUAGE plpgsql""")
 
         cursor.execute("DROP FUNCTION IF EXISTS load_offices(integer);")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE OR REPLACE FUNCTION load_offices()
                 RETURNS void AS
                     $func$
@@ -461,13 +443,11 @@ class ProgressiveAdviserImport(Task):
                     END LOOP;
 
                 END
-                $func$  LANGUAGE plpgsql"""
-        )
+                $func$  LANGUAGE plpgsql""")
 
         cursor.execute("DROP FUNCTION IF EXISTS load_outreachservices(integer);")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE OR REPLACE FUNCTION load_outreachservices()
                 RETURNS void AS
                     $func$
@@ -501,11 +481,9 @@ class ProgressiveAdviserImport(Task):
                     END LOOP;
 
                 END
-                $func$  LANGUAGE plpgsql"""
-        )
+                $func$  LANGUAGE plpgsql""")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             INSERT
                 INTO advisers_organisation (
                     name, website, contracted, type_id, firm)
@@ -518,11 +496,9 @@ class ProgressiveAdviserImport(Task):
                         FROM advisers_organisationtype orgtype
                         WHERE orgtype.name LIKE type_of_organisation),
                     firm_number
-                    FROM local_advice_org"""
-        )
+                    FROM local_advice_org""")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             INSERT
                 INTO advisers_location (address, city, postcode)
                 SELECT
@@ -534,11 +510,9 @@ class ProgressiveAdviserImport(Task):
                         E'\\n '),
                     city,
                     postcode
-                    FROM office_location"""
-        )
+                    FROM office_location""")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             INSERT
                 INTO advisers_location (address, city, postcode)
                 SELECT
@@ -550,15 +524,13 @@ class ProgressiveAdviserImport(Task):
                         E'\\n '),
                     city_outreach,
                     pt_or_outreach_loc_postcode
-                    FROM outreach_service"""
-        )
+                    FROM outreach_service""")
 
         cursor.execute("""SELECT * FROM load_offices()""")
 
         cursor.execute("""SELECT * FROM load_outreachservices()""")
 
-        cursor.execute(
-            """
+        cursor.execute("""
             INSERT
                 INTO advisers_office_categories (office_id, category_id)
                 SELECT DISTINCT
@@ -573,10 +545,8 @@ class ProgressiveAdviserImport(Task):
                         org.firm = civ.firm_number AND
                         off.organisation_id = org.id AND
                         off.account_number = civ.account_number AND
-                        cat.code = civ.civil_category_code"""
-        )
-        cursor.execute(
-            """
+                        cat.code = civ.civil_category_code""")
+        cursor.execute("""
             INSERT
                 INTO advisers_office_categories (office_id, category_id)
                 SELECT DISTINCT
@@ -591,8 +561,7 @@ class ProgressiveAdviserImport(Task):
                         org.firm = cri.firm_number AND
                         off.organisation_id = org.id AND
                         off.account_number = cri.account_number AND
-                        cat.code = cri.crime_category_code"""
-        )
+                        cat.code = cri.crime_category_code""")
 
 
 app.register_task(GeocoderTask())

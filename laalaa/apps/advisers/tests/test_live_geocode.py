@@ -6,7 +6,6 @@ from unittest import skip
 
 from .. import geocoder
 
-
 FAILING_POSTCODES = [
     "LE1 5BU",
     "W1J 6BD",

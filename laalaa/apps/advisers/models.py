@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.utils import timezone
 
-
 # Python 3 compatibility
 try:
     unicode("")  # Python 2
@@ -88,7 +87,7 @@ class Location(models.Model):
     objects = LocationManager()
 
     def __unicode__(self):
-        return u", ".join([unicode(self.address.replace("\n", ", ")), unicode(self.city), unicode(self.postcode)])
+        return ", ".join([unicode(self.address.replace("\n", ", ")), unicode(self.city), unicode(self.postcode)])
 
     def organisation(self):
         return self.place.organisation
