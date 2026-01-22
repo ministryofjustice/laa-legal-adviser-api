@@ -196,7 +196,13 @@ def upload_spreadsheet(request):
             try:
                 import_advisers(xls_file, request=request, user=request.user)
             except Exception as error:
-                messages.add_message(request, messages.ERROR, str(error))
+                Import.objects.create(
+                    task_id="",
+                    status=IMPORT_STATUSES.FAILURE,
+                    filename=xls_file,
+                    user=request.user,
+                    failure_reason=str(error),
+                )
                 return redirect("/admin/upload/")
             else:
                 return redirect("/admin/import-in-progress/")
