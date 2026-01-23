@@ -1,5 +1,7 @@
 # LAA Legal Adviser API
 
+[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/laa-legal-adviser-api/badge)](https://github-community.service.justice.gov.uk/repository-standards/laa-legal-adviser-api)
+
 [![Coverage Status](https://coveralls.io/repos/github/ministryofjustice/laa-legal-adviser-api/badge.svg?branch=master)](https://coveralls.io/github/ministryofjustice/laa-legal-adviser-api?branch=master)
 
 Service to search for nearby LAA Legal Advisers by postcode.
@@ -68,16 +70,20 @@ python manage.py createsuperuser --username=admin
 ```
 
 Postgres.app is a standalone PostgreSQL server that includes the PostGIS extension. You will also need to install gdal and libgeoip with Homebrew:
+
 ```
 brew install postgis
 brew install gdal
 ```
-After installing Postgres.app, run this to add the following to your .bash_profile so you can run the package’s programs from the command-line: 
+
+After installing Postgres.app, run this to add the following to your .bash_profile so you can run the package’s programs from the command-line:
+
 ```
 echo export PATH="/Applications/Postgres.app/Contents/Versions/9.4/bin:$PATH" >>~/.bash_profile
 ```
 
 To populate the database with initial seed data, run:
+
 ```
 python manage.py seed
 ```
@@ -89,9 +95,10 @@ cp laalaa/settings/local.py.example laalaa/settings/local.py
 ```
 
 ## Categories
+
 Although there is a category Django model, categories should not be managed / added by code.
 Categories are remove and added as part of the providers spreadsheet upload which is done by
-users. See https://github.com/ministryofjustice/laa-legal-adviser-api/pull/133
+users. See <https://github.com/ministryofjustice/laa-legal-adviser-api/pull/133>
 
 ## Running the services
 
@@ -107,6 +114,7 @@ Go to admin/ and sign in with the admin password you just set.
 ## Lint and pre-commit hooks
 
 To lint with Black and flake8, install pre-commit hooks:
+
 ```
 . env/bin/activate
 pip install -r requirements/dev.txt
@@ -114,19 +122,21 @@ pre-commit install
 ```
 
 To run them manually:
+
 ```
 pre-commit run --all-files
 ```
 
 ## Building and deployment
 
-The repository unit tests and Docker images are built by CircleCI at https://circleci.com/gh/ministryofjustice/laa-legal-adviser-api.
+The repository unit tests and Docker images are built by CircleCI at <https://circleci.com/gh/ministryofjustice/laa-legal-adviser-api>.
 
-Deployment can be triggered via https://ci.service.dsd.io/job/DEPLOY-laalaa.
+Deployment can be triggered via <https://ci.service.dsd.io/job/DEPLOY-laalaa>.
 
 ## Releasing
+
 * [Releasing](https://github.com/ministryofjustice/laa-civil-legal-aid-documentation/blob/master/releasing/kubernetes.md)
-(opens in https://github.com/ministryofjustice/laa-civil-legal-aid-documentation)
+(opens in <https://github.com/ministryofjustice/laa-civil-legal-aid-documentation>)
 
 ## Git hooks
 
@@ -142,7 +152,7 @@ Repository uses [MoJ DevSecOps hooks](https://github.com/ministryofjustice/devse
    curl --proto '=https' --tlsv1.2 -LsSf https://raw.githubusercontent.com/ministryofjustice/devsecops-hooks/e85ca6127808ef407bc1e8ff21efed0bbd32bb1a/prek/prek-installer.sh | sh
    ```
 
-   or 
+   or
 
    ```bash
    brew install prek
@@ -154,7 +164,7 @@ Repository uses [MoJ DevSecOps hooks](https://github.com/ministryofjustice/devse
    powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/ministryofjustice/devsecops-hooks/e85ca6127808ef407bc1e8ff21efed0bbd32bb1a/prek/prek-installer.ps1 | iex"
    ```
 
-3. **Activation**
+2. **Activation**
 
    Execute the following command in the repository directory
 
@@ -162,7 +172,7 @@ Repository uses [MoJ DevSecOps hooks](https://github.com/ministryofjustice/devse
    prek install
    ```
 
-4. **Test**
+3. **Test**
 
     To dry-run the hook
 
