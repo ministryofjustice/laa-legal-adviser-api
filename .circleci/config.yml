@@ -78,7 +78,7 @@ jobs:
   test:
     docker:
       - image: cimg/python:3.11
-      - image: cimg/postgres:14.9-postgis
+      - image: cimg/postgres:18.1-postgis
     steps:
       - checkout
       - run:

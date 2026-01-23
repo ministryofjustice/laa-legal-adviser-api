@@ -18,7 +18,7 @@ services:
 
   # services
   db:
-    image: circleci/postgres:9.4-alpine-postgis
+    image: circleci/postgres:12.0-alpine-postgis
     ports:
       - target: 5432
         published: 5432
@@ -29,7 +29,7 @@ services:
       POSTGRES_DB: laalaa
 
   redis:
-    image: redis:4-alpine
+    image: redis:8-alpine
     ports:
       - target: 6379
         published: 6379
