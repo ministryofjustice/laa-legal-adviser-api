@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   slack: circleci/slack@2.6.0
   aws-cli: circleci/aws-cli@4.1.3 # use v4 of this orb
-  aws-ecr: circleci/aws-ecr@9.0.4 # this orb doesn't support OIDC v2, so we use aws-cli to authenticate
+  aws-ecr: circleci/aws-ecr@9.8.1 # this orb doesn't support OIDC v2, so we use aws-cli to authenticate
 
 # ------------------
 #
@@ -182,7 +182,7 @@ jobs:
             kubectl config set-context ${K8S_CLUSTER_NAME} --cluster=${K8S_CLUSTER_NAME} --user=circleci --namespace=${K8S_NAMESPACE}
             kubectl config use-context ${K8S_CLUSTER_NAME}
             kubectl --namespace=${K8S_NAMESPACE} get pods
-      - deploy:
+      - run:
           name: Deploy to << parameters.environment >>
           command: |
             .circleci/deploy_to_kubernetes << parameters.environment >>
