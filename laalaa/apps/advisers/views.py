@@ -145,7 +145,7 @@ class UploadSpreadsheetForm(forms.Form):
     xlfile = forms.FileField(label="Spreadsheet")
 
 
-def import_advisers(xls_file, request, user):
+def import_advisers(xls_file, user):
     task = ProgressiveAdviserImport()
     task.truncate_and_upload_data_tables_from_xlsx(xls_file)
     task_id = task.delay(xls_file)
@@ -194,7 +194,7 @@ def upload_spreadsheet(request):
             xls_file = save_file(request)
 
             try:
-                import_advisers(xls_file, request=request, user=request.user)
+                import_advisers(xls_file, user=request.user)
             except Exception as error:
                 failure_reason = f"{xls_file} - {error}"
                 Import.objects.create(
