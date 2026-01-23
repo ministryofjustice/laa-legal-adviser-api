@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   slack: circleci/slack@6.1.2
-  aws-cli: circleci/aws-cli@4.1.3 # use v4 of this orb
+  aws-cli: circleci/aws-cli@5.4.1 # use v4 of this orb
   aws-ecr: circleci/aws-ecr@9.8.1 # this orb doesn't support OIDC v2, so we use aws-cli to authenticate
 
 # ------------------
@@ -186,7 +186,12 @@ jobs:
           name: Deploy to << parameters.environment >>
           command: |
             .circleci/deploy_to_kubernetes << parameters.environment >>
-      - slack/status
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: basic_success_1
 
   deploy_grafana:
     docker:
