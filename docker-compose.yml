@@ -8,17 +8,16 @@ services:
     depends_on:
       - db
       - redis
-
-  start_app:
-    image: jwilder/dockerize
-    command: >
-      -wait tcp://laalaa:8000 --timeout 60s
-    depends_on:
       - laalaa
 
   # services
   db:
-    image: circleci/postgres:12.0-alpine-postgis
+    image: cimg/postgres:14.19-postgis
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d laalaa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - target: 5432
         published: 5432
@@ -39,16 +38,20 @@ services:
   # application
   laalaa:
     build: .
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - target: 8000
         published: 8000
         protocol: tcp
         mode: host
     environment:
-      DB_USERNAME: postgres
-      DB_PASSWORD:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: laalaa
+      DATABASE_URL: postgis://postgres@db:5432/laalaa
       HOST_IP: redis
       CELERY_BROKER_URL: redis://redis:6379
+      ENV: local
+
+    volumes:
+      - ./laalaa:/home/app/laalaa
+      - ./docker:/home/app/docker

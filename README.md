@@ -12,19 +12,9 @@ near that point.
 * Virtualenv
 * Python 3.11 (follow the [FALA installation guide](https://github.com/ministryofjustice/fala/blob/main/docs/virtual-env.md) and use `pyenv` to install correct version of python)
 * Redis
-* PostgreSQL => 11 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
+* PostgreSQL => 14 (`pg_config`, `createdb` and `psql` commands available in the `PATH`)
 * [PostGIS](https://postgis.net/) (`brew install postgis`)
   * Go get a hot beverage whilst waiting for this step to finish
-
-:memo: If you are using Docker to provide a database, please use `circleci/postgres:11-alpine-postgis`, which has the required extensions installed.
-
-    docker run --detach --publish 5432:5432 circleci/postgres:11-alpine-postgis
-
-:memo: If you are using Docker to provide RabbitMQ, it's preferable to use one with management interface enabled:
-
-    docker run --detach --publish 6379:6379 redis:4-alpine
-
-As a convenience, a `docker-compose.yml` specifies these dependendencies and can be run with:
 
     docker-compose run start_services
 
