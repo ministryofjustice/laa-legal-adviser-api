@@ -52,10 +52,11 @@ CIDR_LAAI=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-a
 CIDR_MONX=$(curl -s https://my.pingdom.com/probes/ipv4 | sed 's/$/\/32/' | tr '\n' ',')
 EXTRA_FILE="$ROOT/../kubernetes_deploy/staging/extra-allowlist-cidrs.txt"
 CIDR_EXTRA=""
-echo "EXTRA_FILE=$EXTRA_FILE"
+
 if [ -f "$EXTRA_FILE" ]; then
   CIDR_EXTRA=$(tr -d ' ' < "$EXTRA_FILE" | tr '\n' ',')
 fi
+
 COMBINED_WHITELIST=$(printf "%s%s%s" "$CIDR_LAAI" "$CIDR_MONX" "$CIDR_EXTRA" \
   | sed 's/,,*/,/g; s/^,//; s/,$//')
 
