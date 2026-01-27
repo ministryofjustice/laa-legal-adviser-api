@@ -50,7 +50,7 @@ fi
 echo "Deploying app"
 CIDR_LAAI=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',')
 CIDR_MONX=$(curl -s https://my.pingdom.com/probes/ipv4 | sed 's/$/\/32/' | tr '\n' ',')
-EXTRA_FILE="$ROOT/../kubernetes_deploy/extra-allowlist-cidrs.txt"
+EXTRA_FILE="$ROOT/../kubernetes_deploy/staging/extra-allowlist-cidrs.txt"
 CIDR_EXTRA=""
 if [ -f "$EXTRA_FILE" ]; then
   CIDR_EXTRA=$(tr -d ' ' < "$EXTRA_FILE" | tr '\n' ',')
