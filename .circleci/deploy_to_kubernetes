@@ -50,7 +50,13 @@ fi
 echo "Deploying app"
 CIDR_LAAI=$(curl -s https://raw.githubusercontent.com/ministryofjustice/laa-ip-allowlist/main/cidrs.txt | tr -d ' ' | tr '\n' ',')
 CIDR_MONX=$(curl -s https://my.pingdom.com/probes/ipv4 | sed 's/$/\/32/' | tr '\n' ',')
-COMBINED_WHITELIST=$(echo "${CIDR_LAAI}${CIDR_MONX}" | sed 's/,,*/,/g; s/^,//; s/,$//')
+EXTRA_FILE="$ROOT/../kubernetes_deploy/extra-allowlist-cidrs.txt"
+CIDR_EXTRA=""
+if [ -f "$EXTRA_FILE" ]; then
+  CIDR_EXTRA=$(tr -d ' ' < "$EXTRA_FILE" | tr '\n' ',')
+fi
+COMBINED_WHITELIST=$(printf "%s%s%s" "$CIDR_LAAI" "$CIDR_MONX" "$CIDR_EXTRA" \
+  | sed 's/,,*/,/g; s/^,//; s/,$//')
 
 if [ "$NAMESPACE" == "staging" ]; then
     echo "Applying whitelist with $(echo $COMBINED_WHITELIST | grep -o ',' | wc -l) entries..."
