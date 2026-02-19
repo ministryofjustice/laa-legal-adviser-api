@@ -2,7 +2,6 @@ import sys
 import json
 import requests
 
-
 try:
     url = sys.argv[1]
     req = requests.get("{0}/legal-advisers/?postcode=sw1h9aj".format(url))
