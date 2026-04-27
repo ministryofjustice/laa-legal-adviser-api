@@ -6,13 +6,14 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -39,6 +40,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     services:
       postgres:
         image: postgis/postgis:18-3.5
@@ -133,7 +136,7 @@ jobs:
           fi
 
       - name: Scan for vulnerabilities (informative)
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe8 # v0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
         with:
           image-ref: "${{ secrets.ECR_REGISTRY_URL }}/${{ vars.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.tag }}"
           format: table
@@ -141,7 +144,7 @@ jobs:
           severity: "UNKNOWN,LOW,MEDIUM,HIGH"
 
       - name: Scan for critical vulnerabilities
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe8 # v0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
         with:
           image-ref: "${{ secrets.ECR_REGISTRY_URL }}/${{ vars.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.tag }}"
           format: table
