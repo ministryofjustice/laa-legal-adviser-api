@@ -28,8 +28,7 @@ jobs:
         run: |
           docker build \
             -t "${{ steps.meta.outputs.image_uri }}" \
-            -f behave/Dockerfile \
-            behave
+            -f Dockerfile 
 
       - name: Install Snyk CLI
         uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 #v1.0.0
