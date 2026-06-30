@@ -7,7 +7,7 @@ on:
 
 
 jobs:
-  test:
+  Linting-and-unit-test:
     runs-on: ubuntu-latest
 
     services:
@@ -43,3 +43,82 @@ jobs:
 
       - name: Run tests with coverage
         run: coverage run manage.py test
+
+  build-and-push:
+    name: Build and Push
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+      id-token: write
+
+    with:
+      ECR_REGION: ${{vars.ECR_REGION}}
+      ECR_REPOSITORY: ${{vars.ECR_REPOSITORY}}
+    secrets:
+      ECR_ROLE_TO_ASSUME: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+
+  snyk-image-scan:
+    name: Snyk Image Scan
+    needs: [build-and-push]
+    if: always() #allowed to be passed for the error
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@a652d1076b05dd80d3ab619d263aac6ce526d70b
+    permissions:
+      id-token: write
+      contents: read
+      security-events: write
+      actions: read
+    with:
+      image_uri: ${{ needs.build-and-push.outputs.image_uri }}
+      dockerfile_path: ./Dockerfile
+    secrets:
+      SNYK_CLIENT_ID: ${{ secrets.SNYK_CLIENT_ID }}
+      SNYK_CLIENT_SECRET: ${{ secrets.SNYK_CLIENT_SECRET }}
+      ECR_ROLE_TO_ASSUME: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+
+
+  staging-deploy:
+    name: Staging deploy
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.ref_name == 'main'
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+      - uses: ./.github/actions/deploy
+        with:
+          namespace: staging
+          KUBE_CERT: ${{ secrets.KUBE_CERT }}
+          KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+          ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          HOST: ${{ vars.STAGING_HOST }}
+
+
+
+
+  production-deploy:
+    name: Production deploy
+    runs-on: ubuntu-latest
+    needs: [staging-deploy]
+    if: github.ref_name == 'main'
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+      - uses: ./.github/actions/deploy
+        with:
+          namespace: production
+          KUBE_CERT: ${{ secrets.KUBE_CERT }}
+          KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+          ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          HOST: ${{ vars.PRODUCTION_HOST }}
