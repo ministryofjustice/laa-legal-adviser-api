@@ -5,26 +5,24 @@ on:
   push:
     branches: [main]
 
+
 jobs:
-  build-image:
+  build-and-lint:
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.meta.outputs.image }}
+
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Build image
-        run: docker build -t myapp-ci:${{ github.sha }} .
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      - name: Save image name
-        id: meta
-        run: echo "image=myapp-ci:${{ github.sha }}" >> $GITHUB_OUTPUT
-
-  lint:
-    runs-on: ubuntu-latest
-    needs: build-image
-    steps:
-      - name: Run lint
+      - name: Install dependencies
         run: |
-          docker run --rm ${{ needs.build-image.outputs.image }} \
-            pre-commit run --all-files
+          python -m pip install --upgrade pip
+          pip install pre-commit
+
+      - name: Run pre-commit linting
+        run: pre-commit run --all-files
