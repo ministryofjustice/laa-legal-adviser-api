@@ -7,22 +7,39 @@ on:
 
 
 jobs:
-  build-and-lint:
+  test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: cimg/postgres:18.1-postgis
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports: ["5432:5432"]
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
 
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # 6.2.0
         with:
           python-version: "3.11"
+          cache: pip
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pre-commit
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y gdal-bin
 
-      - name: Run pre-commit linting
+      - name: Install Python dependencies
+        run: pip install -U pip pre-commit coverage -r requirements/base.txt -r requirements/dev.txt
+
+      - name: Run linting (pre-commit)
         run: pre-commit run --all-files
+
+      - name: Run tests with coverage
+        run: coverage run manage.py test
