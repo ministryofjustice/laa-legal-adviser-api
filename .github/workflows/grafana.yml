@@ -22,6 +22,7 @@ on:
 jobs:
   deploy_grafana:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.namespace }}
 
     steps:
       - name: Checkout GitHub repository
