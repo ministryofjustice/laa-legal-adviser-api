@@ -77,11 +77,11 @@ jobs:
       SNYK_CLIENT_SECRET: ${{ secrets.SNYK_CLIENT_SECRET }}
       ECR_ROLE_TO_ASSUME: ${{ secrets.ECR_ROLE_TO_ASSUME }}
 
-  deploy-graphana-staging:
-    name: Deploy to graphana
+  deploy-grafana-staging:
+    name: Deploy to grafana
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/workflows/graphana.yml
+      - uses: ./.github/workflows/grafana.yml
         with:
           namespace: staging
           KUBE_CERT: ${{ secrets.KUBE_CERT }}
@@ -90,12 +90,12 @@ jobs:
           KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
           HOST: ${{ vars.STAGING_HOST }}
   
-  deploy-graphana-production:
-    name: Deploy to graphana to prod
+  deploy-grafana-production:
+    name: Deploy to grafana to prod
     runs-on: ubuntu-latest
     if: github.ref_name == 'main'
     steps:
-      - uses: ./.github/actions/graphana.yml
+      - uses: ./.github/actions/grafana.yml
         with:
           namespace: production
           KUBE_CERT: ${{ secrets.KUBE_CERT }}
