@@ -7,31 +7,34 @@ on:
         description: Target namespace (staging, production)
         required: true
         type: string
+
       dynamic_hostname:
         description: Use dynamic hostname based on branch name
         required: false
         type: string
-        default: 'false'
-      KUBE_CERT:
-        description: Kubernetes cluster certificate
-        required: true
-        type: string
-      KUBE_CLUSTER:
-        description: Kubernetes cluster hostname
-        required: true
-        type: string
-      KUBE_NAMESPACE:
-        description: Kubernetes namespace
-        required: true
-        type: string
-      KUBE_TOKEN:
-        description: Kubernetes service account token
-        required: true
-        type: string
-      HOST:
+        default: "false"
+
+      host:
         description: Base hostname for deployment
         required: true
         type: string
+
+    secrets:
+      KUBE_CERT:
+        description: Kubernetes cluster certificate
+        required: true
+
+      KUBE_CLUSTER:
+        description: Kubernetes cluster hostname
+        required: true
+
+      KUBE_NAMESPACE:
+        description: Kubernetes namespace
+        required: true
+
+      KUBE_TOKEN:
+        description: Kubernetes service account token
+        required: true
 
 jobs:
   deploy_grafana:
