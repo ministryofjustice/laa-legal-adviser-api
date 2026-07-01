@@ -83,11 +83,7 @@ jobs:
     with:
       namespace: staging
       host: ${{ vars.STAGING_HOST }}
-    secrets:
-      KUBE_CERT: ${{ secrets.KUBE_CERT }}
-      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
-      KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+
 
   deploy-grafana-production:
     name: Deploy Grafana to Production
@@ -96,11 +92,7 @@ jobs:
     with:
       namespace: production
       host: ${{ vars.PRODUCTION_HOST }}
-    secrets:
-      KUBE_CERT: ${{ secrets.KUBE_CERT }}
-      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
-      KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+
       
 
   staging-deploy:

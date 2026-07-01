@@ -19,23 +19,6 @@ on:
         required: true
         type: string
 
-    secrets:
-      KUBE_CERT:
-        description: Kubernetes cluster certificate
-        required: true
-
-      KUBE_CLUSTER:
-        description: Kubernetes cluster hostname
-        required: true
-
-      KUBE_NAMESPACE:
-        description: Kubernetes namespace
-        required: true
-
-      KUBE_TOKEN:
-        description: Kubernetes service account token
-        required: true
-
 jobs:
   deploy_grafana:
     runs-on: ubuntu-latest
@@ -47,10 +30,10 @@ jobs:
       - name: Authenticate with cluster
         shell: bash
         env:
-          KUBE_CERT: ${{ inputs.KUBE_CERT }}
-          KUBE_CLUSTER: ${{ inputs.KUBE_CLUSTER }}
-          KUBE_TOKEN: ${{ inputs.KUBE_TOKEN }}
-          KUBE_NAMESPACE: ${{ inputs.KUBE_NAMESPACE }}
+          KUBE_CERT: ${{ secrets.KUBE_CERT }}
+          KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+          KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           echo "$KUBE_CERT" > ca.crt
 
