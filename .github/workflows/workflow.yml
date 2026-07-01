@@ -77,20 +77,6 @@ jobs:
       SNYK_CLIENT_SECRET: ${{ secrets.SNYK_CLIENT_SECRET }}
       ECR_ROLE_TO_ASSUME: ${{ secrets.ECR_ROLE_TO_ASSUME }}
 
-  deploy-grafana-staging:
-    name: Deploy Grafana to Staging
-    uses: ./.github/workflows/grafana.yml
-    with:
-      namespace: staging
-      host: ${{ vars.STAGING_HOST }}
-
-  deploy-grafana-production:
-    name: Deploy Grafana to Production
-    if: github.ref_name == 'main'
-    uses: ./.github/workflows/grafana.yml
-    with:
-      namespace: production
-      host: ${{ vars.PRODUCTION_HOST }}
 
   staging-deploy:
     name: Staging deploy
@@ -133,3 +119,19 @@ jobs:
           ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           HOST: ${{ vars.PRODUCTION_HOST }}
+          
+  deploy-grafana-staging:
+    name: Deploy Grafana to Staging
+    uses: ./.github/workflows/grafana.yml
+    with:
+      namespace: staging
+      host: ${{ vars.STAGING_HOST }}
+
+  deploy-grafana-production:
+    name: Deploy Grafana to Production
+    if: github.ref_name == 'main'
+    uses: ./.github/workflows/grafana.yml
+    with:
+      namespace: production
+      host: ${{ vars.PRODUCTION_HOST }}
+
