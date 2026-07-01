@@ -91,16 +91,6 @@ runs:
         echo "INGRESS_CLUSTER_NAME=$(kubectl get configmap ingress-cluster -o jsonpath='{.data.name}')" >> "$GITHUB_ENV"
         echo "INGRESS_CLUSTER_WEIGHT=$(kubectl get configmap ingress-cluster -o jsonpath='{.data.weight}')" >> "$GITHUB_ENV"
 
-    - name: Fetch Pingdom IPs
-      shell: bash
-      run: |
-        pip3 install requests --quiet
-        PINGDOM_IPS=$(python3 bin/pingdom_ips.py)
-        echo "PINGDOM_IPS=${PINGDOM_IPS}" >> "$GITHUB_ENV"
-
     - name: Deploy
       shell: bash
-      env:
-        NAMESPACE: ${{ inputs.namespace }}
-        DYNAMIC_HOSTNAME: ${{ inputs.dynamic_hostname }}
-      run: ./bin/${NAMESPACE}_deploy.sh "$DYNAMIC_HOSTNAME"
+      run: kubectl apply -f kubernetes_deploy/${{ inputs.namespace }}/deployment.yml
