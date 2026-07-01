@@ -81,7 +81,6 @@ jobs:
     name: Deploy to graphana
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
       - uses: ./.github/workflows/graphana.yml
         with:
           namespace: staging
@@ -96,7 +95,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref_name == 'main'
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
       - uses: ./.github/actions/graphana.yml
         with:
           namespace: production
@@ -116,7 +114,6 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
       - uses: ./.github/actions/deploy.yml
         with:
           namespace: staging
@@ -139,7 +136,6 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
       - uses: ./.github/actions/deploy.yml
         with:
           namespace: production
