@@ -93,4 +93,4 @@ runs:
 
     - name: Deploy
       shell: bash
-      run: kubectl apply -f kubernetes_deploy/${{ inputs.namespace }}/deployment.yml
+      run: kubectl apply -f kubernetes_deploy/${{ inputs.namespace }}/deployment.yml -n ${{ inputs.namespace }}
