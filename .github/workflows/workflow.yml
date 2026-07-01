@@ -84,7 +84,6 @@ jobs:
       namespace: staging
       host: ${{ vars.STAGING_HOST }}
 
-
   deploy-grafana-production:
     name: Deploy Grafana to Production
     if: github.ref_name == 'main'
@@ -92,8 +91,6 @@ jobs:
     with:
       namespace: production
       host: ${{ vars.PRODUCTION_HOST }}
-
-      
 
   staging-deploy:
     name: Staging deploy
@@ -115,7 +112,6 @@ jobs:
           ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           HOST: ${{ vars.STAGING_HOST }}
-
 
   production-deploy:
     name: Production deploy
