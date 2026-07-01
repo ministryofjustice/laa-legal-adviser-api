@@ -86,18 +86,20 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
-      - uses: ./.github/workflows/deploy.yml
-        with:
-          namespace: staging
-          KUBE_CERT: ${{ secrets.KUBE_CERT }}
-          KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-          KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
-          ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
-          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-          HOST: ${{ vars.STAGING_HOST }}
+
+    uses: ./.github/workflows/deploy.yml
+
+    with:
+      namespace: staging
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      HOST: ${{ vars.STAGING_HOST }}
+
+    secrets:
+      KUBE_CERT: ${{ secrets.KUBE_CERT }}
+      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+      KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+      ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
 
   production-deploy:
     name: Production deploy
