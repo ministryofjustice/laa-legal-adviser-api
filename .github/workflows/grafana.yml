@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       namespace:
-        description: Target namespace (staging, production)
+        description: Target namespace (staging or production)
         required: true
         type: string
 
