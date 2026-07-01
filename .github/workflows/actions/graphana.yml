@@ -27,8 +27,6 @@ inputs:
 
 jobs:
   deploy_grafana:
-    runs-on: ubuntu-latest
-
     steps:
       - name: Authenticate with cluster
       shell: bash
