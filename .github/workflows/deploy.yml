@@ -116,12 +116,6 @@ jobs:
             echo "KUBE_NAMESPACE=${KUBE_NAMESPACE}"
           } >> "$GITHUB_ENV"
 
-      - name: Get ingress cluster info
-        shell: bash
-        run: |
-          echo "INGRESS_CLUSTER_NAME=$(kubectl get configmap ingress-cluster -o jsonpath='{.data.name}')" >> "$GITHUB_ENV"
-          echo "INGRESS_CLUSTER_WEIGHT=$(kubectl get configmap ingress-cluster -o jsonpath='{.data.weight}')" >> "$GITHUB_ENV"
-
       - name: Fetch Pingdom IPs
         shell: bash
         run: |
