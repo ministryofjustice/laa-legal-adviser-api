@@ -20,7 +20,7 @@ spec:
         service_area: laa-get-access
         service_team: cla-fala
     spec:
-      serviceAccountName: laa-legal-adviser-api-staging-irsa-sevice-account
+      serviceAccountName: cd-serviceaccount
       containers:
       - image: "django:python3-onbuild"
         name: app
