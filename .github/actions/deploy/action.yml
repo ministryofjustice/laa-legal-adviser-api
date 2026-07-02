@@ -85,12 +85,6 @@ runs:
         echo "DOCKER_REPOSITORY=${ECR_REGISTRY_URL}/${ECR_REPOSITORY}" >> "$GITHUB_ENV"
         echo "KUBE_NAMESPACE=${KUBE_NAMESPACE}" >> "$GITHUB_ENV"
 
-    - name: Get ingress cluster info
-      shell: bash
-      run: |
-        echo "INGRESS_CLUSTER_NAME=$(kubectl get configmap ingress-cluster -o jsonpath='{.data.name}')" >> "$GITHUB_ENV"
-        echo "INGRESS_CLUSTER_WEIGHT=$(kubectl get configmap ingress-cluster -o jsonpath='{.data.weight}')" >> "$GITHUB_ENV"
-
     - name: Deploy
       shell: bash
       run: kubectl apply -f kubernetes_deploy/${{ inputs.enviroment }}/deployment.yml -n ${{ inputs.namespace }}
