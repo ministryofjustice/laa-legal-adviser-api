@@ -2,8 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kubernetes.io/change-cause: "test-change-cause-update-me"
-  name: laa-legal-adviser-api-test
+    kubernetes.io/change-cause: "<to be filled in deploy_to_kubernetes script>"
+  name: laa-legal-adviser-api
 spec:
   replicas: 2
   selector:

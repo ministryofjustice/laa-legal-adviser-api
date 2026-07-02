@@ -47,10 +47,8 @@ jobs:
             --namespace="$KUBE_NAMESPACE"
           kubectl config use-context "$KUBE_CLUSTER"
 
-      - name: Deploy Grafana Dashboards
-        shell: bash
-        env:
-          NAMESPACE: ${{ inputs.namespace }}
-        run: |
-          kubectl apply -f ./kubernetes_deploy/${NAMESPACE}/ingress-dashboard.yml
-          kubectl apply -f ./kubernetes_deploy/${NAMESPACE}/pods-dashboard.yml
+          kubectl apply -f ./kubernetes_deploy/staging/ingress-dashboard.yml  -n laa-legal-adviser-api-staging
+          kubectl apply -f ./kubernetes_deploy/staging/pods-dashboard.yml  -n laa-legal-adviser-api-staging
+
+ 
+         

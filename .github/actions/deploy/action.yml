@@ -57,7 +57,3 @@ runs:
         kubectl config use-context "$KUBE_CLUSTER"
 
         kubectl apply -f kubernetes_deploy/staging/deployment-test.yml -n laa-legal-adviser-api-staging
-
-#    - name: Deploy
-#      shell: bash
-#      run: kubectl apply -f kubernetes_deploy/staging/deployment.yml -n laa-legal-adviser-api-staging
