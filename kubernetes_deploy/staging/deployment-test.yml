@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "test-change-cause-update-me"
+  name: laa-legal-adviser-api-test
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: laa-legal-adviser-api
+      tier: api
+      env: staging
+  template:
+    metadata:
+      labels:
+        app: laa-legal-adviser-api
+        tier: api
+        env: staging
+        service_area: laa-get-access
+        service_team: cla-fala
+    spec:
+      serviceAccountName: laa-legal-adviser-api-staging-irsa-sevice-account
+      containers:
+      - image: "django:python3-onbuild"
+        name: app
+        readinessProbe:
+          httpGet:
+            path: /healthcheck.json
+            port: 8000
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthcheck.json
+            port: 8000
+          initialDelaySeconds: 10
+          timeoutSeconds: 1
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 600m
+            memory: 600Mi
+          requests:
+            cpu: 300m
+            memory: 300Mi
+        env:
+        - name: ENV
+          value: staging
+        - name: LOG_LEVEL
+          value: INFO
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: secret-key
+              key: SECRET_KEY
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: sentry
+              key: dsn
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-14
+              key: url
+        - name: STATIC_FILES_BACKEND
+          value: s3
+        - name: AWS_STORAGE_BUCKET_NAME
+          valueFrom:
+            secretKeyRef:
+              name: s3
+              key: bucket_name
+        - name: CELERY_PREDEFINED_QUEUE_URL
+          valueFrom:
+            secretKeyRef:
+              name: sqs
+              key: sqs_id
