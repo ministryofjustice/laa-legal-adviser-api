@@ -5,8 +5,6 @@ inputs:
   namespace:
     description: Target namespace (training, production)
     required: true
-  environment:
-    description: The environment that will be using
   dynamic_hostname:
     description: Use dynamic hostname based on branch name
     required: false
@@ -89,4 +87,4 @@ runs:
 
     - name: Deploy
       shell: bash
-      run: kubectl apply -f kubernetes_deploy/${{ inputs.environment }}/deployment.yml 
+      run: kubectl apply -f kubernetes_deploy/${{ inputs.HOST }}/deployment.yml 
