@@ -93,7 +93,7 @@ jobs:
           dynamic_hostname: 'true'
           KUBE_CERT: ${{ secrets.KUBE_CERT }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_NAMESPACE: ${{ secrets.K8_NAMESPACE }}
           KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
           ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
