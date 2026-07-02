@@ -87,4 +87,4 @@ runs:
 
     - name: Deploy
       shell: bash
-      run: kubectl apply -f kubernetes_deploy/${{ inputs.enviroment }}/deployment.yml -n ${{ inputs.namespace }}
+      run: kubectl apply -f kubernetes_deploy/${{ inputs.namespace }}/deployment.yml 
