@@ -8,12 +8,6 @@ on:
         required: true
         type: string
 
-      dynamic_hostname:
-        description: Use dynamic hostname based on branch name
-        required: false
-        type: string
-        default: "false"
-
       host:
         description: Base hostname for deployment
         required: true
@@ -22,9 +16,9 @@ on:
 jobs:
   deploy_grafana:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.namespace }}
+
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  #v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Authenticate with cluster
         shell: bash
@@ -32,18 +26,25 @@ jobs:
           KUBE_CERT: ${{ secrets.KUBE_CERT }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
           KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_NAMESPACE: ${{ inputs.namespace }}
         run: |
+          echo "Using cluster: $KUBE_CLUSTER"
+
           echo "$KUBE_CERT" > ca.crt
+
           kubectl config set-cluster "$KUBE_CLUSTER" \
-            --certificate-authority=./ca.crt \
+            --certificate-authority=ca.crt \
             --server="https://$KUBE_CLUSTER"
-          kubectl config set-credentials deploy-user --token="$KUBE_TOKEN"
+
+          kubectl config set-credentials deploy-user \
+            --token="$KUBE_TOKEN"
+
           kubectl config set-context "$KUBE_CLUSTER" \
             --cluster="$KUBE_CLUSTER" \
             --user=deploy-user \
             --namespace="$KUBE_NAMESPACE"
+
           kubectl config use-context "$KUBE_CLUSTER"
 
-          kubectl apply -f ./kubernetes_deploy/staging/ingress-dashboard.yml  -n laa-legal-adviser-api-staging
-          kubectl apply -f ./kubernetes_deploy/staging/pods-dashboard.yml  -n laa-legal-adviser-api-staging
+          kubectl apply -f ./kubernetes_deploy/staging/ingress-dashboard.yml -n "$KUBE_NAMESPACE"
+          kubectl apply -f ./kubernetes_deploy/staging/pods-dashboard.yml -n "$KUBE_NAMESPACE"
