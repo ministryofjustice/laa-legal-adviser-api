@@ -7,5 +7,6 @@ from categories.views import CategoryViewSet
 router = routers.DefaultRouter()
 router.register(r"legal-advisers", views.AdviserViewSet, basename="legal-advisers")
 router.register(r"categories_of_law", CategoryViewSet, basename="categories")
+router.register(r"dummy_root", CategoryViewSet, basename="categories")
 
 urlpatterns = [re_path(r"^", include(router.urls))]
