@@ -4,9 +4,9 @@ from django.utils import timezone
 
 # Python 3 compatibility
 try:
-    unicode("")  # Python 2
+    unicode("")  # Python 2.
 except NameError:
-    unicode = str  # Python 3
+    unicode = str  # Python 3.
 
 # We can't add category name to model because the categories' data
 # Gets reset during the upload of the provider spreadsheet
