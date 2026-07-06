@@ -49,6 +49,7 @@ jobs:
 
   build-and-push:
     name: Build and Push
+    needs: [Linting-and-unit-test]
     uses: ./.github/workflows/build.yml
     permissions:
       contents: read
@@ -64,7 +65,7 @@ jobs:
     name: Snyk Image Scan
     needs: [build-and-push]
     if: always() #allowed to be passed for the error
-    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@a652d1076b05dd80d3ab619d263aac6ce526d70b
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@a652d1076b05dd80d3ab619d263aac6ce526d70b # unversion
     permissions:
       id-token: write
       contents: read
@@ -91,14 +92,13 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
       - uses: ./.github/actions/deploy
         with:
-          dynamic_hostname: 'true'
           KUBE_CERT: ${{ secrets.KUBE_CERT }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
           KUBE_NAMESPACE: ${{ secrets.K8_NAMESPACE }}
           KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
           ECR_REGISTRY_URL: ${{ secrets.ECR_REGISTRY_URL }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-          HOST: ${{ vars.STAGING_HOST }}
+          
 
   production-deploy:
     name: Production deploy

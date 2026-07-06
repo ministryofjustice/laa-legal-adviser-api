@@ -27,9 +27,6 @@ inputs:
   ECR_REPOSITORY:
     description: ECR repository name
     required: true
-  HOST:
-    description: Base hostname for deployment
-    required: true
 
 
 runs:
@@ -54,4 +51,9 @@ runs:
           --namespace="$KUBE_NAMESPACE"
         kubectl config use-context "$KUBE_CLUSTER"
 
-        kubectl apply -f kubernetes_deploy/staging/deployment-test.yml -n laa-legal-adviser-api-staging
+    - name: Deploy to ${{ inputs.namespace }}
+      shell: bash
+      env:
+        ECR_DEPLOY_IMAGE: ${{ inputs.ECR_REGISTRY_URL }}/${{ inputs.ECR_REPOSITORY }}:${{ github.sha }}
+      run: |
+        ./bin/deploy_to_kubernetes ${{ inputs.namespace }}
