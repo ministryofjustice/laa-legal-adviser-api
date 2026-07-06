@@ -1,9 +1,13 @@
 name: Deploy Grafana Dashboards
-
 on:
   workflow_call:
     inputs:
       namespace:
+        description: Target namespace (staging or production)
+        required: true
+        type: string
+      environment:
+        description: GitHub environment to source secrets from (staging or production)
         required: true
         type: string
     secrets:
@@ -17,8 +21,8 @@ on:
 jobs:
   deploy_grafana:
     runs-on: ubuntu-latest
-    environment: staging
-
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
 
@@ -31,22 +35,37 @@ jobs:
           KUBE_NAMESPACE: ${{ inputs.namespace }}
         run: |
           echo "Using cluster: $KUBE_CLUSTER"
-
           echo "$KUBE_CERT" > ca.crt
-
           kubectl config set-cluster "$KUBE_CLUSTER" \
             --certificate-authority=ca.crt \
             --server="https://$KUBE_CLUSTER"
-
           kubectl config set-credentials deploy-user \
             --token="$KUBE_TOKEN"
-
           kubectl config set-context "$KUBE_CLUSTER" \
             --cluster="$KUBE_CLUSTER" \
             --user=deploy-user \
             --namespace="$KUBE_NAMESPACE"
-
           kubectl config use-context "$KUBE_CLUSTER"
 
-          kubectl apply -f ./kubernetes_deploy/staging/ingress-dashboard.yml -n "$KUBE_NAMESPACE"
-          kubectl apply -f ./kubernetes_deploy/staging/pods-dashboard.yml -n "$KUBE_NAMESPACE"
+      - name: Apply manifests
+        env:
+          KUBE_NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          kubectl apply -f ./kubernetes_deploy/${{ inputs.namespace }}/ingress-dashboard.yml -n "$KUBE_NAMESPACE"
+          kubectl apply -f ./kubernetes_deploy/${{ inputs.namespace }}/pods-dashboard.yml -n "$KUBE_NAMESPACE"
+
+      - name: Rollout restart
+        env:
+          KUBE_NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          kubectl rollout restart deployment/grafana -n "$KUBE_NAMESPACE"
+
+      - name: Wait for rollout and rollback on failure
+        env:
+          KUBE_NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          if ! kubectl rollout status deployment/grafana -n "$KUBE_NAMESPACE" --timeout=300s; then
+            echo "Rollout failed — rolling back"
+            kubectl rollout undo deployment/grafana -n "$KUBE_NAMESPACE"
+            exit 1
+          fi
