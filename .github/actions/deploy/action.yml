@@ -5,8 +5,8 @@ inputs:
   namespace:
     description: Target namespace (training, production)
     required: true
-  dynamic_hostname:
-    description: Use dynamic hostname based on branch name
+  ECR_DEPLOY_IMAGE:
+    description: Find the correct Image name
     required: false
     default: 'false'
   KUBE_CERT:
@@ -54,6 +54,6 @@ runs:
     - name: Deploy to ${{ inputs.namespace }}
       shell: bash
       env:
-        ECR_DEPLOY_IMAGE: ${{ inputs.ECR_REGISTRY_URL }}/${{ inputs.ECR_REPOSITORY }}:${{ github.sha }}
+        ECR_DEPLOY_IMAGE: ${{ inputs.ECR_DEPLOY_IMAGE}}
       run: |
         ./bin/deploy_to_kubernetes ${{ inputs.namespace }}
