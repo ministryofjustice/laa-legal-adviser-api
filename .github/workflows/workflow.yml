@@ -125,13 +125,12 @@ jobs:
     uses: ./.github/workflows/grafana.yml
     with:
       namespace: laa-legal-adviser-api-staging
-      host: ${{ vars.STAGING_HOST }}
-
+    
   deploy-grafana-production:
       name: Deploy Grafana to Production
       if: github.ref_name == 'main'
       uses: ./.github/workflows/grafana.yml
       with:
         namespace: production
-        host: ${{ vars.PRODUCTION_HOST }}
+       
 
