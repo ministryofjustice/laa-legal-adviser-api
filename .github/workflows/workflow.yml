@@ -124,7 +124,7 @@ jobs:
     name: Deploy Grafana to Staging
     uses: ./.github/workflows/grafana.yml
     with:
-      namespace: staging
+      namespace: laa-legal-adviser-api-staging
       host: ${{ vars.STAGING_HOST }}
 
   deploy-grafana-production:
