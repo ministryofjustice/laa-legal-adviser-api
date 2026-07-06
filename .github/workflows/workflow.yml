@@ -93,7 +93,7 @@ jobs:
       - uses: ./.github/actions/deploy
         with:
           namespace: staging
-          ECR_DEPLOY_IMAGE: ${{ needs.build-and-push.image_uri }}
+          ECR_DEPLOY_IMAGE: ${{ needs.build-and-push.outputs.image_uri }}
           KUBE_CERT: ${{ secrets.KUBE_CERT }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
           KUBE_NAMESPACE: ${{ secrets.K8_NAMESPACE }}
