@@ -51,20 +51,16 @@ runs:
         kubectl apply -f ./kubernetes_deploy/${{ inputs.environment_folder }}/ingress-dashboard.yml -n "$KUBE_NAMESPACE"
         kubectl apply -f ./kubernetes_deploy/${{ inputs.environment_folder }}/pods-dashboard.yml -n "$KUBE_NAMESPACE"
 
-    - name: Rollout restart
-      shell: bash
-      env:
-        KUBE_NAMESPACE: ${{ inputs.namespace }}
-      run: |
-        kubectl rollout restart deployment/grafana -n "$KUBE_NAMESPACE"
 
-    - name: Wait for rollout and rollback on failure
+    - name: verify that ConfigMaps applied
       shell: bash
       env:
         KUBE_NAMESPACE: ${{ inputs.namespace }}
       run: |
-        if ! kubectl rollout status deployment/grafana -n "$KUBE_NAMESPACE" --timeout=300s; then
-          echo "Rollout failed — rolling back"
-          kubectl rollout undo deployment/grafana -n "$KUBE_NAMESPACE"
-          exit 1
-        fi
+        for cm in ingress-dashboard pods-dashboard; do
+          if ! kubectl get configmap "$cm" -n "$KUBE_NAMESPACE" &>/dev/null; then
+            echo "::error::ConfigMap $cm not found in $KUBE_NAMESPACE after apply"
+            exit 1
+          fi
+          echo "Verified $cm exists in $KUBE_NAMESPACE"
+        done
