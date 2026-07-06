@@ -92,6 +92,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
       - uses: ./.github/actions/deploy
         with:
+          namespace: staging
           KUBE_CERT: ${{ secrets.KUBE_CERT }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
           KUBE_NAMESPACE: ${{ secrets.K8_NAMESPACE }}
@@ -113,6 +114,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
       - uses: ./.github/actions/deploy
         with:
+          namespace: production
           KUBE_CERT: ${{ secrets.KUBE_CERT }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
