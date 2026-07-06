@@ -125,6 +125,10 @@ jobs:
     uses: ./.github/workflows/grafana.yml
     with:
       namespace: laa-legal-adviser-api-staging
+    secrets:
+      KUBE_CERT: ${{ secrets.KUBE_CERT }}
+      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
     
   deploy-grafana-production:
       name: Deploy Grafana to Production
@@ -132,5 +136,9 @@ jobs:
       uses: ./.github/workflows/grafana.yml
       with:
         namespace: production
+      secrets:
+        KUBE_CERT: ${{ secrets.KUBE_CERT }}
+        KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+        KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
        
 

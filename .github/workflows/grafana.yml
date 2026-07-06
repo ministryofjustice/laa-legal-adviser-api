@@ -4,9 +4,15 @@ on:
   workflow_call:
     inputs:
       namespace:
-        description: Target namespace (staging or production)
         required: true
         type: string
+    secrets:
+      KUBE_CERT:
+        required: true
+      KUBE_CLUSTER:
+        required: true
+      KUBE_TOKEN:
+        required: true
 
 jobs:
   deploy_grafana:
