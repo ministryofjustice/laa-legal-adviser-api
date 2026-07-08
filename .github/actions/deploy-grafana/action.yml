@@ -1,0 +1,66 @@
+# .github/actions/deploy/grafana.yml
+name: Deploy Grafana Dashboards
+description: Applies Grafana dashboard manifests and restarts the deployment
+
+inputs:
+  namespace:
+    description: Target k8s namespace
+    required: true
+  environment_folder:
+    description: Manifest folder name (staging or production)
+    required: true
+  KUBE_CERT:
+    description: Cluster CA cert
+    required: true
+  KUBE_CLUSTER:
+    description: Cluster server URL
+    required: true
+  KUBE_TOKEN:
+    description: Deploy user token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Authenticate with cluster
+      shell: bash
+      env:
+        KUBE_CERT: ${{ inputs.KUBE_CERT }}
+        KUBE_CLUSTER: ${{ inputs.KUBE_CLUSTER }}
+        KUBE_TOKEN: ${{ inputs.KUBE_TOKEN }}
+        KUBE_NAMESPACE: ${{ inputs.namespace }}
+      run: |
+        echo "Using cluster: $KUBE_CLUSTER"
+        echo "$KUBE_CERT" > ca.crt
+        kubectl config set-cluster "$KUBE_CLUSTER" \
+          --certificate-authority=ca.crt \
+          --server="https://$KUBE_CLUSTER"
+        kubectl config set-credentials deploy-user \
+          --token="$KUBE_TOKEN"
+        kubectl config set-context "$KUBE_CLUSTER" \
+          --cluster="$KUBE_CLUSTER" \
+          --user=deploy-user \
+          --namespace="$KUBE_NAMESPACE"
+        kubectl config use-context "$KUBE_CLUSTER"
+
+    - name: Apply manifests
+      shell: bash
+      env:
+        KUBE_NAMESPACE: ${{ inputs.namespace }}
+      run: |
+        kubectl apply -f ./kubernetes_deploy/${{ inputs.environment_folder }}/ingress-dashboard.yml -n "$KUBE_NAMESPACE"
+        kubectl apply -f ./kubernetes_deploy/${{ inputs.environment_folder }}/pods-dashboard.yml -n "$KUBE_NAMESPACE"
+
+
+    - name: verify that ConfigMaps applied
+      shell: bash
+      env:
+        KUBE_NAMESPACE: ${{ inputs.namespace }}
+      run: |
+        for cm in ingress-dashboard pods-dashboard; do
+          if ! kubectl get configmap "$cm" -n "$KUBE_NAMESPACE" &>/dev/null; then
+            echo "::error::ConfigMap $cm not found in $KUBE_NAMESPACE after apply"
+            exit 1
+          fi
+          echo "Verified $cm exists in $KUBE_NAMESPACE"
+        done
