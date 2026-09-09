@@ -4,7 +4,6 @@ import datetime
 from django.test import TestCase
 from advisers.models import Import, IMPORT_STATUSES
 from unittest.mock import patch
-from django.utils import timezone
 from django.contrib.auth.models import User
 
 
@@ -39,7 +38,7 @@ class ImportModelTestCase(TestCase):
 
     @patch("django.utils.timezone.now")
     def test_start_import(self, mock_timezone):
-        mock_timezone.return_value = datetime.datetime(2021, 9, 2, tzinfo=timezone.utc)
+        mock_timezone.return_value = datetime.datetime(2021, 9, 2, tzinfo=datetime.UTC)
         last_import = Import.objects.create(
             task_id=1, status=IMPORT_STATUSES.CREATED, filename="filename", user=self.user
         )
@@ -49,7 +48,7 @@ class ImportModelTestCase(TestCase):
 
     @patch("django.utils.timezone.now")
     def test_complete_import(self, mock_timezone):
-        mock_timezone.return_value = datetime.datetime(2021, 9, 2, tzinfo=timezone.utc)
+        mock_timezone.return_value = datetime.datetime(2021, 9, 2, tzinfo=datetime.UTC)
         last_import = Import.objects.create(
             task_id=1, status=IMPORT_STATUSES.RUNNING, filename="filename", user=self.user
         )
